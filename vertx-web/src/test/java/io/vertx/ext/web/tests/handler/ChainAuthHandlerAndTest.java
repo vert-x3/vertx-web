@@ -6,23 +6,23 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class ChainAuthHandlerAndTest extends WebTestBase {
-
-  public ChainAuthHandlerAndTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class ChainAuthHandlerAndTest extends WebTestBase2 {
 
   private AuthenticationProvider authProvider;
   protected ChainAuthHandler chain;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
 
     authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     AuthenticationHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
@@ -73,6 +73,6 @@ public class ChainAuthHandlerAndTest extends WebTestBase {
     router.route().handler(ctx -> ctx.response().end());
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX==").send(), 401, "Unauthorized", "Unauthorized");
-    Assert.assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate"));
+    assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate"));
   }
 }

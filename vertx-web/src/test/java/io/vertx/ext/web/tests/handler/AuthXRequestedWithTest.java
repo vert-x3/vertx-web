@@ -24,21 +24,17 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class AuthXRequestedWithTest extends AuthHandlerTestBase {
-
-  public AuthXRequestedWithTest() {
-    super(ReportMode.FORBIDDEN);
-  }
 
   @Test
   public void testNoWwwAuthenticateForAjaxCalls() throws Exception {
     String realm = BasicAuthHandler.DEFAULT_REALM;
     Handler<RoutingContext> handler = rc -> {
-      Assert.assertNotNull(rc.user());
-      Assert.assertEquals("tim", rc.user().principal().getString("username"));
+      assertNotNull(rc.user());
+      assertEquals("tim", rc.user().principal().getString("username"));
       rc.response().end("Welcome to the protected resource!");
     };
 
@@ -49,17 +45,17 @@ public class AuthXRequestedWithTest extends AuthHandlerTestBase {
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").send(), 401, "Unauthorized");
     String wwwAuth = resp.headers().get("WWW-Authenticate");
-    Assert.assertNotNull(wwwAuth);
-    Assert.assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
+    assertNotNull(wwwAuth);
+    assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
 
     resp = testRequest(webClient.get("/protected/somepage").putHeader("X-Requested-With", "XMLHttpRequest").send(), 401, "Unauthorized");
     wwwAuth = resp.headers().get("WWW-Authenticate");
-    Assert.assertNull(wwwAuth);
+    assertNull(wwwAuth);
 
     // Now try again with credentials
     resp = testRequest(webClient.get("/protected/somepage").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==").send(), 200, "OK", "Welcome to the protected resource!");
     wwwAuth = resp.headers().get("WWW-Authenticate");
-    Assert.assertNull(wwwAuth);
+    assertNull(wwwAuth);
 
   }
 

@@ -23,17 +23,20 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.GET;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class LocaleTest extends WebTestBase {
+public class LocaleTest extends WebTestBase2 {
 
   private static final String LOCALE = "el-CY";
 
@@ -42,8 +45,9 @@ public class LocaleTest extends WebTestBase {
   protected GraphQLHandler graphQLHandler;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(io.vertx.core.Vertx vertx, io.vertx.junit5.VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     setUpGraphQLHandler();
   }
 
@@ -85,68 +89,44 @@ public class LocaleTest extends WebTestBase {
   }
 
   @Test
-  public void testLocale() throws Exception {
+  public void testLocale() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setLocale(LOCALE)
       .setGraphQLQuery("query { locale }");
-    request.send(client).onComplete(onSuccess(body -> {
-      if (body.getJsonObject("data").getString("locale").equals(LOCALE)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(LOCALE, body.getJsonObject("data").getString("locale"), body.toString());
   }
 
   @Test
-  public void testEmptyLocaleDefaulsToSystemLocale() throws Exception {
+  public void testEmptyLocaleDefaulsToSystemLocale() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setLocale("")
       .setGraphQLQuery("query { locale }");
-    request.send(client).onComplete(onSuccess(body -> {
-
-      Locale expectedLocale = Locale.getDefault();
-      String actualLocale = body.getJsonObject("data").getString("locale");
-      assertEquals(expectedLocale.toLanguageTag(),actualLocale);
-
-      testComplete();
-
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    Locale expectedLocale = Locale.getDefault();
+    String actualLocale = body.getJsonObject("data").getString("locale");
+    assertEquals(expectedLocale.toLanguageTag(), actualLocale);
   }
 
   @Test
-  public void testMultipleLocale() throws Exception {
+  public void testMultipleLocale() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setLocale(LOCALE + ",en-GB")
       .setGraphQLQuery("query { locale }");
-    request.send(client).onComplete(onSuccess(body -> {
-      if (body.getJsonObject("data").getString("locale").equals(LOCALE)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(LOCALE, body.getJsonObject("data").getString("locale"), body.toString());
   }
 
   @Test
-  public void testMultipleWrongLocales() throws Exception {
+  public void testMultipleWrongLocales() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setLocale(",,,," + LOCALE)
       .setGraphQLQuery("query { locale }");
-    request.send(client).onComplete(onSuccess(body -> {
-      if (body.getJsonObject("data").getString("locale").equals(LOCALE)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(LOCALE, body.getJsonObject("data").getString("locale"), body.toString());
   }
 }

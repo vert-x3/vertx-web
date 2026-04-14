@@ -16,7 +16,7 @@
 
 package io.vertx.ext.web.handler.graphql.tests;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static io.vertx.core.http.HttpMethod.PUT;
 
@@ -26,13 +26,10 @@ import static io.vertx.core.http.HttpMethod.PUT;
 public class UnsupportedMethodTest extends GraphQLTestBase {
 
   @Test
-  public void testUnsupportedMethod() throws Exception {
+  public void testUnsupportedMethod() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(PUT)
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client, 405).onComplete(onSuccess(v -> {
-      testComplete();
-    }));
-    await();
+    request.send(webClient, 405);
   }
 }

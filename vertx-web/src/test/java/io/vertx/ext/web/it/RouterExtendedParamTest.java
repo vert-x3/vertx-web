@@ -17,24 +17,20 @@
 package io.vertx.ext.web.it;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author Paulo Lopes
  */
-public class RouterExtendedParamTest extends WebTestBase {
-
-  public RouterExtendedParamTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class RouterExtendedParamTest extends WebTestBase2 {
 
   @Test
   public void testRouteDashVariable() throws Exception {
     router.route("/foo/:my-id").handler(rc -> {
-      Assert.assertEquals("123", rc.pathParam("my-id"));
+      assertEquals("123", rc.pathParam("my-id"));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/foo/123", 200, "OK");
@@ -44,8 +40,8 @@ public class RouterExtendedParamTest extends WebTestBase {
   public void testRouteDashVariableNOK() throws Exception {
     router.route("/flights/:from-:to").handler(rc -> {
       // from isn't set as the alphabet now includes -
-      Assert.assertNull(rc.pathParam("from"));
-      Assert.assertNotNull(rc.pathParam("from-"));
+      assertNull(rc.pathParam("from"));
+      assertNotNull(rc.pathParam("from-"));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/flights/LAX-SFO", 200, "OK");

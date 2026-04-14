@@ -20,12 +20,11 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.WebSocket;
-import io.vertx.test.core.Repeat;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,6 +33,8 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.BooleanSupplier;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -41,13 +42,13 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
-  public void testNoDeadlockWhenWritingFromAnotherThreadWithSseTransport() throws Exception {
+  public void testNoDeadlockWhenWritingFromAnotherThreadWithSseTransport(VertxTestContext testContext) throws Exception {
     socketHandler = () -> {
       return socket -> {
         AtomicBoolean closed = new AtomicBoolean();
         socket.endHandler(v -> {
           closed.set(true);
-          testComplete();
+          testContext.completeNow();
         });
         new Thread(() -> {
           while (!closed.get()) {
@@ -68,15 +69,14 @@ public class SockJSSessionTest extends SockJSTestBase {
         });
       }));
     }));
-    await();
   }
 
   @Test
-  public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport() throws Exception {
-    Assume.assumeFalse(PlatformDependent.isWindows());
+  public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport(VertxTestContext testContext) throws Exception {
+    Assumptions.assumeFalse(PlatformDependent.isWindows());
     final Buffer random = Buffer.buffer(TestUtils.randomAlphaString(256));
     int numMsg = 1000;
-    waitFor(1);
+    Checkpoint cp = testContext.checkpoint(1);
     AtomicInteger clientReceived = new AtomicInteger();
     AtomicInteger serverReceived = new AtomicInteger();
     BooleanSupplier shallStop = () -> clientReceived.get() > numMsg * 256 && serverReceived.get() > numMsg * 256;
@@ -91,7 +91,7 @@ public class SockJSSessionTest extends SockJSTestBase {
             try {
               socket
                 .write(random)
-                .onFailure(err -> Assert.fail(err.getMessage()));
+                .onFailure(err -> fail(err.getMessage()));
             } catch (IllegalStateException e) {
               // Websocket has been closed
             }
@@ -111,20 +111,19 @@ public class SockJSSessionTest extends SockJSTestBase {
           .onComplete(TestUtils.onSuccess(v -> {
             if (shallStop.getAsBoolean() && stopped.compareAndSet(false, true)) {
               ws.handler(null);
-              complete();
+              cp.flag();
             }
           }));
       });
     }));
-    await();
   }
 
   @Test
-  public void testCombineMultipleFramesIntoASingleMessage() throws Exception {
+  public void testCombineMultipleFramesIntoASingleMessage(VertxTestContext testContext) throws Exception {
     socketHandler = () -> {
       return socket -> socket.handler(buf -> {
-        Assert.assertEquals("Hello World", buf.toString());
-        testComplete();
+        assertEquals("Hello World", buf.toString());
+        testContext.completeNow();
       });
     };
     startServers();
@@ -133,11 +132,10 @@ public class SockJSSessionTest extends SockJSTestBase {
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(" World\"]"), true));
       ws.close();
     }));
-    await();
   }
 
   @Test
-  public void doesNotSendEmptyAnswerForWriteSentInEarlierBatch() throws Exception {
+  public void doesNotSendEmptyAnswerForWriteSentInEarlierBatch(VertxTestContext testContext) throws Exception {
     AtomicInteger answerCount = new AtomicInteger();
     socketHandler = () -> {
       return socket -> socket.handler(buf -> {
@@ -167,14 +165,13 @@ public class SockJSSessionTest extends SockJSTestBase {
             }
             break;
           case CLOSE:
-            Assert.assertEquals(1, answerCount.get());
-            testComplete();
+            assertEquals(1, answerCount.get());
+            testContext.completeNow();
             break;
         }
       });
       ws.writeFinalTextFrame("\"\"");
     }));
-    await();
   }
 
   private CountDownLatch blockTransportContext(Context context) {

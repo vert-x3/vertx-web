@@ -17,25 +17,21 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class MultiAuthorizationHandlerTest extends WebTestBase {
-
-  public MultiAuthorizationHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class MultiAuthorizationHandlerTest extends WebTestBase2 {
 
   JWTAuth authProvider;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     authProvider = JWTAuth.create(vertx, new JWTAuthOptions()
       .setKeyStore(new KeyStoreOptions()
@@ -54,8 +50,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
 
     router.route("/protected/page1").handler(rc -> {
-      Assert.assertNotNull(rc.user());
-      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user());
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -77,8 +73,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(AuthorizationHandler.create(RoleBasedAuthorization.create("role1")));
 
     router.route("/protected/page1").handler(rc -> {
-      Assert.assertNotNull(rc.user());
-      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user());
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -104,8 +100,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      Assert.assertNotNull(rc.user());
-      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user());
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -133,8 +129,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      Assert.assertNotNull(rc.user());
-      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user());
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -162,8 +158,8 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      Assert.assertNotNull(rc.user());
-      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user());
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -206,14 +202,14 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
       .addAuthorizationProvider(createProvider("authzProvider1", RoleBasedAuthorization.create("role2"))));
 
     router.route("/protected1/page1").handler(rc -> {
-      Assert.assertNotNull(rc.user());
-      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user());
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
     router.route("/protected/page1").handler(rc -> {
-      Assert.assertNotNull(rc.user());
-      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user());
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 
@@ -226,7 +222,7 @@ public class MultiAuthorizationHandlerTest extends WebTestBase {
         .send(),
       200, "OK", "Welcome");
     String cookie = res.getHeader("Set-Cookie");
-    Assert.assertNotNull(cookie);
+    assertNotNull(cookie);
     session.set(cookie);
 
     // 2nd try it hangs?

@@ -17,26 +17,22 @@
 package io.vertx.ext.web.tests.handler;
 
 import io.vertx.ext.web.handler.MethodOverrideHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import io.vertx.core.http.HttpMethod;
 
 /**
  * @author <a href="mailto:victorqrsilva@gmail.com">Victor Quezado</a>
  */
-public class MethodOverrideHandlerTest extends WebTestBase {
-
-  public MethodOverrideHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class MethodOverrideHandlerTest extends WebTestBase2 {
 
   private MethodOverrideHandler handlerWithSafeDowngrading = MethodOverrideHandler.create();
   private MethodOverrideHandler handlerWithoutSafeDowngrading = MethodOverrideHandler.create(false);
 
   @Test
   public void testFoo() {
-    Assert.assertTrue("It is true", true);
+    assertTrue(true, "It is true");
   }
 
   @Test
@@ -73,7 +69,7 @@ public class MethodOverrideHandlerTest extends WebTestBase {
     MethodOverrideHandler overridingHandler = (safe) ? handlerWithSafeDowngrading : handlerWithoutSafeDowngrading;
     router.route().handler(overridingHandler);
     router.route().handler(rc -> {
-      Assert.assertEquals(expectedMethod.name(), rc.request().method().name());
+      assertEquals(expectedMethod.name(), rc.request().method().name());
       rc.response().end();
     });
     testRequestWithMethodOverride(overridedMethod, overridingMethod);

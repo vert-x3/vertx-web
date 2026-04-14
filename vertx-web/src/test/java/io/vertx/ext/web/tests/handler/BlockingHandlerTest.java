@@ -20,9 +20,12 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpResponseExpectation;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,15 +33,12 @@ import java.util.List;
 /**
  * @author <a href="mailto:stephane.bastian.dev@gmail.com">Stéphane Bastian</a>
  */
-public class BlockingHandlerTest extends WebTestBase {
-
-  public BlockingHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class BlockingHandlerTest extends WebTestBase2 {
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
   }
 
   @Test
@@ -48,36 +48,36 @@ public class BlockingHandlerTest extends WebTestBase {
     router.route().handler(rc -> {
       threads.add(Thread.currentThread());
       contexts.add(rc.vertx().getOrCreateContext());
-      Assert.assertTrue(rc.currentRoute() != null);
+      assertTrue(rc.currentRoute() != null);
       rc.response().setChunked(true);
       rc.response().write("A");
       rc.next();
     });
     router.route().blockingHandler(rc -> {
-      Assert.assertTrue(!threads.get(0).equals(Thread.currentThread()));
-      Assert.assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
-      Assert.assertTrue(rc.currentRoute()!=null);
+      assertTrue(!threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
       rc.response().write("B");
       rc.next();
     });
     router.route().blockingHandler(rc -> {
-      Assert.assertTrue(!threads.get(0).equals(Thread.currentThread()));
-      Assert.assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
-      Assert.assertTrue(rc.currentRoute()!=null);
+      assertTrue(!threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
       rc.response().write("C");
       rc.next();
     });
     router.route().handler(rc -> {
-      Assert.assertTrue(threads.get(0).equals(Thread.currentThread()));
-      Assert.assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
-      Assert.assertTrue(rc.currentRoute()!=null);
+      assertTrue(threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
       rc.response().write("D");
       rc.next();
     });
     router.route().handler(rc -> {
-      Assert.assertTrue(threads.get(0).equals(Thread.currentThread()));
-      Assert.assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
-      Assert.assertTrue(rc.currentRoute()!=null);
+      assertTrue(threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
       rc.response().write("E");
       rc.response().end();
     });
@@ -95,15 +95,15 @@ public class BlockingHandlerTest extends WebTestBase {
       rc.next();
     });
     router.route().blockingHandler(rc -> {
-      Assert.assertTrue(!threads.get(0).equals(Thread.currentThread()));
-      Assert.assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
-      Assert.assertTrue(rc.currentRoute()!=null);
+      assertTrue(!threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
       rc.fail(501);
     });
     router.route().failureHandler(rc -> {
-      Assert.assertTrue(threads.get(0).equals(Thread.currentThread()));
-      Assert.assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
-      Assert.assertTrue(rc.currentRoute()!=null);
+      assertTrue(threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
       rc.response().setStatusCode(rc.statusCode()).end();
     });
     testRequest(HttpMethod.GET, "/", 501, "Not Implemented");
@@ -119,19 +119,19 @@ public class BlockingHandlerTest extends WebTestBase {
       rc.next();
     });
     router.route().blockingHandler(rc -> {
-      Assert.assertTrue(!threads.get(0).equals(Thread.currentThread()));
-      Assert.assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
-      Assert.assertTrue(rc.currentRoute()!=null);
+      assertTrue(!threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
       throw new RuntimeException("foo");
     });
     router.route().failureHandler(rc -> {
-      Assert.assertTrue(threads.get(0).equals(Thread.currentThread()));
-      Assert.assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
-      Assert.assertTrue(rc.currentRoute()!=null);
+      assertTrue(threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
       Throwable t = rc.failure();
-      Assert.assertNotNull(t);
-      Assert.assertTrue(t instanceof RuntimeException);
-      Assert.assertEquals("foo", t.getMessage());
+      assertNotNull(t);
+      assertTrue(t instanceof RuntimeException);
+      assertEquals("foo", t.getMessage());
       rc.response().setStatusCode(500).end();
     });
     testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
@@ -166,7 +166,7 @@ public class BlockingHandlerTest extends WebTestBase {
     // we sleep for 5 seconds and we expect to be done within 2 + 1 seconds
     // this proves we run in parallel
     long leeway = 2000;
-    Assert.assertTrue(now - start < pause + leeway);
+    assertTrue(now - start < pause + leeway);
   }
 
 }

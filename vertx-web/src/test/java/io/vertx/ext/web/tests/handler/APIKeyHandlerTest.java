@@ -23,23 +23,19 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.web.handler.APIKeyHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Paulo Lopes
  */
-public class APIKeyHandlerTest extends WebTestBase {
-
-  public APIKeyHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class APIKeyHandlerTest extends WebTestBase2 {
 
   AuthenticationProvider authProvider;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     authProvider = credentials -> {
       TokenCredentials tokenCredentials = (TokenCredentials) credentials;
@@ -57,7 +53,7 @@ public class APIKeyHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(APIKeyHandler.create(authProvider));
 
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -74,7 +70,7 @@ public class APIKeyHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(APIKeyHandler.create(authProvider).header("xyz-api-key"));
 
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -91,7 +87,7 @@ public class APIKeyHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(APIKeyHandler.create(authProvider).parameter("api_key"));
 
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -108,7 +104,7 @@ public class APIKeyHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(APIKeyHandler.create(authProvider).cookie("api-key"));
 
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -125,7 +121,7 @@ public class APIKeyHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(APIKeyHandler.create(authProvider).tokenExtractor(token -> Future.succeededFuture(token.substring(token.indexOf(" ") + 1))));
 
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 

@@ -18,14 +18,10 @@ package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import org.junit.jupiter.api.Test;
 
-public class StaticHandlerWindowsTest extends WebTestBase {
-
-  public StaticHandlerWindowsTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class StaticHandlerWindowsTest extends WebTestBase2 {
 
   @Test
   public void testEscapeToClasspathFromWildcard() throws Exception {

@@ -21,24 +21,24 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class StaticHandler4Test extends WebTestBase {
-
-  public StaticHandler4Test() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class StaticHandler4Test extends WebTestBase2 {
 
   protected StaticHandler stat;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     stat = StaticHandler.create(FileSystemAccess.RELATIVE, "nasty");
     router.route("/*").handler(stat);
   }
@@ -54,7 +54,7 @@ public class StaticHandler4Test extends WebTestBase {
 
     // without / should redirect first
     HttpResponse<Buffer> resp = testRequest(webClient.get("/index.html").followRedirects(false).send(), 301, "Moved Permanently");
-    Assert.assertEquals("/index.html/", resp.getHeader("Location"));
+    assertEquals("/index.html/", resp.getHeader("Location"));
 
     testRequest(HttpMethod.GET, "/index.html/", 200, "OK", "<html><body>Nasty index page</body></html>");
 

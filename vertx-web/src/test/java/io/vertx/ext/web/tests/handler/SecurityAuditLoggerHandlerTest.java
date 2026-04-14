@@ -31,10 +31,12 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.SecurityAuditLoggerHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -42,15 +44,11 @@ import org.junit.Test;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class SecurityAuditLoggerHandlerTest extends WebTestBase {
-
-  public SecurityAuditLoggerHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class SecurityAuditLoggerHandlerTest extends WebTestBase2 {
 
   JWTAuth authProvider;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     authProvider = JWTAuth.create(vertx, new JWTAuthOptions()
       .setKeyStore(new KeyStoreOptions()
@@ -60,8 +58,9 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
   }
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
   }
 
   @Test
@@ -138,8 +137,8 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
       );
 
     router.route("/protected/page1").handler(rc -> {
-      Assert.assertNotNull(rc.userContext());
-      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.userContext());
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome");
     });
 

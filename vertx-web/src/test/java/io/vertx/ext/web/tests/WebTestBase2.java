@@ -28,7 +28,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
-import org.junit.Assert;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -44,7 +44,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @VertxTest
-public class WebTestBase2 {
+public abstract class WebTestBase2 {
 
   protected static Set<HttpMethod> METHODS = new HashSet<>(Arrays.asList(HttpMethod.DELETE, HttpMethod.GET,
     HttpMethod.HEAD, HttpMethod.PATCH, HttpMethod.OPTIONS, HttpMethod.TRACE, HttpMethod.POST, HttpMethod.PUT));
@@ -57,7 +57,7 @@ public class WebTestBase2 {
   protected Router router;
 
   @BeforeEach
-  public void setUp(Vertx vertx, VertxTestContext testContext) {
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
     this.vertx = vertx;
     router = Router.router(vertx);
     server = vertx.createHttpServer(getHttpServerOptions().setMaxFormFields(2048));
@@ -83,7 +83,7 @@ public class WebTestBase2 {
   }
 
   @AfterEach
-  public void tearDown(VertxTestContext testContext) {
+  public void tearDown(VertxTestContext testContext) throws Exception {
     if (client != null) {
       client.close().onComplete(ar -> {
         if (server != null) {
@@ -99,17 +99,17 @@ public class WebTestBase2 {
     }
   }
 
-  protected void testRequest(HttpMethod method, String path, HttpResponseStatus statusCode) {
-    testRequest(webClient.request(method, path), statusCode.code(), statusCode.reasonPhrase());
+  protected HttpResponse<Buffer> testRequest(HttpMethod method, String path, HttpResponseStatus statusCode) {
+    return testRequest(webClient.request(method, path), statusCode.code(), statusCode.reasonPhrase());
   }
 
-  protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage) {
-    testRequest(webClient.request(method, path), statusCode, statusMessage);
+  protected HttpResponse<Buffer> testRequest(HttpMethod method, String path, int statusCode, String statusMessage) {
+    return testRequest(webClient.request(method, path), statusCode, statusMessage);
   }
 
-  protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage,
+  protected HttpResponse<Buffer> testRequest(HttpMethod method, String path, int statusCode, String statusMessage,
                              String responseBody) {
-    testRequest(webClient.request(method, path), statusCode, statusMessage, responseBody);
+    return testRequest(webClient.request(method, path), statusCode, statusMessage, responseBody);
   }
 
   protected HttpResponse<Buffer> testRequestWithContentType(HttpMethod method, String path, String contentType, int statusCode, String statusMessage) throws Exception {
@@ -142,10 +142,10 @@ public class WebTestBase2 {
 
   protected HttpResponse<Buffer> testRequest(Future<HttpResponse<Buffer>> request, int statusCode, String statusMessage, String responseBody) {
     HttpResponse<Buffer> response = request.await();
-    Assert.assertEquals(statusCode, response.statusCode());
-    Assert.assertEquals(statusMessage, response.statusMessage());
+    assertEquals(statusCode, response.statusCode());
+    assertEquals(statusMessage, response.statusMessage());
     if (responseBody != null) {
-      Assert.assertEquals(Buffer.buffer(responseBody), response.body());
+      assertEquals(Buffer.buffer(responseBody), response.body());
     }
     return response;
   }

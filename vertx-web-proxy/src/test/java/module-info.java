@@ -19,6 +19,9 @@ open module io.vertx.web.proxy.tests {
   requires io.vertx.web;
   requires io.vertx.web.proxy;
   requires io.vertx.web.tests;
+  requires io.vertx.web.client;
+  requires io.vertx.testing.junit5;
+  requires org.junit.jupiter.api;
   requires junit;
   requires io.vertx.auth.common;
 }

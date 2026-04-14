@@ -4,17 +4,13 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
-public class SockJSCORSTest extends WebTestBase {
-
-  public SockJSCORSTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class SockJSCORSTest extends WebTestBase2 {
 
   @Test
   public void testSockJSInternalCORSHandling() {
@@ -27,8 +23,8 @@ public class SockJSCORSTest extends WebTestBase {
       .send()
       .expecting(HttpResponseExpectation.SC_OK)
       .await();
-    Assert.assertEquals("http://example.com", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN.toString()));
-    Assert.assertEquals("true", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS.toString()));
+    assertEquals("http://example.com", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN.toString()));
+    assertEquals("true", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS.toString()));
   }
 
   @Test
@@ -44,17 +40,19 @@ public class SockJSCORSTest extends WebTestBase {
       .send()
       .expecting(HttpResponseExpectation.SC_OK)
       .await();
-    Assert.assertEquals("*", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN.toString()));
-    Assert.assertFalse(resp.headers().contains(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS.toString()));
+    assertEquals("*", resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN.toString()));
+    assertFalse(resp.headers().contains(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS.toString()));
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testNoConflictsSockJSAndCORSHandlerBadSetup() {
-    router
-      .route()
-      .handler(BodyHandler.create())
-      .handler(CorsHandler.create().addOriginWithRegex(".*").allowCredentials(false));
-    SockJSProtocolTest.installTestApplications(router, vertx);
+    assertThrows(IllegalStateException.class, () -> {
+      router
+        .route()
+        .handler(BodyHandler.create())
+        .handler(CorsHandler.create().addOriginWithRegex(".*").allowCredentials(false));
+      SockJSProtocolTest.installTestApplications(router, vertx);
+    });
   }
 
   @Test

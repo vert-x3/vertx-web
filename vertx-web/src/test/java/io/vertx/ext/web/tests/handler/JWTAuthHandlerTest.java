@@ -26,25 +26,21 @@ import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.JWTAuthHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
 /**
  * @author Paulo Lopes
  */
-public class JWTAuthHandlerTest extends WebTestBase {
-
-  public JWTAuthHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class JWTAuthHandlerTest extends WebTestBase2 {
 
   JWTAuth authProvider;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     authProvider = JWTAuth.create(vertx, new JWTAuthOptions()
       .setKeyStore(new KeyStoreOptions()
@@ -57,8 +53,8 @@ public class JWTAuthHandlerTest extends WebTestBase {
   public void testLogin() throws Exception {
 
     Handler<RoutingContext> handler = rc -> {
-      Assert.assertNotNull(rc.user());
-      Assert.assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
+      assertNotNull(rc.user());
+      assertEquals("paulo", rc.user().attributes().getJsonObject("accessToken").getString("sub"));
       rc.response().end("Welcome to the protected resource!");
     };
 
@@ -77,7 +73,7 @@ public class JWTAuthHandlerTest extends WebTestBase {
   public void testLoginFail() throws Exception {
 
     Handler<RoutingContext> handler = rc -> {
-      Assert.fail("should not get here");
+      fail("should not get here");
       rc.response().end("Welcome to the protected resource!");
     };
 

@@ -37,20 +37,18 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.impl.JsonCodec;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -60,15 +58,7 @@ import java.util.function.BiConsumer;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@RunWith(Parameterized.class)
-public class EventbusBridgeTest extends WebTestBase {
-
-  @Parameterized.Parameters(name = "{index}: transport = {0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][]{
-      {Transport.RAW_WS}, {Transport.WS}
-    });
-  }
+public abstract class EventbusBridgeTest extends WebTestBase2 {
 
   protected SockJSHandler sockJS;
   protected SockJSBridgeOptions defaultOptions = new SockJSBridgeOptions();
@@ -81,56 +71,54 @@ public class EventbusBridgeTest extends WebTestBase {
   private final Transport transport;
 
   public EventbusBridgeTest(Transport transport) {
-    super(ReportMode.FORBIDDEN);
     this.transport = transport;
   }
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(io.vertx.core.Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     sockJS = SockJSHandler.create(vertx);
   }
 
   @Test
-  public void testHookCreateSocket() throws Exception {
+  public void testHookCreateSocket(VertxTestContext testContext) throws Exception {
 
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SOCKET_CREATED) {
-          Assert.assertNotNull(be.socket());
-          Assert.assertNull(be.getRawMessage());
+          assertNotNull(be.socket());
+          assertNull(be.getRawMessage());
           be.complete(true);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testSend("foobar");
-    await();
   }
 
   @Test
-  public void testHookCreateSocketRejected() throws Exception {
+  public void testHookCreateSocketRejected(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> be.complete(be.type() != BridgeEventType.SOCKET_CREATED)));
 
     BridgeClient client = new BridgeClient(super.wsClient, transport);
     client
-      .closeHandler(v -> testComplete())
+      .closeHandler(v -> testContext.completeNow())
       .connect(websocketURI);
-    await();
   }
 
   @Test
-  public void testHookSocketClosed() throws Exception {
+  public void testHookSocketClosed(VertxTestContext testContext) throws Exception {
 
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SOCKET_CLOSED) {
-          Assert.assertNotNull(be.socket());
-          Assert.assertNull(be.getRawMessage());
+          assertNotNull(be.socket());
+          assertNull(be.getRawMessage());
           be.complete(true);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
@@ -139,19 +127,18 @@ public class EventbusBridgeTest extends WebTestBase {
     BridgeClient client = new BridgeClient(super.wsClient, transport);
     client.connect(websocketURI).onComplete(TestUtils.onSuccess(v -> client.close()));
 
-    await();
   }
 
   @Test
-  public void testHookSocketClosedAbruptly() throws Exception {
+  public void testHookSocketClosedAbruptly(VertxTestContext testContext) throws Exception {
 
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SOCKET_CLOSED) {
-          Assert.assertNotNull(be.socket());
-          Assert.assertNull(be.getRawMessage());
+          assertNotNull(be.socket());
+          assertNull(be.getRawMessage());
           be.complete(true);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
@@ -160,198 +147,186 @@ public class EventbusBridgeTest extends WebTestBase {
     BridgeClient client = new BridgeClient(super.wsClient, transport);
     client.connect(websocketURI).onComplete(TestUtils.onSuccess(v -> client.transportClient.result().abruptClose()));
 
-    await();
   }
 
   @Test
-  public void testHookSend() throws Exception {
+  public void testHookSend(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SEND) {
-          Assert.assertNotNull(be.socket());
+          assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          Assert.assertEquals(addr, raw.getString("address"));
-          Assert.assertEquals("foobar", raw.getString("body"));
+          assertEquals(addr, raw.getString("address"));
+          assertEquals("foobar", raw.getString("body"));
           be.complete(true);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testSend("foobar");
-    await();
   }
 
   @Test
-  public void testHookSendHeaders() throws Exception {
+  public void testHookSendHeaders(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SEND) {
-          Assert.assertNotNull(be.socket());
+          assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          Assert.assertEquals(addr, raw.getString("address"));
-          Assert.assertEquals("foobar", raw.getString("body"));
+          assertEquals(addr, raw.getString("address"));
+          assertEquals("foobar", raw.getString("body"));
           raw.put("headers", new JsonObject().put("hdr1", "val1").put("hdr2", "val2"));
           be.setRawMessage(raw);
           be.complete(true);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testSend(addr, "foobar", true);
-    await();
   }
 
   @Test
-  public void testHookSendRejected() throws Exception {
+  public void testHookSendRejected(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SEND) {
           be.complete(false);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foobar"),
       "rejected");
-    await();
   }
 
   @Test
-  public void testHookSendMissingAddress() throws Exception {
+  public void testHookSendMissingAddress(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SEND) {
           be.getRawMessage().remove("address");
-          testComplete();
+          testContext.completeNow();
         }
         be.complete(true);
       }));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foobar"),
       "missing_address");
-    await();
   }
 
   @Test
-  public void testHookPublish() throws Exception {
+  public void testHookPublish(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.PUBLISH) {
-          Assert.assertNotNull(be.socket());
+          assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          Assert.assertEquals(addr, raw.getString("address"));
-          Assert.assertEquals("foobar", raw.getString("body"));
+          assertEquals(addr, raw.getString("address"));
+          assertEquals("foobar", raw.getString("body"));
           be.complete(true);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testPublish("foobar");
-    await();
   }
 
   @Test
-  public void testHookPublishHeaders() throws Exception {
+  public void testHookPublishHeaders(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.PUBLISH) {
-          Assert.assertNotNull(be.socket());
+          assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          Assert.assertEquals(addr, raw.getString("address"));
-          Assert.assertEquals("foobar", raw.getString("body"));
+          assertEquals(addr, raw.getString("address"));
+          assertEquals("foobar", raw.getString("body"));
           raw.put("headers", new JsonObject().put("hdr1", "val1").put("hdr2", "val2"));
           be.setRawMessage(raw);
           be.complete(true);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testPublish(addr, "foobar", true);
-    await();
   }
 
   @Test
-  public void testHookPubRejected() throws Exception {
+  public void testHookPubRejected(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.PUBLISH) {
           be.complete(false);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testError(new JsonObject().put("type", "publish").put("address", addr).put("body", "foobar"),
       "rejected");
-    await();
   }
 
   @Test
-  public void testHookPublishMissingAddress() throws Exception {
+  public void testHookPublishMissingAddress(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.PUBLISH) {
           be.getRawMessage().remove("address");
-          testComplete();
+          testContext.completeNow();
         }
         be.complete(true);
       }));
     testError(new JsonObject().put("type", "publish").put("address", addr).put("body", "foobar"),
       "missing_address");
-    await();
   }
 
   @Test
-  public void testHookRegister() throws Exception {
+  public void testHookRegister(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.REGISTER) {
-          Assert.assertNotNull(be.socket());
+          assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          Assert.assertEquals(addr, raw.getString("address"));
+          assertEquals(addr, raw.getString("address"));
           be.complete(true);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testReceive("foobar");
-    await();
   }
 
   @Test
-  public void testHookRegisterRejected() throws Exception {
+  public void testHookRegisterRejected(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.REGISTER) {
           be.complete(false);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testError(new JsonObject().put("type", "register").put("address", addr),
       "rejected");
-    await();
   }
 
   @Test
-  public void testHookRegisterMissingAddress() throws Exception {
+  public void testHookRegisterMissingAddress(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.REGISTER) {
           be.getRawMessage().remove("address");
-          testComplete();
+          testContext.completeNow();
         }
         be.complete(true);
       }));
     testError(new JsonObject().put("type", "register").put("address", addr).put("body", "foobar"),
       "missing_address");
-    await();
   }
 
   @Test
@@ -369,14 +344,14 @@ public class EventbusBridgeTest extends WebTestBase {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.REGISTER) {
-          Assert.assertNotNull(be.socket());
+          assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          Assert.assertEquals(addr, raw.getString("address"));
+          assertEquals(addr, raw.getString("address"));
           registerLatch.countDown();
         } else if (be.type() == BridgeEventType.REGISTERED) {
-          Assert.assertNotNull(be.socket());
+          assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          Assert.assertEquals(addr, raw.getString("address"));
+          assertEquals(addr, raw.getString("address"));
 
           // The client should be able to receive this message
           vertx.eventBus().send(addr, payload);
@@ -389,8 +364,8 @@ public class EventbusBridgeTest extends WebTestBase {
     BridgeClient client = new BridgeClient(super.wsClient, transport);
 
     client.handler((address, received) -> {
-      Assert.assertEquals(addr, address);
-      Assert.assertEquals(payload, received.getString("body"));
+      assertEquals(addr, address);
+      assertEquals(payload, received.getString("body"));
       client.close().onComplete(v2 -> requestLatch.countDown());
     });
 
@@ -406,87 +381,82 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookReceive() throws Exception {
+  public void testHookReceive(VertxTestContext testContext) throws Exception {
 
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.RECEIVE) {
-          Assert.assertNotNull(be.socket());
+          assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          Assert.assertEquals(addr, raw.getString("address"));
-          Assert.assertEquals("foobar", raw.getString("body"));
+          assertEquals(addr, raw.getString("address"));
+          assertEquals("foobar", raw.getString("body"));
           be.complete(true);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testReceive("foobar");
-    await();
   }
 
   @Test
-  public void testHookReceiveRejected() throws Exception {
+  public void testHookReceiveRejected(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.RECEIVE) {
           be.complete(false);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testReceiveFail(addr, "foobar");
-    await();
   }
 
   @Test
-  public void testHookUnregister() throws Exception {
+  public void testHookUnregister(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.UNREGISTER) {
-          Assert.assertNotNull(be.socket());
+          assertNotNull(be.socket());
           JsonObject raw = be.getRawMessage();
-          Assert.assertEquals(addr, raw.getString("address"));
+          assertEquals(addr, raw.getString("address"));
           be.complete(true);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testUnregister(addr);
-    await();
   }
 
   @Test
-  public void testHookUnregisterRejected() throws Exception {
+  public void testHookUnregisterRejected(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.UNREGISTER) {
           be.complete(false);
-          testComplete();
+          testContext.completeNow();
         } else {
           be.complete(true);
         }
       }));
     testError(new JsonObject().put("type", "unregister").put("address", addr),
       "rejected");
-    await();
   }
 
   @Test
-  public void testHookUnregisterMissingAddress() throws Exception {
+  public void testHookUnregisterMissingAddress(VertxTestContext testContext) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.UNREGISTER) {
           be.getRawMessage().remove("address");
-          testComplete();
+          testContext.completeNow();
         }
         be.complete(true);
       }));
     testError(new JsonObject().put("type", "unregister").put("address", addr).put("body", "foobar"),
       "missing_address");
-    await();
   }
 
   @Test
@@ -864,7 +834,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
       consumer.handler(msg -> {
         Object receivedBody = msg.body();
-        Assert.assertEquals("foobar", receivedBody);
+        assertEquals("foobar", receivedBody);
         msg.reply("barfoo");
         consumer.unregister();
       });
@@ -873,8 +843,8 @@ public class EventbusBridgeTest extends WebTestBase {
 
       client.handler((addr, raw) -> {
         Object body = raw.getValue("body");
-        Assert.assertEquals(replyAddress, addr);
-        Assert.assertEquals("barfoo", body);
+        assertEquals(replyAddress, addr);
+        assertEquals("barfoo", body);
         client.close().onComplete(TestUtils.onSuccess(v2 -> latch.countDown()));
       });
 
@@ -900,26 +870,26 @@ public class EventbusBridgeTest extends WebTestBase {
 
       consumer.handler(msg -> {
         Object receivedBody = msg.body();
-        Assert.assertEquals("foobar", receivedBody);
+        assertEquals("foobar", receivedBody);
         msg.reply("barfoo", new DeliveryOptions().addHeader("headfoo", "headbar").addHeader("explode", "m1").addHeader("explode", "m2"));
         consumer.unregister();
       });
 
       client.handler((addr, raw) -> {
         Object rec = raw.getValue("body");
-        Assert.assertEquals("barfoo", rec);
+        assertEquals("barfoo", rec);
         JsonObject headers = raw.getJsonObject("headers");
-        Assert.assertNotNull(headers);
-        Assert.assertEquals("headbar", headers.getString("headfoo"));
-        Assert.assertTrue(headers.getJsonArray("explode").contains("m1"));
-        Assert.assertTrue(headers.getJsonArray("explode").contains("m2"));
+        assertNotNull(headers);
+        assertEquals("headbar", headers.getString("headfoo"));
+        assertTrue(headers.getJsonArray("explode").contains("m1"));
+        assertTrue(headers.getJsonArray("explode").contains("m2"));
         client.close().onComplete(TestUtils.onSuccess(v2 -> latch.countDown()));
       });
 
       String replyAddress = UUID.randomUUID().toString();
 
       client.sendOrPublish(addr, "send", replyAddress, "foobar")
-        .onFailure(err -> Assert.fail(err.getMessage()));
+        .onFailure(err -> fail(err.getMessage()));
     }));
 
     TestUtils.awaitLatch(latch);
@@ -939,7 +909,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
       client.handler((addr, received) -> {
         Object rec = received.getValue("body");
-        Assert.assertEquals("foobar", rec);
+        assertEquals("foobar", rec);
 
         // Now send back reply
         client.send(received.getString("replyAddress"), "barfoo");
@@ -947,7 +917,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
       vertx.setTimer(500, tid -> vertx.eventBus().request(addr, "foobar").onComplete(res -> {
         if (res.succeeded()) {
-          Assert.assertEquals("barfoo", res.result().body());
+          assertEquals("barfoo", res.result().body());
           client.close().onComplete(TestUtils.onSuccess(v2 -> latch.countDown()));
         }
       }));
@@ -973,7 +943,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
       consumer.handler(msg -> {
         Object receivedBody = msg.body();
-        Assert.assertEquals("foobar", receivedBody);
+        assertEquals("foobar", receivedBody);
         vertx.setTimer(500, tid -> {
           msg.reply("barfoo");
           consumer.unregister();
@@ -982,7 +952,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
       client.errorHandler(received -> {
         Object rec = received.getValue("failureType");
-        Assert.assertEquals("TIMEOUT", rec);
+        assertEquals("TIMEOUT", rec);
         client.close().onComplete(TestUtils.onSuccess(v2 -> latch.countDown()));
       });
 
@@ -1008,11 +978,11 @@ public class EventbusBridgeTest extends WebTestBase {
 
       consumer.handler(msg -> {
         Object receivedBody = msg.body();
-        Assert.assertEquals("one", receivedBody);
+        assertEquals("one", receivedBody);
         msg.replyAndRequest("two").onComplete(rep -> {
-          Assert.assertTrue(rep.succeeded());
+          assertTrue(rep.succeeded());
           Object repReceivedBody = rep.result().body();
-          Assert.assertEquals("three", repReceivedBody);
+          assertEquals("three", repReceivedBody);
           vertx.setTimer(500, tid -> {
             rep.result().reply("four");
             consumer.unregister();
@@ -1022,11 +992,11 @@ public class EventbusBridgeTest extends WebTestBase {
 
       client.handler((addr, received) -> {
         Object rec = received.getValue("body");
-        Assert.assertEquals("two", rec);
+        assertEquals("two", rec);
 
         client.errorHandler(repReceived -> {
           Object repRec = repReceived.getValue("failureType");
-          Assert.assertEquals("TIMEOUT", repRec);
+          assertEquals("TIMEOUT", repRec);
           client.close().onComplete(TestUtils.onSuccess(v2 -> latch.countDown()));
         });
 
@@ -1081,12 +1051,12 @@ public class EventbusBridgeTest extends WebTestBase {
         Object rec = received.getValue("body");
         int c = cnt.getAndIncrement();
         if (c == 0) {
-          Assert.fail("Should be a failure");
+          fail("Should be a failure");
         } else if (c >= maxHandlers + 1) {
-          Assert.fail("Called too many times");
+          fail("Called too many times");
         } else {
-          Assert.assertEquals("rec", received.getString("type"));
-          Assert.assertEquals("foobar", rec);
+          assertEquals("rec", received.getString("type"));
+          assertEquals("foobar", rec);
           if (c == maxHandlers) {
             vertx.setTimer(200, tid -> latch.countDown());
           }
@@ -1097,10 +1067,10 @@ public class EventbusBridgeTest extends WebTestBase {
         Object rec = received.getValue("body");
         int c = cnt.getAndIncrement();
         if (c == 0) {
-          Assert.assertEquals("err", received.getString("type"));
-          Assert.assertEquals("max_handlers_reached", rec);
+          assertEquals("err", received.getString("type"));
+          assertEquals("max_handlers_reached", rec);
         } else if (c >= maxHandlers + 1) {
-          Assert.fail("Called too many times");
+          fail("Called too many times");
         }
       });
 
@@ -1125,8 +1095,8 @@ public class EventbusBridgeTest extends WebTestBase {
     client.connect(websocketURI).onComplete(v -> {
 
       client.errorHandler(received -> {
-        Assert.assertEquals("err", received.getString("type"));
-        Assert.assertEquals("max_address_length_reached", received.getString("body"));
+        assertEquals("err", received.getString("type"));
+        assertEquals("max_address_length_reached", received.getString("body"));
         client.close().onComplete(TestUtils.onSuccess(v2 -> latch.countDown()));
       });
 
@@ -1201,41 +1171,41 @@ public class EventbusBridgeTest extends WebTestBase {
 
     TestUtils.awaitLatch(latch);
     long dur = System.currentTimeMillis() - start;
-    Assert.assertTrue(dur > 1000 && dur < 3000);
+    assertTrue(dur > 1000 && dur < 3000);
   }
 
   @Test
   public void testPermittedOptions() {
     PermittedOptions options = new PermittedOptions();
-    Assert.assertEquals(PermittedOptions.DEFAULT_ADDRESS, options.getAddress());
-    Assert.assertEquals(PermittedOptions.DEFAULT_ADDRESS_REGEX, options.getAddressRegex());
-    Assert.assertEquals(PermittedOptions.DEFAULT_REQUIRED_AUTHORITY, options.getRequiredAuthority());
-    Assert.assertEquals(PermittedOptions.DEFAULT_MATCH, options.getMatch());
+    assertEquals(PermittedOptions.DEFAULT_ADDRESS, options.getAddress());
+    assertEquals(PermittedOptions.DEFAULT_ADDRESS_REGEX, options.getAddressRegex());
+    assertEquals(PermittedOptions.DEFAULT_REQUIRED_AUTHORITY, options.getRequiredAuthority());
+    assertEquals(PermittedOptions.DEFAULT_MATCH, options.getMatch());
     String address = TestUtils.randomAlphaString(10);
     String addressRegex = TestUtils.randomAlphaString(10);
     String requiredAuthority = TestUtils.randomAlphaString(10);
     JsonObject match = new JsonObject().put(TestUtils.randomAlphaString(10), TestUtils.randomAlphaString(10));
-    Assert.assertSame(options, options.setAddress(address));
-    Assert.assertSame(options, options.setAddressRegex(addressRegex));
-    Assert.assertSame(options, options.setRequiredAuthority(requiredAuthority));
-    Assert.assertSame(options, options.setMatch(match));
-    Assert.assertEquals(address, options.getAddress());
-    Assert.assertEquals(addressRegex, options.getAddressRegex());
-    Assert.assertEquals(requiredAuthority, options.getRequiredAuthority());
-    Assert.assertEquals(match, options.getMatch());
+    assertSame(options, options.setAddress(address));
+    assertSame(options, options.setAddressRegex(addressRegex));
+    assertSame(options, options.setRequiredAuthority(requiredAuthority));
+    assertSame(options, options.setMatch(match));
+    assertEquals(address, options.getAddress());
+    assertEquals(addressRegex, options.getAddressRegex());
+    assertEquals(requiredAuthority, options.getRequiredAuthority());
+    assertEquals(match, options.getMatch());
     PermittedOptions copy = new PermittedOptions(options);
-    Assert.assertEquals(address, copy.getAddress());
-    Assert.assertEquals(addressRegex, copy.getAddressRegex());
-    Assert.assertEquals(requiredAuthority, copy.getRequiredAuthority());
-    Assert.assertEquals(match, copy.getMatch());
-    Assert.assertSame(copy, copy.setAddress(TestUtils.randomAlphaString(10)));
-    Assert.assertSame(copy, copy.setAddressRegex(TestUtils.randomAlphaString(10)));
-    Assert.assertSame(copy, copy.setRequiredAuthority(TestUtils.randomAlphaString(10)));
-    Assert.assertSame(copy, copy.setMatch(new JsonObject().put(TestUtils.randomAlphaString(10), TestUtils.randomAlphaString(10))));
-    Assert.assertSame(options, options.setAddress(address));
-    Assert.assertSame(options, options.setAddressRegex(addressRegex));
-    Assert.assertSame(options, options.setRequiredAuthority(requiredAuthority));
-    Assert.assertSame(options, options.setMatch(match));
+    assertEquals(address, copy.getAddress());
+    assertEquals(addressRegex, copy.getAddressRegex());
+    assertEquals(requiredAuthority, copy.getRequiredAuthority());
+    assertEquals(match, copy.getMatch());
+    assertSame(copy, copy.setAddress(TestUtils.randomAlphaString(10)));
+    assertSame(copy, copy.setAddressRegex(TestUtils.randomAlphaString(10)));
+    assertSame(copy, copy.setRequiredAuthority(TestUtils.randomAlphaString(10)));
+    assertSame(copy, copy.setMatch(new JsonObject().put(TestUtils.randomAlphaString(10), TestUtils.randomAlphaString(10))));
+    assertSame(options, options.setAddress(address));
+    assertSame(options, options.setAddressRegex(addressRegex));
+    assertSame(options, options.setRequiredAuthority(requiredAuthority));
+    assertSame(options, options.setMatch(match));
   }
 
   @Test
@@ -1250,10 +1220,10 @@ public class EventbusBridgeTest extends WebTestBase {
       put("requiredAuthority", requiredAuthority).
       put("match", match);
     PermittedOptions options = new PermittedOptions(json);
-    Assert.assertEquals(address, options.getAddress());
-    Assert.assertEquals(addressRegex, options.getAddressRegex());
-    Assert.assertEquals(requiredAuthority, options.getRequiredAuthority());
-    Assert.assertEquals(match, options.getMatch());
+    assertEquals(address, options.getAddress());
+    assertEquals(addressRegex, options.getAddressRegex());
+    assertEquals(requiredAuthority, options.getRequiredAuthority());
+    assertEquals(match, options.getMatch());
   }
 
   private void testError(JsonObject msg, String expectedErr) throws Exception {
@@ -1266,7 +1236,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     BridgeClient client = new BridgeClient(super.wsClient, transport);
     client.errorHandler(received -> {
-      Assert.assertEquals(expectedErr, received.getString("body"));
+      assertEquals(expectedErr, received.getString("body"));
       latch.countDown();
     });
     client.connect(websocketURI)
@@ -1292,7 +1262,7 @@ public class EventbusBridgeTest extends WebTestBase {
       MessageConsumer<Object> consumer = vertx.eventBus().consumer(address);
       consumer.handler(msg -> {
         Object receivedBody = msg.body();
-        Assert.assertEquals(body, receivedBody);
+        assertEquals(body, receivedBody);
         if (headers) {
           checkHeaders(msg);
         }
@@ -1314,8 +1284,8 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   private void checkHeaders(Message<?> msg) {
-    Assert.assertEquals("val1", msg.headers().get("hdr1"));
-    Assert.assertEquals("val2", msg.headers().get("hdr2"));
+    assertEquals("val1", msg.headers().get("hdr1"));
+    assertEquals("val2", msg.headers().get("hdr2"));
   }
 
   private void testPublish(String address, Object body, boolean headers) throws Exception {
@@ -1326,7 +1296,7 @@ public class EventbusBridgeTest extends WebTestBase {
     client.connect(websocketURI).onComplete(TestUtils.onSuccess(v1 -> {
       vertx.eventBus().consumer(address, msg -> {
         Object receivedBody = msg.body();
-        Assert.assertEquals(body, receivedBody);
+        assertEquals(body, receivedBody);
         if (headers) {
           checkHeaders(msg);
         }
@@ -1335,7 +1305,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
       vertx.eventBus().consumer(address, msg -> {
         Object receivedBody = msg.body();
-        Assert.assertEquals(body, receivedBody);
+        assertEquals(body, receivedBody);
         if (headers) {
           checkHeaders(msg);
         }
@@ -1356,8 +1326,8 @@ public class EventbusBridgeTest extends WebTestBase {
     CountDownLatch latch = new CountDownLatch(1);
     BridgeClient client = new BridgeClient(super.wsClient, transport);
     client.handler((addr, received) -> {
-      Assert.assertEquals(address, addr);
-      Assert.assertEquals(body, received.getValue("body"));
+      assertEquals(address, addr);
+      assertEquals(body, received.getValue("body"));
       client.close().onComplete(TestUtils.onSuccess(v2 -> latch.countDown()));
     });
     client.connect(websocketURI)
@@ -1378,7 +1348,7 @@ public class EventbusBridgeTest extends WebTestBase {
       // Register
       client.register(address);
 
-      client.handler((addr, received) -> Assert.fail("Shouldn't receive anything"));
+      client.handler((addr, received) -> fail("Shouldn't receive anything"));
 
       // Wait a bit to allow the handler to be setup on the server, then send message from eventbus
       vertx.setTimer(200, tid -> {
@@ -1400,9 +1370,9 @@ public class EventbusBridgeTest extends WebTestBase {
       client.register(address);
 
       client.handler((addr, received) -> {
-        Assert.assertEquals("rec", received.getString("type"));
+        assertEquals("rec", received.getString("type"));
         Object rec = received.getValue("body");
-        Assert.assertEquals("foobar", rec);
+        assertEquals("foobar", rec);
 
         // Now unregister
         client.unregister(address);

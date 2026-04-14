@@ -74,7 +74,9 @@ public class TemplateTest extends WebTestBase2 {
         "foo is badger bar is fox<br>\n" +
         "</body>\n" +
         "</html>";
-    testRequest(HttpMethod.GET, pathPrefix != null ? pathPrefix + "/test-template.html" : "/test-template.html", 200, "OK", expected);
+    Buffer response = testRequest(HttpMethod.GET, pathPrefix != null ? pathPrefix + "/test-template.html" : "/test-template.html", 200, "OK")
+      .body();
+    assertEquals(expected, normalizeLineEndingsFor(response).toString());
   }
 
   @Test
@@ -105,7 +107,8 @@ public class TemplateTest extends WebTestBase2 {
         "foo is badger bar is fox<br>\n" +
         "</body>\n" +
         "</html>";
-    testRequest(HttpMethod.GET, "/1/test-template.html", 200, "OK", expected);
+    Buffer response = testRequest(HttpMethod.GET, "/1/test-template.html", 200, "OK").body();
+    assertEquals(expected, normalizeLineEndingsFor(response).toString());
   }
 
   @Test
@@ -129,7 +132,8 @@ public class TemplateTest extends WebTestBase2 {
         "foo is badger bar is fox<br>\n" +
         "</body>\n" +
         "</html>";
-    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+    Buffer response = testRequest(HttpMethod.GET, "/", 200, "OK").body();
+    assertEquals(expected, normalizeLineEndingsFor(response).toString());
   }
 
   @Test

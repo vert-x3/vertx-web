@@ -30,10 +30,12 @@ import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.sstore.SessionStore;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -41,17 +43,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Paulo Lopes
  */
-public class OAuth2AuthHandlerTest extends WebTestBase {
-
-  public OAuth2AuthHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class OAuth2AuthHandlerTest extends WebTestBase2 {
 
   private static final JsonObject fixture = new JsonObject(
     "{" +
@@ -63,8 +60,9 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       "}");
 
   @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
+  @AfterEach
+  public void tearDown(VertxTestContext testContext) throws Exception {
+    super.tearDown(testContext);
   }
 
   private String redirectURL = null;
@@ -78,8 +76,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
-    final CountDownLatch latch = new CountDownLatch(1);
-
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
@@ -90,15 +86,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       }
     });
 
-    server.listen(10000).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    latch.await();
+    server.listen(10000).await();
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback");
@@ -110,7 +98,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -118,7 +106,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
 
     // fake the redirect
     testRequest(webClient.get("/callback?state=/protected/somepage&code=1").send(), 200, "OK", "Welcome to the protected resource!");
@@ -135,8 +123,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
-    final CountDownLatch latch = new CountDownLatch(1);
-
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
@@ -147,15 +133,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       }
     });
 
-    server.listen(10000).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    latch.await();
+    server.listen(10000).await();
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
@@ -170,7 +148,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -178,7 +156,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
 
     // fake the redirect
     testRequest(webClient.get("/callback?state=/protected/somepage&code=1").send(), 200, "OK", "Welcome to the protected resource!");
@@ -195,8 +173,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
-    final CountDownLatch latch = new CountDownLatch(1);
-
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
@@ -207,15 +183,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       }
     });
 
-    server.listen(10000).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    latch.await();
+    server.listen(10000).await();
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
@@ -230,7 +198,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -238,7 +206,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
 
     // fake the redirect
     testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", 403, "Forbidden");
@@ -255,8 +223,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
-    final CountDownLatch latch = new CountDownLatch(1);
-
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
@@ -267,15 +233,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       }
     });
 
-    server.listen(10000).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    latch.await();
+    server.listen(10000).await();
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
@@ -290,7 +248,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -298,7 +256,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
 
     // fake the redirect
     testRequest(webClient.get("/callback?state=/protected/somepage&code=1").send(), 200, "OK", "Welcome to the protected resource!");
@@ -315,8 +273,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
-    final CountDownLatch latch = new CountDownLatch(1);
-
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
@@ -327,15 +283,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       }
     });
 
-    server.listen(10000).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    latch.await();
+    server.listen(10000).await();
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
@@ -350,7 +298,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -358,7 +306,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
 
     // fake the redirect
     testRequest(webClient.get("/callback?state=/protected/somepage&code=1").send(), 403, "Forbidden");
@@ -374,8 +322,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
-
-    final CountDownLatch latch = new CountDownLatch(1);
 
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
@@ -393,15 +339,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       }
     });
 
-    server.listen(10000).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    latch.await();
+    server.listen(10000).await();
 
     // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
     OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback");
@@ -413,7 +351,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -433,8 +371,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
-
-    final CountDownLatch latch = new CountDownLatch(1);
 
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
@@ -462,7 +398,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
                 matches++;
               }
             }
-            Assert.assertEquals(3, matches);
+            assertEquals(3, matches);
             req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
           });
       } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
@@ -472,15 +408,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       }
     });
 
-    server.listen(10000).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    latch.await();
+    server.listen(10000).await();
 
     // ensure that there's a session
     router.route().handler(SessionHandler.create(SessionStore.create(vertx)));
@@ -495,7 +423,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -505,18 +433,18 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
     QueryStringDecoder decoder = new QueryStringDecoder(redirectURL);
     Map<String, List<String>> params = decoder.parameters();
-    Assert.assertNotNull(params.get("code_challenge"));
-    Assert.assertNotNull(params.get("code_challenge_method"));
-    Assert.assertNotNull(params.get("state"));
+    assertNotNull(params.get("code_challenge"));
+    assertNotNull(params.get("code_challenge_method"));
+    assertNotNull(params.get("state"));
     // save the params
     String codeChallenge = params.get("code_challenge").get(0);
     String codeChallengeMethod = params.get("code_challenge_method").get(0);
     String nonce = params.get("state").get(0);
-    Assert.assertTrue(codeChallenge.length() >= 43 && codeChallenge.length() <= 128);
-    Assert.assertEquals("S256", codeChallengeMethod);
+    assertTrue(codeChallenge.length() >= 43 && codeChallenge.length() <= 128);
+    assertEquals("S256", codeChallengeMethod);
 
     // save state
     verifier.set(codeChallenge);
@@ -542,8 +470,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
-    final CountDownLatch latch = new CountDownLatch(1);
-
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
@@ -554,15 +480,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       }
     });
 
-    server.listen(10000).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    latch.await();
+    server.listen(10000).await();
 
     // protect everything. This has the bad sideffect that it will also shade the callback route which is computed
     // after this handler, HOWEVER, the handler implements the OrderListener, so the setup will be fixed OOTB
@@ -574,7 +492,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -582,7 +500,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
 
     // fake the redirect (Given that the setup is fixed by the OrderListener), this will succeed
     testRequest(webClient.get("/callback?state=/protected/somepage&code=1").send(), 200, "OK", "Welcome to the protected resource!");
@@ -599,7 +517,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route().handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -607,7 +525,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     resp = testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
 
     // fake the redirect
     testRequest(webClient.get("/callback?state=/protected/somepage&code=1").send(), 200, "OK", "Welcome to the protected resource!");
@@ -624,15 +542,13 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
-    final CountDownLatch latch = new CountDownLatch(1);
-
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         req.setExpectMultipart(true).bodyHandler(buffer -> {
           final String queryString = buffer.toString();
-          Assert.assertTrue(queryString.contains("username=paulo"));
-          Assert.assertTrue(queryString.contains("password=bananas"));
-          Assert.assertTrue(queryString.contains("grant_type=password"));
+          assertTrue(queryString.contains("username=paulo"));
+          assertTrue(queryString.contains("password=bananas"));
+          assertTrue(queryString.contains("grant_type=password"));
 
           req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
         });
@@ -643,15 +559,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       }
     });
 
-    server.listen(10000).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    latch.await();
+    server.listen(10000).await();
 
     AuthenticationHandler oauth2Handler = BasicAuthHandler.create(oauth2);
 
@@ -659,7 +567,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -682,7 +590,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -716,7 +624,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
           )
       );
 
-    Assert.assertNotNull(oauth);
+    assertNotNull(oauth);
 
 /*
     JWT jwt = new JWT().addJWK(
@@ -813,8 +721,6 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
-    final CountDownLatch latch = new CountDownLatch(1);
-
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
         req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
@@ -825,15 +731,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
       }
     });
 
-    server.listen(10000).onComplete(ready -> {
-      if (ready.failed()) {
-        throw new RuntimeException(ready.cause());
-      }
-      // ready
-      latch.countDown();
-    });
-
-    latch.await();
+    server.listen(10000).await();
 
     Router subRouter = Router.router(vertx);
 
@@ -849,7 +747,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     subRouter.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     subRouter.route("/protected/somepage").handler(rc -> {
-      Assert.assertNotNull(rc.user());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
@@ -857,7 +755,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp2 = testRequest(webClient.get("/secret/protected/somepage").followRedirects(false).send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp2.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
 
     // fake the redirect
     testRequest(webClient.get("/secret/callback?state=/secret/protected/somepage&code=1").send(), 200, "OK", "Welcome to the protected resource!");
@@ -875,8 +773,8 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     router.route("/protected/*").handler(oauth2.setupCallback(router.route("/callback")));
     router.route("/protected/userinfo").handler(oauth2);
 
-    Assert.assertEquals("/callback", router.getRoutes().get(0).getPath());
-    Assert.assertEquals("/protected/", router.getRoutes().get(1).getPath());
-    Assert.assertEquals("/protected/userinfo", router.getRoutes().get(2).getPath());
+    assertEquals("/callback", router.getRoutes().get(0).getPath());
+    assertEquals("/protected/", router.getRoutes().get(1).getPath());
+    assertEquals("/protected/userinfo", router.getRoutes().get(2).getPath());
   }
 }

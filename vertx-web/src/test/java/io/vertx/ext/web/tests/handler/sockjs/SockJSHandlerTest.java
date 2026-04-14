@@ -17,6 +17,7 @@
 package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.internal.buffer.BufferInternal;
@@ -30,22 +31,23 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
@@ -55,18 +57,15 @@ import java.util.function.BiConsumer;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class SockJSHandlerTest extends WebTestBase {
-
-  public SockJSHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class SockJSHandlerTest extends WebTestBase2 {
 
   private static final Logger log = LoggerFactory.getLogger(SockJSHandlerTest.class);
   private static final Buffer SOCKJS_CLOSE_REPLY = Buffer.buffer("c[3000,\"Go away!\"]");
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(io.vertx.core.Vertx vertx, io.vertx.junit5.VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     // Make sure a catch-all BodyHandler will not prevent websocket connection
     router.route().handler(BodyHandler.create());
     SockJSProtocolTest.installTestApplications(router, vertx);
@@ -84,7 +83,7 @@ public class SockJSHandlerTest extends WebTestBase {
       .expecting(io.vertx.core.http.HttpResponseExpectation.SC_OK)
       .expecting(io.vertx.core.http.HttpResponseExpectation.contentType("text/plain"))
       .await();
-    Assert.assertEquals("Welcome to SockJS!\n", resp.bodyAsString());
+    assertEquals("Welcome to SockJS!\n", resp.bodyAsString());
   }
 
   @Test
@@ -100,7 +99,8 @@ public class SockJSHandlerTest extends WebTestBase {
 
   // https://github.com/vert-x3/vertx-web/issues/77
   @Test
-  public void testSendWebsocketContinuationFrames() {
+  public void testSendWebsocketContinuationFrames(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     // Use raw websocket transport
     wsClient.connect("/echo/websocket").onComplete(TestUtils.onSuccess(ws -> {
 
@@ -117,13 +117,11 @@ public class SockJSHandlerTest extends WebTestBase {
       ws.handler(buff -> {
         received.appendBuffer(buff);
         if (received.length() == size * 2) {
-          testComplete();
+          done.flag();
         }
       });
 
     }));
-
-    await();
   }
 
   /**
@@ -131,7 +129,8 @@ public class SockJSHandlerTest extends WebTestBase {
    * after the frames are re-combined
    */
   @Test
-  public void testCombineBinaryContinuationFramesRawWebSocket() throws InterruptedException {
+  public void testCombineBinaryContinuationFramesRawWebSocket(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     String serverPath = "/combine";
 
     AtomicReference<Buffer> serverReceivedMessage = new AtomicReference<>();
@@ -141,24 +140,23 @@ public class SockJSHandlerTest extends WebTestBase {
       sock.close();
     });
 
-
     Buffer largeMessage = Buffer.buffer(TestUtils.randomAlphaString(30));
     WebSocketFrame frame1 = WebSocketFrame.binaryFrame(largeMessage.slice(0, 10), false);
     WebSocketFrame frame2 = WebSocketFrame.continuationFrame(largeMessage.slice(10, 20), false);
     WebSocketFrame frame3 = WebSocketFrame.continuationFrame(largeMessage.slice(20, largeMessage.length()), true);
 
-    WebSocket ws = setupRawWebsocketClient(serverPath);
+    WebSocket ws = setupRawWebsocketClient(serverPath, () -> {
+      assertEquals(largeMessage, serverReceivedMessage.get(), "Server did not combine continuation frames correctly");
+      done.flag();
+    });
     ws.writeFrame(frame1);
     ws.writeFrame(frame2);
     ws.writeFrame(frame3);
-
-    await(5, TimeUnit.SECONDS);
-
-    Assert.assertEquals("Server did not combine continuation frames correctly", largeMessage, serverReceivedMessage.get());
   }
 
   @Test
-  public void testSplitLargeReplyRawWebSocket() throws InterruptedException {
+  public void testSplitLargeReplyRawWebSocket(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     String serverPath = "/split";
 
     String largeReply = TestUtils.randomAlphaString(65536 * 5);
@@ -171,67 +169,73 @@ public class SockJSHandlerTest extends WebTestBase {
 
     Buffer totalReplyBuffer = Buffer.buffer(largeReplyBuffer.length());
     AtomicInteger receivedReplies = new AtomicInteger(0);
-    WebSocket ws = setupRawWebsocketClient(serverPath);
+    WebSocket ws = setupRawWebsocketClient(serverPath, () -> {
+      int receivedReplyCount = receivedReplies.get();
+      assertEquals(largeReplyBuffer, totalReplyBuffer, "Combined reply on client should equal message from server");
+      assertTrue(receivedReplyCount > 1, "Should have received > 1 reply frame, actually received " + receivedReplyCount);
+      done.flag();
+    });
     ws.handler(replyBuffer -> {
       totalReplyBuffer.appendBuffer(replyBuffer);
       receivedReplies.incrementAndGet();
-
     });
 
     ws.writeFrame(WebSocketFrame.binaryFrame(Buffer.buffer("hello"), true));
-
-    await(5, TimeUnit.SECONDS);
-
-    int receivedReplyCount = receivedReplies.get();
-    Assert.assertEquals("Combined reply on client should equal message from server", largeReplyBuffer, totalReplyBuffer);
-    Assert.assertTrue("Should have received > 1 reply frame, actually received " + receivedReplyCount, receivedReplyCount > 1);
   }
 
   @Test
-  public void testTextFrameRawWebSocket() throws InterruptedException {
+  public void testTextFrameRawWebSocket(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     String serverPath = "/textecho";
     setupSockJsServer(serverPath, this::echoRequest);
 
     String message = "hello";
     AtomicReference<String> receivedReply = new AtomicReference<>();
-    WebSocket ws = setupRawWebsocketClient(serverPath);
+    WebSocket ws = setupRawWebsocketClient(serverPath, () -> {
+      assertEquals(message, receivedReply.get(), "Client reply should have matched request");
+      done.flag();
+    });
 
     ws.handler(replyBuffer -> receivedReply.set(replyBuffer.toString()));
 
     ws.writeFrame(WebSocketFrame.textFrame(message, true));
-
-    await(5, TimeUnit.SECONDS);
-
-    Assert.assertEquals("Client reply should have matched request", message, receivedReply.get());
   }
 
   @Test
-  public void testTextFrameSockJs() throws InterruptedException {
+  public void testTextFrameSockJs(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     String serverPath = "/text-sockjs";
     setupSockJsServer(serverPath, this::echoRequest);
 
     List<Buffer> receivedMessages = new ArrayList<>();
-    WebSocket openedWebSocket = setupSockJsClient(serverPath, receivedMessages);
     String messageToSend = "[\"testMessage\"]";
+    WebSocket openedWebSocket = setupSockJsClient(serverPath, receivedMessages, () -> {
+      assertEquals(2, receivedMessages.size(), "Client should have received 2 messages: the reply and the close.");
+      Buffer expectedReply = Buffer.buffer("a" + messageToSend);
+      assertEquals(expectedReply, receivedMessages.get(0), "Client reply should have matched request");
+      assertEquals(SOCKJS_CLOSE_REPLY, receivedMessages.get(1), "Final message should have been a close");
+      done.flag();
+    });
     openedWebSocket.writeFrame(WebSocketFrame.textFrame(messageToSend, true));
-
-    await(10, TimeUnit.SECONDS);
-
-    Assert.assertEquals("Client should have received 2 messages: the reply and the close.", 2, receivedMessages.size());
-    Buffer expectedReply = Buffer.buffer("a" + messageToSend);
-    Assert.assertEquals("Client reply should have matched request", expectedReply, receivedMessages.get(0));
-    Assert.assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, receivedMessages.get(1));
   }
 
   @Test
-  public void testCombineTextFrameSockJs() throws InterruptedException {
+  public void testCombineTextFrameSockJs(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     String serverPath = "/text-combine-sockjs";
     setupSockJsServer(serverPath, this::echoRequest);
 
     List<Buffer> receivedMessages = new ArrayList<>();
-    WebSocket openedWebSocket = setupSockJsClient(serverPath, receivedMessages);
-
     BufferInternal largeMessage = BufferInternal.buffer("[\"" + TestUtils.randomAlphaString(30) + "\"]");
+
+    WebSocket openedWebSocket = setupSockJsClient(serverPath, receivedMessages, () -> {
+      assertEquals(2, receivedMessages.size(), "Client should have received 2 messages: the reply and the close.");
+      Buffer expectedReply = Buffer.buffer("a" + largeMessage.toString());
+      assertEquals(expectedReply, receivedMessages.get(0), "Client reply should have matched request");
+      assertEquals(SOCKJS_CLOSE_REPLY, receivedMessages.get(1), "Final message should have been a close");
+      done.flag();
+    });
+
     WebSocketFrame frame1 = WebSocketFrame.textFrame(largeMessage.slice(0, 10).toString(StandardCharsets.UTF_8), false);
     WebSocketFrame frame2 = WebSocketFrame.continuationFrame(largeMessage.slice(10, 20), false);
     WebSocketFrame frame3 = WebSocketFrame.continuationFrame(largeMessage.slice(20, largeMessage.length()), true);
@@ -242,17 +246,11 @@ public class SockJSHandlerTest extends WebTestBase {
     openedWebSocket.writeFrame(frame2);
     log.debug("Client sending " + frame3.textData());
     openedWebSocket.writeFrame(frame3);
-
-    await(10, TimeUnit.SECONDS);
-
-    Assert.assertEquals("Client should have received 2 messages: the reply and the close.", 2, receivedMessages.size());
-    Buffer expectedReply = Buffer.buffer("a" + largeMessage.toString());
-    Assert.assertEquals("Client reply should have matched request", expectedReply, receivedMessages.get(0));
-    Assert.assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, receivedMessages.get(1));
   }
 
   @Test
-  public void testSplitLargeReplySockJs() throws InterruptedException {
+  public void testSplitLargeReplySockJs(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     String serverPath = "/large-reply-sockjs";
 
     String largeMessage = TestUtils.randomAlphaString(65536 * 2);
@@ -264,24 +262,23 @@ public class SockJSHandlerTest extends WebTestBase {
     });
 
     List<Buffer> receivedMessages = new ArrayList<>();
-    WebSocket openedWebSocket = setupSockJsClient(serverPath, receivedMessages);
+    WebSocket openedWebSocket = setupSockJsClient(serverPath, receivedMessages, () -> {
+      int receivedReplyCount = receivedMessages.size();
+      assertTrue(receivedReplyCount > 2, "Should have received > 2 reply frame, actually received " + receivedReplyCount);
+
+      Buffer expectedReplyBuffer = Buffer.buffer("a[\"").appendBuffer(largeReplyBuffer).appendBuffer(Buffer.buffer("\"]"));
+      Buffer clientReplyBuffer = combineReplies(receivedMessages.subList(0, receivedMessages.size() - 1));
+      assertEquals(expectedReplyBuffer, clientReplyBuffer,
+        String.format("Combined reply on client (length %s) should equal message from server (%s)",
+        clientReplyBuffer.length(), expectedReplyBuffer.length()));
+
+      Buffer finalMessage = receivedMessages.get(receivedMessages.size() - 1);
+      assertEquals(SOCKJS_CLOSE_REPLY, finalMessage, "Final message should have been a close");
+      done.flag();
+    });
 
     String messageToSend = "[\"hello\"]";
     openedWebSocket.writeFrame(WebSocketFrame.textFrame(messageToSend, true));
-
-    await(5, TimeUnit.SECONDS);
-
-    int receivedReplyCount = receivedMessages.size();
-    Assert.assertTrue("Should have received > 2 reply frame, actually received " + receivedReplyCount, receivedReplyCount > 2);
-
-    Buffer expectedReplyBuffer = Buffer.buffer("a[\"").appendBuffer(largeReplyBuffer).appendBuffer(Buffer.buffer("\"]"));
-    Buffer clientReplyBuffer = combineReplies(receivedMessages.subList(0, receivedMessages.size() - 1));
-    Assert.assertEquals(String.format("Combined reply on client (length %s) should equal message from server (%s)",
-      clientReplyBuffer.length(), expectedReplyBuffer.length()),
-      expectedReplyBuffer, clientReplyBuffer);
-
-    Buffer finalMessage = receivedMessages.get(receivedMessages.size() - 1);
-    Assert.assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, finalMessage);
   }
 
   private Buffer combineReplies(List<Buffer> receivedMessages) {
@@ -305,56 +302,44 @@ public class SockJSHandlerTest extends WebTestBase {
     router.route(path + "*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         sock.handler(buffer -> serverBufferHandler.accept(sock, buffer));
-        sock.exceptionHandler(err -> Assert.fail(err.getMessage()));
+        sock.exceptionHandler(err -> fail(err.getMessage()));
       }));
   }
 
   /**
    * This sets up a handler on the websocket
    */
-  private WebSocket setupSockJsClient(String serverPath, List<Buffer> receivedMessagesCollector)
-    throws InterruptedException {
+  private WebSocket setupSockJsClient(String serverPath, List<Buffer> receivedMessagesCollector, Runnable onClose) {
     String requestURI = serverPath + "/000/000/websocket";
 
-    AtomicReference<WebSocket> openedWebSocketReference = new AtomicReference<>();
-    CountDownLatch openSocketCountDown = new CountDownLatch(1);
+    Promise<WebSocket> promise = Promise.promise();
     wsClient.connect(requestURI).onComplete(TestUtils.onSuccess(ws -> {
-      openedWebSocketReference.set(ws);
       ws.handler(replyBuffer -> {
         log.debug("Client received " + replyBuffer);
         String textReply = replyBuffer.toString();
         if ("o".equals(textReply)) {
-          openSocketCountDown.countDown();
+          promise.complete(ws);
         } else {
           receivedMessagesCollector.add(replyBuffer);
         }
       });
-      ws.endHandler(v -> testComplete());
-      ws.exceptionHandler(err -> Assert.fail(err.getMessage()));
+      ws.endHandler(v -> onClose.run());
+      ws.exceptionHandler(err -> fail(err.getMessage()));
     }));
 
-    openSocketCountDown.await(5, TimeUnit.SECONDS);
-    return openedWebSocketReference.get();
+    return promise.future().await();
   }
 
   /**
    * This does not set up a handler on the websocket
    */
-  private WebSocket setupRawWebsocketClient(String serverPath)
-    throws InterruptedException {
+  private WebSocket setupRawWebsocketClient(String serverPath, Runnable onClose) {
     String requestURI = serverPath + "/websocket";
 
-    AtomicReference<WebSocket> openedWebSocketReference = new AtomicReference<>();
-    CountDownLatch openSocketCountDown = new CountDownLatch(1);
-    wsClient.connect(requestURI).onComplete(TestUtils.onSuccess(ws -> {
-      openedWebSocketReference.set(ws);
-      openSocketCountDown.countDown();
-      ws.endHandler(v -> testComplete());
-      ws.exceptionHandler(err -> Assert.fail(err.getMessage()));
-    }));
-
-    openSocketCountDown.await(5, TimeUnit.SECONDS);
-    return openedWebSocketReference.get();
+    WebSocket ws = wsClient.connect(requestURI).await();
+    ws.endHandler(v -> onClose.run());
+    ws.exceptionHandler(err -> fail(err.getMessage()));
+    return ws;
   }
 
   private void testNotFound(String uri) {
@@ -365,12 +350,9 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testWebContext() throws Exception {
-    waitFor(2);
+  public void testWebContext(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint(2);
     SessionStore store = SessionStore.create(vertx);
-    // given that we want to test sessions created and modified during sockjs handshakes we
-    // can't rely on the response to be available to set cookies. In this test we use cookieless
-    // sessions to adress the timing issues
     SessionHandler handler = SessionHandler.create(store).setCookieless(true);
     CompletableFuture<String> sessionID = new CompletableFuture<>();
     CompletableFuture<User> sessionUser = new CompletableFuture<>();
@@ -381,15 +363,15 @@ public class SockJSHandlerTest extends WebTestBase {
         Session session = handler.newSession(sock.routingContext());
         User user = User.create(principal);
         handler.setUser(sock.routingContext(), user).onComplete((result) -> {
-          Assert.assertFalse(result.failed());
-          Assert.assertNotSame(session, oldSession);
-          Assert.assertEquals(session, sock.webSession());
+          assertFalse(result.failed());
+          assertNotSame(session, oldSession);
+          assertEquals(session, sock.webSession());
           ((RoutingContextInternal) sock.routingContext()).setSession(session);
-          Assert.assertEquals(sock.webSession(), sock.routingContext().session());
-          Assert.assertEquals(sock.webUser(), sock.routingContext().user());
-          Assert.assertEquals(sock.webUser(), user);
-          Assert.assertEquals(session, sock.webSession());
-          Assert.assertEquals(session, store.get(session.id()).result());
+          assertEquals(sock.webSession(), sock.routingContext().session());
+          assertEquals(sock.webUser(), sock.routingContext().user());
+          assertEquals(sock.webUser(), user);
+          assertEquals(session, sock.webSession());
+          assertEquals(session, store.get(session.id()).result());
           sessionID.complete(session.id());
           sessionUser.complete(sock.webUser());
         });
@@ -401,16 +383,16 @@ public class SockJSHandlerTest extends WebTestBase {
         try {
           session = store.get(sessionID.get()).result();
         } catch (InterruptedException | ExecutionException e) {
-          Assert.fail(e.getMessage());
+          fail(e.getMessage());
         }
         ((RoutingContextInternal) sock.routingContext()).setSession(session);
         try {
-          Assert.assertEquals(sessionID.get(), store.get(sessionID.get()).result().id());
-          Assert.assertEquals(sessionUser.get(), sock.webUser());
+          assertEquals(sessionID.get(), store.get(sessionID.get()).result().id());
+          assertEquals(sessionUser.get(), sock.webUser());
         } catch (InterruptedException | ExecutionException e) {
-          Assert.fail(e.getMessage());
+          fail(e.getMessage());
         }
-        complete();
+        done.flag();
       }));
 
     wsClient.connect(new WebSocketConnectOptions()
@@ -419,24 +401,22 @@ public class SockJSHandlerTest extends WebTestBase {
         ws -> {
           wsClient.connect(new WebSocketConnectOptions()
               .setPort(8080)
-              .setURI("/webcontextuser/websocket")).onComplete(TestUtils.onSuccess(wsuser -> complete())
+              .setURI("/webcontextuser/websocket")).onComplete(TestUtils.onSuccess(wsuser -> done.flag())
           );
         }
       ));
-
-    await();
   }
 
   @Test
-  public void testCookiesRemoved() throws Exception {
-    waitFor(2);
+  public void testCookiesRemoved(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint(2);
     router.route("/cookiesremoved*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         MultiMap headers = sock.headers();
         String cookieHeader = headers.get("cookie");
-        Assert.assertNotNull(cookieHeader);
-        Assert.assertEquals("JSESSIONID=wibble", cookieHeader);
-        complete();
+        assertNotNull(cookieHeader);
+        assertEquals("JSESSIONID=wibble", cookieHeader);
+        done.flag();
       }));
     MultiMap headers = HttpHeaders.headers();
     headers.add("cookie", "JSESSIONID=wibble");
@@ -446,14 +426,13 @@ public class SockJSHandlerTest extends WebTestBase {
       .setPort(8080)
       .setURI("/cookiesremoved/websocket")
       .setHeaders(headers)).onComplete(TestUtils.onSuccess(ws -> {
-        complete();
+        done.flag();
     }));
-
-    await();
   }
 
   @Test
-  public void testTimeoutCloseCode() {
+  public void testTimeoutCloseCode(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     router.route("/ws-timeout*").subRouter(SockJSHandler
       .create(vertx)
       .bridge(new SockJSBridgeOptions().setPingTimeout(1))
@@ -461,16 +440,16 @@ public class SockJSHandlerTest extends WebTestBase {
 
     wsClient.connect("/ws-timeout/websocket").onComplete(TestUtils.onSuccess(ws -> ws.frameHandler(frame -> {
       if (frame.isClose()) {
-        Assert.assertEquals(1001, frame.closeStatusCode());
-        Assert.assertEquals("Session expired", frame.closeReason());
-        testComplete();
+        assertEquals(1001, frame.closeStatusCode());
+        assertEquals("Session expired", frame.closeReason());
+        done.flag();
       }
     })));
-    await();
   }
 
   @Test
-  public void testInvalidMessageCode() {
+  public void testInvalidMessageCode(VertxTestContext testContext) {
+    Checkpoint done = testContext.checkpoint();
     router.route("/ws-timeout*").subRouter(SockJSHandler
       .create(vertx)
       .bridge(new SockJSBridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
@@ -485,13 +464,12 @@ public class SockJSHandlerTest extends WebTestBase {
         // we should get a normal frame with a error message
         if (!frame.isClose()) {
           JsonObject msg = new JsonObject(frame.binaryData());
-          Assert.assertEquals("err", msg.getString("type"));
-          Assert.assertEquals("invalid_json", msg.getString("body"));
-          testComplete();
+          assertEquals("err", msg.getString("type"));
+          assertEquals("invalid_json", msg.getString("body"));
+          done.flag();
           ws.close();
         }
       });
     }));
-    await();
   }
 }

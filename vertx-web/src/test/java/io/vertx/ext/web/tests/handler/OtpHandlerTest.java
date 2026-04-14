@@ -14,20 +14,19 @@ import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.OtpAuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class OtpHandlerTest  extends WebTestBase {
-
-  public OtpHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class OtpHandlerTest  extends WebTestBase2 {
 
   static class DummyDatabase {
 
@@ -57,8 +56,9 @@ public class OtpHandlerTest  extends WebTestBase {
   }
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
 
     router.post()
       .handler(BodyHandler.create());
@@ -174,10 +174,10 @@ public class OtpHandlerTest  extends WebTestBase {
       200,
       "OK");
     JsonObject json = new JsonObject(res.body());
-    Assert.assertEquals("Vert.x Demo", json.getString("issuer"));
-    Assert.assertNotNull(json.getString("url"));
-    Assert.assertTrue(json.getString("url").startsWith("otpauth://hotp/Vert.x+Demo:tim?secret="));
-    Assert.assertTrue(json.getString("url").endsWith("&counter=0"));
+    assertEquals("Vert.x Demo", json.getString("issuer"));
+    assertNotNull(json.getString("url"));
+    assertTrue(json.getString("url").startsWith("otpauth://hotp/Vert.x+Demo:tim?secret="));
+    assertTrue(json.getString("url").endsWith("&counter=0"));
   }
 
   @Test

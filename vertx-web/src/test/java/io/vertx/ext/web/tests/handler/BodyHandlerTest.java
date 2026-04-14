@@ -62,7 +62,7 @@ public class BodyHandlerTest extends WebTestBase2 {
 
   @Override
   @BeforeEach
-  public void setUp(Vertx vertx, VertxTestContext testContext) {
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
     super.setUp(vertx, testContext);
     router.route().handler(BodyHandler.create());
   }
@@ -911,7 +911,7 @@ public class BodyHandlerTest extends WebTestBase2 {
     router.route().handler(BodyHandler.create());
 
     router.route().handler(ctx -> {
-      throw new NullPointerException();
+      throw new NullPointerException("Don't freak out");
     });
     testRequest(webClient.get("/").send(), 500, "Internal Server Error");
   }

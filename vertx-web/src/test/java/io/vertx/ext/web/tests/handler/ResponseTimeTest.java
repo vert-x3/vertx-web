@@ -19,18 +19,14 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.ResponseTimeHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class ResponseTimeTest extends WebTestBase {
-
-  public ResponseTimeTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class ResponseTimeTest extends WebTestBase2 {
 
   @Test
   public void testRequestTime1() throws Exception {
@@ -38,8 +34,8 @@ public class ResponseTimeTest extends WebTestBase {
     router.route().handler(rc -> rc.response().end());
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
     String reqTime = resp.headers().get("x-response-time");
-    Assert.assertNotNull(reqTime);
-    Assert.assertTrue(reqTime.endsWith("ms"));
+    assertNotNull(reqTime);
+    assertTrue(reqTime.endsWith("ms"));
   }
 
   @Test
@@ -48,11 +44,11 @@ public class ResponseTimeTest extends WebTestBase {
     router.route().handler(rc -> vertx.setTimer(250, tid -> rc.response().end()));
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
     String reqTime = resp.headers().get("x-response-time");
-    Assert.assertNotNull(reqTime);
-    Assert.assertTrue(reqTime.endsWith("ms"));
+    assertNotNull(reqTime);
+    assertTrue(reqTime.endsWith("ms"));
     String time = reqTime.substring(0, reqTime.length() - 2);
     Integer dur = Integer.valueOf(time);
-    Assert.assertTrue(dur >= 250);
+    assertTrue(dur >= 250);
   }
 
 

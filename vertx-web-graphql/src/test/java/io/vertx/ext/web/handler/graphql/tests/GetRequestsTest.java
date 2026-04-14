@@ -16,7 +16,8 @@
 
 package io.vertx.ext.web.handler.graphql.tests;
 
-import org.junit.Test;
+import io.vertx.core.json.JsonObject;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.List;
 import static io.vertx.core.http.HttpMethod.*;
 import static io.vertx.ext.web.handler.graphql.tests.GraphQLRequest.*;
 import static java.util.stream.Collectors.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Thomas Segismont
@@ -31,22 +33,16 @@ import static java.util.stream.Collectors.*;
 public class GetRequestsTest extends GraphQLTestBase {
 
   @Test
-  public void testSimpleGet() throws Exception {
+  public void testSimpleGet() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client).onComplete(onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.urls(), body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertTrue(testData.checkLinkUrls(testData.urls(), body), body.toString());
   }
 
   @Test
-  public void testMultipleQueriesWithOperationName() throws Exception {
+  public void testMultipleQueriesWithOperationName() {
     String query = "query foo { allLinks { url } }"
       + " "
       + "query bar($secure: Boolean) { allLinks(secureOnly: $secure) { url } }";
@@ -55,81 +51,54 @@ public class GetRequestsTest extends GraphQLTestBase {
       .setGraphQLQuery(query)
       .setOperationName("bar")
       .addVariable("secure", true);
-    request.send(client).onComplete(onSuccess(body -> {
-      List<String> expected = testData.urls().stream()
-        .filter(url -> url.startsWith("https://"))
-        .collect(toList());
-      if (testData.checkLinkUrls(expected, body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    List<String> expected = testData.urls().stream()
+      .filter(url -> url.startsWith("https://"))
+      .collect(toList());
+    assertTrue(testData.checkLinkUrls(expected, body), body.toString());
   }
 
   @Test
-  public void testSimpleGetWithVariable() throws Exception {
+  public void testSimpleGetWithVariable() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }")
       .addVariable("secure", true);
-    request.send(client).onComplete(onSuccess(body -> {
-      List<String> expected = testData.urls().stream()
-        .filter(url -> url.startsWith("https://"))
-        .collect(toList());
-      if (testData.checkLinkUrls(expected, body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    List<String> expected = testData.urls().stream()
+      .filter(url -> url.startsWith("https://"))
+      .collect(toList());
+    assertTrue(testData.checkLinkUrls(expected, body), body.toString());
   }
 
   @Test
-  public void testSimpleGetWithInitialValue() throws Exception {
+  public void testSimpleGetWithInitialValue() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { description } }")
       .setInitialValueAsParam(true)
       .setInitialValue("100");
-    request.send(client).onComplete(onSuccess(body -> {
-      String[] descriptions = new String[testData.links.size()];
-      Arrays.fill(descriptions,"100");
-      List<String> expected = Arrays.asList(descriptions);
-      if (testData.checkLinkDescriptions(expected, body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    String[] descriptions = new String[testData.links.size()];
+    Arrays.fill(descriptions, "100");
+    List<String> expected = Arrays.asList(descriptions);
+    assertTrue(testData.checkLinkDescriptions(expected, body), body.toString());
   }
 
   @Test
-  public void testSimpleGetNoInitialValue() throws Exception {
+  public void testSimpleGetNoInitialValue() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { description } }");
-    request.send(client).onComplete(onSuccess(body -> {
-      if (testData.checkLinkDescriptions(testData.descriptions(), body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertTrue(testData.checkLinkDescriptions(testData.descriptions(), body), body.toString());
   }
 
   @Test
-  public void testGetNoQuery() throws Exception {
+  public void testGetNoQuery() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET);
-    request.send(client, 400).onComplete(onSuccess(v -> {
-      testComplete();
-    }));
-    await();
+    request.send(webClient, 400);
   }
 
   @Test
@@ -137,9 +106,6 @@ public class GetRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setHttpQueryString("query=" + encode("query { allLinks { url } }") + "&variables=" + encode("[1,2,3]"));
-    request.send(client, 400).onComplete(onSuccess(v -> {
-      testComplete();
-    }));
-    await();
+    request.send(webClient, 400);
   }
 }

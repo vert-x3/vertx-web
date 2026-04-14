@@ -18,6 +18,7 @@ package io.vertx.ext.web.sstore.cookie.tests;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -30,28 +31,29 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.sstore.cookie.CookieSessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 
-  public CookieSessionHandlerTest() {
-    super(ReportMode.STATELESS);
-  }
-
+  @BeforeEach
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     store = CookieSessionStore.create(vertx, "KeyboardCat!");
   }
 
   @Test
-  public void testSessionAndUser() throws Exception {
+  public void testSessionAndUser() {
     router.route().handler(BodyHandler.create());
     router.route().handler(SessionHandler.create(store));
     router.route("/authenticate").handler(SimpleAuthenticationHandler.create().authenticate(rc -> {
@@ -100,15 +102,8 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store.createSession(30_000);
     String cookieId = session.id();
 
-    store
-      .get(session.value())
-      .onComplete(onSuccess(c -> {
-        assertNotNull(c);
-        assertEquals(cookieId, c.id());
-        testComplete();
-    }));
-
-    await();
+    Session c = store.get(session.value()).await();
+    assertEquals(cookieId, c.id());
   }
 
   @Test
@@ -116,18 +111,14 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store.createSession(30_000);
     String cookieValue = session.value();
 
-    store
-      .get(cookieValue)
-      .onComplete(onSuccess(c -> {
-        assertNotNull(c);
-        // the session id must be the same
-        assertEquals(session.id(), c.id());
-        // the session value will not be the same as IV is random
-        assertFalse(cookieValue.equals(c.value()));
-        testComplete();
-    }));
+    Session c = store
+      .get(cookieValue).await();
 
-    await();
+    assertNotNull(c);
+    // the session id must be the same
+    assertEquals(session.id(), c.id());
+    // the session value will not be the same as IV is random
+    assertNotEquals(cookieValue, c.value());
   }
 
   /**
@@ -177,17 +168,14 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store1.createSession(30_000);
     String cookieValue = session.value();
 
-    store2
-      .get(cookieValue)
-      .onComplete(onSuccess(c -> {
-        assertNotNull(c);
-        // the session id must be the same
-        assertEquals(session.id(), c.id());
-        // the session value will not be the same as IV is random
-        assertFalse(cookieValue.equals(c.value()));
-        testComplete();
-    }));
-    await();
+    Session c = store2
+      .get(cookieValue).await();
+
+    assertNotNull(c);
+    // the session id must be the same
+    assertEquals(session.id(), c.id());
+    // the session value will not be the same as IV is random
+    assertNotEquals(cookieValue, c.value());
   }
 
   /**
@@ -196,7 +184,7 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
    * @throws Exception
    */
   @Test
-  @Ignore
+  @Disabled
   @Override
   public void testSessionExpires() throws Exception {
   }
@@ -208,7 +196,7 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
    * @throws Exception
    */
   @Test
-  @Ignore
+  @Disabled
   @Override
   public void testSessionCookieSigning() throws Exception {
   }
@@ -236,14 +224,10 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 		rsession.set(setCookie.substring(18, pos));
 
 
-      store
-        .get(rsession.get())
-        .onComplete(onSuccess(c -> {
-          assertNotNull(c);
-          assertEquals(rid.get(), c.id());
-          testComplete();
-      }));
+    Session c = store
+      .get(rsession.get()).await();
 
-      await();
+    assertNotNull(c);
+    assertEquals(rid.get(), c.id());
   }
 }

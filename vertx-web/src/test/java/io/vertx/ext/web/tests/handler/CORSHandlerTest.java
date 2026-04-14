@@ -23,9 +23,9 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -37,15 +37,11 @@ import static org.mockito.Mockito.verify;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class CORSHandlerTest extends WebTestBase {
+public class CORSHandlerTest extends WebTestBase2 {
 
-  public CORSHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
-
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testNullAllowedOrigin() {
-    CorsHandler.create().addOriginWithRegex(null);
+    assertThrows(NullPointerException.class, () -> CorsHandler.create().addOriginWithRegex(null));
   }
 
   /*
@@ -253,16 +249,16 @@ public class CORSHandlerTest extends WebTestBase {
   @Test
   public void testChaining() throws Exception {
     CorsHandler cors = CorsHandler.create();
-    Assert.assertNotNull(cors);
-    Assert.assertSame(cors, cors.allowedMethod(HttpMethod.POST));
-    Assert.assertSame(cors, cors.allowedMethod(HttpMethod.DELETE));
-    Assert.assertSame(cors, cors.allowedMethods(new HashSet<>()));
-    Assert.assertSame(cors, cors.allowedHeader("X-foo"));
-    Assert.assertSame(cors, cors.allowedHeader("X-bar"));
-    Assert.assertSame(cors, cors.allowedHeaders(new HashSet<>()));
-    Assert.assertSame(cors, cors.exposedHeader("X-wibble"));
-    Assert.assertSame(cors, cors.exposedHeader("X-blah"));
-    Assert.assertSame(cors, cors.exposedHeaders(new HashSet<>()));
+    assertNotNull(cors);
+    assertSame(cors, cors.allowedMethod(HttpMethod.POST));
+    assertSame(cors, cors.allowedMethod(HttpMethod.DELETE));
+    assertSame(cors, cors.allowedMethods(new HashSet<>()));
+    assertSame(cors, cors.allowedHeader("X-foo"));
+    assertSame(cors, cors.allowedHeader("X-bar"));
+    assertSame(cors, cors.allowedHeaders(new HashSet<>()));
+    assertSame(cors, cors.exposedHeader("X-wibble"));
+    assertSame(cors, cors.exposedHeader("X-blah"));
+    assertSame(cors, cors.exposedHeaders(new HashSet<>()));
   }
 
   private void checkHeaders(HttpResponse<Buffer> resp, String accessControlAllowOrigin,
@@ -284,13 +280,13 @@ public class CORSHandlerTest extends WebTestBase {
                             String accessControlAllowMethods, String accessControlAllowHeaders,
                             String accessControlExposeHeaders, String allowCredentials,
                             String maxAgeSeconds, String privateNetwork) {
-    Assert.assertEquals(accessControlAllowOrigin, resp.headers().get("access-control-allow-origin"));
-    Assert.assertEquals(accessControlAllowMethods, resp.headers().get("access-control-allow-methods"));
-    Assert.assertEquals(accessControlAllowHeaders, resp.headers().get("access-control-allow-headers"));
-    Assert.assertEquals(accessControlExposeHeaders, resp.headers().get("access-control-expose-headers"));
-    Assert.assertEquals(allowCredentials, resp.headers().get("access-control-allow-credentials"));
-    Assert.assertEquals(maxAgeSeconds, resp.headers().get("access-control-max-age"));
-    Assert.assertEquals(privateNetwork, resp.headers().get("access-control-allow-private-network"));
+    assertEquals(accessControlAllowOrigin, resp.headers().get("access-control-allow-origin"));
+    assertEquals(accessControlAllowMethods, resp.headers().get("access-control-allow-methods"));
+    assertEquals(accessControlAllowHeaders, resp.headers().get("access-control-allow-headers"));
+    assertEquals(accessControlExposeHeaders, resp.headers().get("access-control-expose-headers"));
+    assertEquals(allowCredentials, resp.headers().get("access-control-allow-credentials"));
+    assertEquals(maxAgeSeconds, resp.headers().get("access-control-max-age"));
+    assertEquals(privateNetwork, resp.headers().get("access-control-allow-private-network"));
   }
 
   @Test
@@ -298,7 +294,7 @@ public class CORSHandlerTest extends WebTestBase {
     router.route().handler(CorsHandler.create().addOriginWithRegex("http://example.com"));
     router.route().handler(context -> context.response().end());
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("origin", "http://example.com").send(), 200, "OK");
-    Assert.assertEquals("origin", resp.getHeader("Vary"));
+    assertEquals("origin", resp.getHeader("Vary"));
   }
 
   @Test
@@ -310,7 +306,7 @@ public class CORSHandlerTest extends WebTestBase {
     router.route().handler(CorsHandler.create().addOriginWithRegex("http://example.com"));
     router.route().handler(context -> context.response().end());
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("origin", "http://example.com").send(), 200, "OK");
-    Assert.assertEquals("Foo,origin", resp.getHeader("Vary"));
+    assertEquals("Foo,origin", resp.getHeader("Vary"));
   }
 
   @Test
@@ -322,8 +318,8 @@ public class CORSHandlerTest extends WebTestBase {
       .putHeader("access-control-request-method", "POST")
       .putHeader("access-control-request-headers", "x-header-1, x-header-2")
       .send(), 204, "No Content");
-    Assert.assertEquals("header1,header2", resp.getHeader("Access-Control-Allow-Headers"));
-    Assert.assertNull(resp.getHeader("Vary"));
+    assertEquals("header1,header2", resp.getHeader("Access-Control-Allow-Headers"));
+    assertNull(resp.getHeader("Vary"));
   }
 
   @Test
@@ -335,8 +331,8 @@ public class CORSHandlerTest extends WebTestBase {
       .putHeader("access-control-request-method", "POST")
       .putHeader("access-control-request-headers", "x-header-1, x-header-2")
       .send(), 204, "No Content");
-    Assert.assertEquals("x-header-1, x-header-2", resp.getHeader("Access-Control-Allow-Headers"));
-    Assert.assertEquals("access-control-request-headers", resp.getHeader("Vary"));
+    assertEquals("x-header-1, x-header-2", resp.getHeader("Access-Control-Allow-Headers"));
+    assertEquals("access-control-request-headers", resp.getHeader("Vary"));
   }
 
   @Test
@@ -359,18 +355,18 @@ public class CORSHandlerTest extends WebTestBase {
       .putHeader("access-control-request-method", "POST")
       .putHeader("access-control-request-headers", "X-PINGOTHER, Content-Type")
       .send(), 204, "No Content");
-    Assert.assertEquals("http://foo.example", resp.getHeader("Access-Control-Allow-Origin"));
-    Assert.assertEquals("POST,GET,OPTIONS", resp.getHeader("Access-Control-Allow-Methods"));
-    Assert.assertEquals("X-PINGOTHER,Content-Type", resp.getHeader("access-control-allow-headers"));
-    Assert.assertEquals("86400", resp.getHeader("access-control-max-age"));
+    assertEquals("http://foo.example", resp.getHeader("Access-Control-Allow-Origin"));
+    assertEquals("POST,GET,OPTIONS", resp.getHeader("Access-Control-Allow-Methods"));
+    assertEquals("X-PINGOTHER,Content-Type", resp.getHeader("access-control-allow-headers"));
+    assertEquals("86400", resp.getHeader("access-control-max-age"));
     // real request
     resp = testRequest(webClient.post("/")
       .putHeader("origin", "http://foo.example")
       .putHeader("X-PINGOTHER", "pingother")
       .putHeader("Content-Type", "text/xml; charset=UTF-8")
       .send(), 200, "OK");
-    Assert.assertEquals("http://foo.example", resp.getHeader("Access-Control-Allow-Origin"));
-    Assert.assertEquals("origin", resp.getHeader("Vary"));
+    assertEquals("http://foo.example", resp.getHeader("Access-Control-Allow-Origin"));
+    assertEquals("origin", resp.getHeader("Vary"));
   }
 
   @Test
@@ -563,14 +559,14 @@ public class CORSHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.post("/")
       .putHeader("origin", "https://mydomain.org:3000")
       .send(), 200, "OK");
-    Assert.assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
-    Assert.assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+    assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+    assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
 
     resp = testRequest(webClient.post("/")
       .putHeader("origin", "https://mydomain.org:3000")
       .sendBuffer(Buffer.buffer("abc")), 413, "Request Entity Too Large");
-    Assert.assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
-    Assert.assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+    assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+    assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
   }
 
   @Test
@@ -594,9 +590,9 @@ public class CORSHandlerTest extends WebTestBase {
       .send(), 200, "OK");
     String cred = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS);
     String orig = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
-    Assert.assertNotNull(cred);
-    Assert.assertNotNull(orig);
-    Assert.assertEquals("https://mydomain.org:3000", orig);
+    assertNotNull(cred);
+    assertNotNull(orig);
+    assertEquals("https://mydomain.org:3000", orig);
   }
 
   @Test
@@ -620,9 +616,9 @@ public class CORSHandlerTest extends WebTestBase {
       .send(), 200, "OK");
     String cred = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS);
     String orig = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
-    Assert.assertNotNull(cred);
-    Assert.assertNotNull(orig);
-    Assert.assertEquals("https://mydomain.org:3000", orig);
+    assertNotNull(cred);
+    assertNotNull(orig);
+    assertEquals("https://mydomain.org:3000", orig);
   }
 
   @Test
@@ -647,11 +643,11 @@ public class CORSHandlerTest extends WebTestBase {
     String cred = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS);
     String orig = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
     String vary = resp.getHeader(HttpHeaders.VARY);
-    Assert.assertNotNull(cred);
-    Assert.assertNotNull(orig);
-    Assert.assertNotNull(vary);
-    Assert.assertEquals("https://foo", orig);
-    Assert.assertEquals("origin", vary);
+    assertNotNull(cred);
+    assertNotNull(orig);
+    assertNotNull(vary);
+    assertEquals("https://foo", orig);
+    assertEquals("origin", vary);
 
     resp = testRequest(webClient.post("/")
       .putHeader("origin", "https://foobar")
@@ -659,11 +655,11 @@ public class CORSHandlerTest extends WebTestBase {
     cred = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS);
     orig = resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
     vary = resp.getHeader(HttpHeaders.VARY);
-    Assert.assertNotNull(cred);
-    Assert.assertNotNull(orig);
-    Assert.assertNotNull(vary);
-    Assert.assertEquals("https://foobar", orig);
-    Assert.assertEquals("origin", vary);
+    assertNotNull(cred);
+    assertNotNull(orig);
+    assertNotNull(vary);
+    assertEquals("https://foobar", orig);
+    assertEquals("origin", vary);
   }
 
   @Test
@@ -685,9 +681,9 @@ public class CORSHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.post("/")
       .putHeader("origin", "https://mydomain.org:3000")
       .send(), 200, "OK");
-    Assert.assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
-    Assert.assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
-    Assert.assertNull(resp.getHeader(HttpHeaders.VARY));
+    assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+    assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+    assertNull(resp.getHeader(HttpHeaders.VARY));
   }
 
   @Test
@@ -709,9 +705,9 @@ public class CORSHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.post("/")
       .putHeader("origin", "https://mydomain.org:3000")
       .send(), 200, "OK");
-    Assert.assertNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
-    Assert.assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
-    Assert.assertNull(resp.getHeader(HttpHeaders.VARY));
+    assertNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+    assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+    assertNull(resp.getHeader(HttpHeaders.VARY));
   }
 
   @Test
@@ -732,9 +728,9 @@ public class CORSHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.post("/")
       .putHeader("origin", "https://mydomain.org:3000")
       .send(), 200, "OK");
-    Assert.assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
-    Assert.assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
-    Assert.assertEquals("origin", resp.getHeader(HttpHeaders.VARY));
+    assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS));
+    assertNotNull(resp.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+    assertEquals("origin", resp.getHeader(HttpHeaders.VARY));
   }
 
   @Test

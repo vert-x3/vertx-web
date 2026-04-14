@@ -16,10 +16,13 @@
 package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.test.core.Repeat;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -27,17 +30,16 @@ import org.junit.Test;
 public class SockJSEventBusTest extends SockJSTestBase {
 
   @Test
-  public void testWriteText() throws Exception {
-    testWrite(true);
+  public void testWriteText(VertxTestContext testContext) throws Exception {
+    testWrite(true, testContext);
   }
 
-  @Repeat(times = 1000)
-  @Test
-  public void testWriteBinary() throws Exception {
-    testWrite(false);
+  @RepeatedTest(1000)
+  public void testWriteBinary(VertxTestContext testContext) throws Exception {
+    testWrite(false, testContext);
   }
 
-  private void testWrite(boolean text) throws Exception {
+  private void testWrite(boolean text, VertxTestContext testContext) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       if (text) {
@@ -46,7 +48,7 @@ public class SockJSEventBusTest extends SockJSTestBase {
         vertx.eventBus().send(socket.writeHandlerID(), Buffer.buffer(expected));
       }
       socket.endHandler(v -> {
-        testComplete();
+        testContext.completeNow();
       });
     };
     startServers();
@@ -57,17 +59,16 @@ public class SockJSEventBusTest extends SockJSTestBase {
             //
           } else {
             if (text) {
-              Assert.assertTrue(frame.isText());
-              Assert.assertEquals(expected, frame.textData());
+              assertTrue(frame.isText());
+              assertEquals(expected, frame.textData());
             } else {
-              Assert.assertTrue(frame.isBinary());
-              Assert.assertEquals(Buffer.buffer(expected), frame.binaryData());
+              assertTrue(frame.isBinary());
+              assertEquals(Buffer.buffer(expected), frame.binaryData());
             }
             ws.end();
           }
         });
       }));
     });
-    await();
   }
 }

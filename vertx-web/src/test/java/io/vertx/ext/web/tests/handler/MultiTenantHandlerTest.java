@@ -18,20 +18,16 @@ package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.MultiTenantHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class MultiTenantHandlerTest extends WebTestBase {
-
-  public MultiTenantHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class MultiTenantHandlerTest extends WebTestBase2 {
 
   @Test
   public void testHeader() throws Exception {
@@ -91,19 +87,19 @@ public class MultiTenantHandlerTest extends WebTestBase {
         return params.size() > 0 ? params.get(0) : null;
       })
         .addTenantHandler("t1", ctx -> {
-          Assert.assertEquals("t1", ctx.get(MultiTenantHandler.TENANT));
+          assertEquals("t1", ctx.get(MultiTenantHandler.TENANT));
           ctx.end("Hello from tenant-1");
         })
         .addTenantHandler("t2", ctx -> {
-          Assert.assertEquals("t2", ctx.get(MultiTenantHandler.TENANT));
+          assertEquals("t2", ctx.get(MultiTenantHandler.TENANT));
           ctx.end("Hello from tenant-2");
         })
         .addTenantHandler("t3", ctx -> {
-          Assert.assertEquals("t3", ctx.get(MultiTenantHandler.TENANT));
+          assertEquals("t3", ctx.get(MultiTenantHandler.TENANT));
           ctx.end("Hello from tenant-3");
         })
         .addDefaultHandler(ctx -> {
-          Assert.assertEquals("default", ctx.get(MultiTenantHandler.TENANT));
+          assertEquals("default", ctx.get(MultiTenantHandler.TENANT));
           ctx.end("No valid tenant supplied");
         })
     );

@@ -31,23 +31,22 @@ import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.sstore.SessionStore;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Paulo Lopes
  */
-public class OAuth2ImpersonationTest extends WebTestBase {
-
-  public OAuth2ImpersonationTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class OAuth2ImpersonationTest extends WebTestBase2 {
 
   private static final String USER_SWITCH_KEY = "__vertx.user-switch-ref";
 
@@ -77,22 +76,23 @@ public class OAuth2ImpersonationTest extends WebTestBase {
   private HttpServer server;
 
   @Override
-  public void tearDown() throws Exception {
+  @AfterEach
+  public void tearDown(VertxTestContext testContext) throws Exception {
     server.close();
 
-    super.tearDown();
+    super.tearDown(testContext);
   }
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
 
     oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
-    final CountDownLatch latch = new CountDownLatch(1);
     final AtomicBoolean base = new AtomicBoolean(true);
 
     server = vertx.createHttpServer();
@@ -114,15 +114,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
         }
       })
       .listen(10000)
-      .onComplete(ready -> {
-        if (ready.failed()) {
-          throw new RuntimeException(ready.cause());
-        }
-        // ready
-        latch.countDown();
-      });
-
-    latch.await();
+      .await();
   }
 
   @Test
@@ -183,7 +175,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
           .create(PermissionBasedAuthorization.create("read"))
           .addAuthorizationProvider(ScopeAuthorization.create()))
       .handler(rc -> {
-        Assert.assertNotNull(rc.user());
+        assertNotNull(rc.user());
         userRef.set(rc.user());
         rc.end("OK");
       });
@@ -197,19 +189,19 @@ public class OAuth2ImpersonationTest extends WebTestBase {
           .create(PermissionBasedAuthorization.create("write"))
           .addAuthorizationProvider(ScopeAuthorization.create()))
       .handler(rc -> {
-        Assert.assertNotNull(rc.user());
+        assertNotNull(rc.user());
         System.out.println(rc.user().principal().encodePrettily());
 
         // assert that the old and new users are not the same
         User oldUser = userRef.get();
-        Assert.assertNotNull(oldUser);
+        assertNotNull(oldUser);
         User newUser = rc.user();
-        Assert.assertFalse(oldUser.equals(newUser));
+        assertFalse(oldUser.equals(newUser));
 
         // also the old user should be in the session
         User prevUser = rc.session().get(USER_SWITCH_KEY);
-        Assert.assertNotNull(prevUser);
-        Assert.assertEquals(prevUser, oldUser);
+        assertNotNull(prevUser);
+        assertEquals(prevUser, oldUser);
 
         rc.response().end("Welcome to the 2nd protected resource!");
       });
@@ -235,7 +227,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/base").followRedirects(false).send(), 302, "Found");
     // in this case we should get a redirect
     String redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
     String[] parts = redirectURL.substring(redirectURL.indexOf('?') + 1).split("&");
 
     for (String part : parts) {
@@ -245,7 +237,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     }
 
     String setCookie = resp.headers().get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
 
     sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
 
@@ -261,7 +253,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
       .send(), 302, "Found");
     // session upgrade (secure against replay attacks)
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
     sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
     String destination = resp.getHeader(HttpHeaders.LOCATION.toString());
     stateRef.set(destination);
@@ -304,9 +296,9 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     // in this case we should get a redirect, and the session id must change
     // session upgrade (secure against replay attacks)
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
     // the session must change
-    Assert.assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+    assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
     sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
     destination = resp.getHeader(HttpHeaders.LOCATION.toString());
     stateRef.set(destination);
@@ -320,11 +312,11 @@ public class OAuth2ImpersonationTest extends WebTestBase {
       .send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
     // the session must be different
-    Assert.assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+    assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
 
     // verify that the switch is possible for authn requests
     // Expectations:
@@ -336,7 +328,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
       .send(), 302, "Found");
     // in this case we should get a redirect
     redirectURL = resp.getHeader("Location");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
     parts = redirectURL.substring(redirectURL.indexOf('?') + 1).split("&");
     boolean hintSeen = false;
 
@@ -350,11 +342,11 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     }
 
     // we should respect the hint
-    Assert.assertTrue(hintSeen);
+    assertTrue(hintSeen);
 
     // we're on the right session
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNull(setCookie);
+    assertNull(setCookie);
 
     // user is authenticated, it now escalates the permissions by re-doing the auth flow to upgrade the user
     // Expectations:
@@ -367,7 +359,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
       .send(), 302, "Found");
     // session upgrade (secure against replay attacks)
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
     sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
     destination = resp.getHeader(HttpHeaders.LOCATION.toString());
     stateRef.set(destination);
@@ -392,9 +384,9 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     // in this case we should get a redirect, and the session id must change
     // session upgrade (secure against replay attacks)
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
     // the session must change
-    Assert.assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+    assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
     sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
     destination = resp.getHeader(HttpHeaders.LOCATION.toString());
     stateRef.set(destination);

@@ -1,150 +1,108 @@
 package io.vertx.ext.web.sstore.redis.tests;
 
 import io.vertx.core.Future;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.RunTestOnContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.sstore.redis.RedisSessionStore;
+import io.vertx.junit5.VertxTest;
 import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisOptions;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
-import org.junit.runner.RunWith;
 import org.testcontainers.containers.GenericContainer;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="https://github.com/llfbandit">Rémy Noël</a>
  */
-@RunWith(VertxUnitRunner.class)
+@VertxTest
+@Timeout(10)
 public class RedisSessionStoreTest {
 
-  @ClassRule
-  public static GenericContainer<?> container = new GenericContainer<>("redis:5.0")
+  static GenericContainer<?> container = new GenericContainer<>("redis:5.0")
     .withExposedPorts(6379);
 
-  @Rule
-  public RunTestOnContext rule = new RunTestOnContext();
+  @BeforeAll
+  public static void startContainer() {
+    container.start();
+  }
+
+  @AfterAll
+  public static void stopContainer() {
+    container.stop();
+  }
 
   private SessionStore store;
 
-  @Before
-  public void before() {
+  @BeforeEach
+  public void before(Vertx vertx) {
     store = RedisSessionStore.create(
-      // get the vertx instance
-      rule.vertx(),
-      // provide a client
-      Redis.createClient(rule.vertx(), new RedisOptions()
+      vertx,
+      Redis.createClient(vertx, new RedisOptions()
         .setConnectionString("redis://" + container.getHost() + ":" + container.getMappedPort(6379))
-        // how many connections are we willing to open to redis?
         .setMaxPoolSize(2)
-        // how many waiting connections are we allowing to queue?
         .setMaxPoolWaiting(32)));
   }
 
-  @After
-  public void after(TestContext should) {
-    final Async test = should.async();
-    store.clear().onComplete(clear -> {
-      should.assertTrue(clear.succeeded());
-      test.complete();
-    });
+  @AfterEach
+  public void after() {
+    store.clear().await();
   }
 
-  @Test(timeout = 10_000)
-  public void testPutSession(TestContext should) {
-    final Async test = should.async();
-
+  @Test
+  public void testPutSession() {
     Session session = store.createSession(30_000);
-
-    store.put(session).onComplete(res -> {
-      should.assertTrue(res.succeeded());
-      test.complete();
-    });
+    store.put(session).await();
   }
 
-  @Test(timeout = 10_000)
-  public void testGetSession(TestContext should) {
-    final Async test = should.async();
-
+  @Test
+  public void testGetSession() {
     Session session = store.createSession(30_000);
     String value = session.value();
 
-    store.put(session)
-      .compose(aVoid -> store.get(value))
-      .map(sessionGet -> {
-        should.assertEquals(value, sessionGet.value());
-        return null;
-      })
-      .onComplete(res -> {
-        should.assertTrue(res.succeeded());
-        test.complete();
-      });
+    store.put(session).await();
+    Session sessionGet = store.get(value).await();
+    assertEquals(value, sessionGet.value());
   }
 
-  @Test(timeout = 10_000)
-  public void testClearSession(TestContext should) {
-    final Async test = should.async();
+  @Test
+  public void testClearSession() {
+    Session session = store.createSession(30_000);
+    store.put(session).await();
+    store.clear().await();
+  }
 
+  @Test
+  public void testSizeSession() {
     Session session = store.createSession(30_000);
 
-    store.put(session)
-      .compose(aVoid -> store.clear())
-      .onComplete(res -> {
-        should.assertTrue(res.succeeded());
-        test.complete();
-      });
+    store.put(session).await();
+    int size = store.size().await();
+    assertEquals(1, size);
+
+    store.clear().await();
+    size = store.size().await();
+    assertEquals(0, size);
   }
 
-  @Test(timeout = 10_000)
-  public void testSizeSession(TestContext should) {
-    final Async test = should.async();
-
-    Session session = store.createSession(30_000);
-
-    store.put(session)
-      .compose(atrVoid -> store.size())
-      .map(size -> {
-        should.assertEquals(1, size);
-        return size;
-      })
-      .compose(size -> store.clear())
-      .compose(atrVoid -> store.size())
-      .onComplete(res -> {
-        should.assertTrue(res.succeeded());
-        should.assertEquals(0, res.result());
-        test.complete();
-      });
-  }
-
-  @Test(timeout = 10_000)
-  public void testDeleteSession(TestContext should) {
-    final Async test = should.async();
-
+  @Test
+  public void testDeleteSession() {
     Session session = store.createSession(30_000);
     String value = session.value();
 
-    store.put(session)
-      .compose(atrVoid -> store.size())
-      .map(size -> {
-        should.assertEquals(1, size);
-        return size;
-      })
-      .compose(size -> store.delete(value))
-      .compose(atrVoid -> store.size())
-      .onComplete(res -> {
-        should.assertTrue(res.succeeded());
-        should.assertEquals(0, res.result());
-        test.complete();
-      });
+    store.put(session).await();
+    int size = store.size().await();
+    assertEquals(1, size);
+
+    store.delete(value).await();
+    size = store.size().await();
+    assertEquals(0, size);
   }
 
-  @Test(timeout = 10_000)
-  public void testFloodConnection(TestContext should) {
-    final Async test = should.async();
-
+  @Test
+  public void testFloodConnection() {
     Session session = store.createSession(30_000);
     // even though we only allow 2 connections we configured
     // the system to queue up to 32 so this should not be a problem
@@ -155,9 +113,6 @@ public class RedisSessionStoreTest {
       store.put(session),
       store.put(session),
       store.put(session)
-    ).onComplete(res -> {
-      should.assertTrue(res.succeeded());
-      test.complete();
-    });
+    ).await();
   }
 }

@@ -7,37 +7,37 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.handler.BodyHandler;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
 
 
-public class RoutingContextImplTest extends WebTestBase {
+public class RoutingContextImplTest extends WebTestBase2 {
 
-  public RoutingContextImplTest() {
-    super(ReportMode.FORBIDDEN);
-  }
-
-  @AfterClass
+  @AfterAll
   public static void oneTimeTearDown() throws IOException {
     cleanupFileUploadDir();
   }
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     router.route().handler(BodyHandler.create());
   }
 
   @Test
   public void test_empty_array_as_json_array_yields_empty_json_array() throws Exception {
     router.route().handler(event -> {
-      Assert.assertEquals(new JsonArray(), event.body().asJsonArray());
+      assertEquals(new JsonArray(), event.body().asJsonArray());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("[]")), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -46,8 +46,8 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_empty_yields_null_json_types() throws Exception {
     router.route().handler(event -> {
-      Assert.assertNull(event.body().asJsonArray());
-      Assert.assertNull(event.body().asJsonObject());
+      assertNull(event.body().asJsonArray());
+      assertNull(event.body().asJsonObject());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("")), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -61,7 +61,7 @@ public class RoutingContextImplTest extends WebTestBase {
           new JsonObject(Collections.singletonMap("foo", "bar"))
         )
       );
-      Assert.assertEquals(array, event.body().asJsonArray());
+      assertEquals(array, event.body().asJsonArray());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("[ { \"foo\": \"bar\" } ]")), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -70,7 +70,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_null_literal_array_as_json_array_yields_null_json_array() throws Exception {
     router.route().handler(event -> {
-      Assert.assertEquals(null, event.body().asJsonArray());
+      assertEquals(null, event.body().asJsonArray());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("null")), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -79,7 +79,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_non_array_as_json_array_fails_json_array() throws Exception {
     router.route().handler(event -> {
-      Assert.assertEquals(null, event.body().asJsonArray());
+      assertEquals(null, event.body().asJsonArray());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("\"1234")), HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
@@ -88,7 +88,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_invalid_array_as_json_array_fails_json_array() throws Exception {
     router.route().handler(event -> {
-      Assert.assertEquals(null, event.body().asJsonArray());
+      assertEquals(null, event.body().asJsonArray());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("1234")), HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
@@ -97,7 +97,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_empty_object_as_json_yields_empty_json_object() throws Exception {
     router.route().handler(event -> {
-      Assert.assertEquals(new JsonObject(), event.body().asJsonObject());
+      assertEquals(new JsonObject(), event.body().asJsonObject());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("{ }")), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -106,7 +106,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_object_as_json_yields_json_object() throws Exception {
     router.route().handler(event -> {
-      Assert.assertEquals(new JsonObject(Collections.singletonMap("foo", "bar")), event.body().asJsonObject());
+      assertEquals(new JsonObject(Collections.singletonMap("foo", "bar")), event.body().asJsonObject());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("{ \"foo\": \"bar\" }")), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -115,7 +115,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_null_literal_object_as_json_yields_empty_json_object() throws Exception {
     router.route().handler(event -> {
-      Assert.assertEquals(null, event.body().asJsonObject());
+      assertEquals(null, event.body().asJsonObject());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("null")), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -124,7 +124,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_invalid_json_object_as_json_fails_json_object() throws Exception {
     router.route().handler(event -> {
-      Assert.assertEquals(null, event.body().asJsonObject());
+      assertEquals(null, event.body().asJsonObject());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("\"1234")), HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
@@ -133,7 +133,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void test_non_json_object_as_json_fails_json_object() throws Exception {
     router.route().handler(event -> {
-      Assert.assertEquals(null, event.body().asJsonObject());
+      assertEquals(null, event.body().asJsonObject());
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("1234")), HttpResponseStatus.INTERNAL_SERVER_ERROR.code(), HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
@@ -145,8 +145,8 @@ public class RoutingContextImplTest extends WebTestBase {
       String foo = event.body().asJsonObject().encode();
       event.put("foo", foo);
       String removedFoo = event.remove("foo");
-      Assert.assertEquals(removedFoo, foo);
-      Assert.assertNull(event.get("foo"));
+      assertEquals(removedFoo, foo);
+      assertNull(event.get("foo"));
       event.response().end();
     });
     testRequest(webClient.post("/").sendBuffer(Buffer.buffer("{ \"foo\": \"bar\" }")), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -158,8 +158,8 @@ public class RoutingContextImplTest extends WebTestBase {
       event.attachment("myfile.pdf").response().end("PDF");
     });
     HttpResponse<Buffer> res = testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
-    Assert.assertEquals("attachment; filename=myfile.pdf", res.getHeader("Content-Disposition"));
-    Assert.assertEquals("application/pdf", res.getHeader("Content-Type"));
+    assertEquals("attachment; filename=myfile.pdf", res.getHeader("Content-Disposition"));
+    assertEquals("application/pdf", res.getHeader("Content-Type"));
   }
 
   @Test
@@ -168,8 +168,8 @@ public class RoutingContextImplTest extends WebTestBase {
       event.attachment("myfile.paulo").response().end("PDF");
     });
     HttpResponse<Buffer> res = testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
-    Assert.assertEquals("attachment; filename=myfile.paulo", res.getHeader("Content-Disposition"));
-    Assert.assertNull(res.getHeader("Content-Type"));
+    assertEquals("attachment; filename=myfile.paulo", res.getHeader("Content-Disposition"));
+    assertNull(res.getHeader("Content-Type"));
   }
 
   @Test
@@ -178,7 +178,7 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.json(new JsonObject());
     });
     HttpResponse<Buffer> res = testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
-    Assert.assertEquals("application/json", res.getHeader("Content-Type"));
+    assertEquals("application/json", res.getHeader("Content-Type"));
   }
 
   @Test
@@ -187,7 +187,7 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.json(new JsonArray());
     });
     HttpResponse<Buffer> res = testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
-    Assert.assertEquals("application/json", res.getHeader("Content-Type"));
+    assertEquals("application/json", res.getHeader("Content-Type"));
   }
 
   @Test
@@ -198,7 +198,7 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.json(new JsonObject());
     });
     HttpResponse<Buffer> res = testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
-    Assert.assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE.toString()));
+    assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE.toString()));
   }
 
   @Test
@@ -209,7 +209,7 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.json(null);
     });
     HttpResponse<Buffer> res = testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
-    Assert.assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE.toString()));
+    assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE.toString()));
   }
 
   @Test
@@ -218,7 +218,7 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.json(true);
     });
     HttpResponse<Buffer> res = testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "true");
-    Assert.assertEquals("application/json", res.getHeader("Content-Type"));
+    assertEquals("application/json", res.getHeader("Content-Type"));
   }
 
   @Test
@@ -227,13 +227,13 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.json(null);
     });
     HttpResponse<Buffer> res = testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "null");
-    Assert.assertEquals("application/json", res.getHeader("Content-Type"));
+    assertEquals("application/json", res.getHeader("Content-Type"));
   }
 
   @Test
   public void testIs() throws Exception {
     router.route().handler(event -> {
-      Assert.assertTrue(event.is("json"));
+      assertTrue(event.is("json"));
       event.response().end();
     });
     testRequest(webClient.post("/").putHeader("Content-Type", "application/json").sendBuffer(Buffer.buffer("{ \"foo\": \"bar\" }")), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -242,7 +242,7 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void testIs2() throws Exception {
     router.route().handler(event -> {
-      Assert.assertTrue(event.is("application/json"));
+      assertTrue(event.is("application/json"));
       event.response().end();
     });
     testRequest(webClient.post("/").putHeader("Content-Type", "application/json").sendBuffer(Buffer.buffer("{ \"foo\": \"bar\" }")), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -250,9 +250,9 @@ public class RoutingContextImplTest extends WebTestBase {
   @Test
   public void testSessionAccessed() throws Exception {
     router.route().handler(event -> {
-      Assert.assertFalse(event.isSessionAccessed());
+      assertFalse(event.isSessionAccessed());
       event.session();
-      Assert.assertTrue(event.isSessionAccessed());
+      assertTrue(event.isSessionAccessed());
       event.response().end();
     });
     testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());
@@ -265,23 +265,23 @@ public class RoutingContextImplTest extends WebTestBase {
       ctx.put("foo", foo);
       // ok
       Integer val = ctx.get("foo");
-      Assert.assertEquals(1000, val.intValue());
+      assertEquals(1000, val.intValue());
       try {
         val = ctx.get("foobar");
-        Assert.assertNull(val);
+        assertNull(val);
       } catch (RuntimeException e) {
-        Assert.fail(e.getMessage());
+        fail(e.getMessage());
       }
 
       try {
         int v = ctx.get("foobar");
-        Assert.fail("NPE is expected");
+        fail("NPE is expected");
       } catch (NullPointerException e) {
         // OK
       }
 
       int foobar = ctx.get("foobar", 1024);
-      Assert.assertEquals(1024, foobar);
+      assertEquals(1024, foobar);
       ctx.response().end();
     });
     testRequest(HttpMethod.GET, "/", HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase());

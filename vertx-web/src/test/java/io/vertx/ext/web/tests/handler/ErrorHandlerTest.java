@@ -20,25 +20,25 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.ErrorHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static io.vertx.ext.web.common.WebEnvironment.SYSTEM_PROPERTY_NAME;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class ErrorHandlerTest extends WebTestBase {
-
-  public ErrorHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class ErrorHandlerTest extends WebTestBase2 {
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     router.route().failureHandler(ErrorHandler.create(vertx));
   }
 
@@ -186,7 +186,7 @@ public class ErrorHandlerTest extends WebTestBase {
     });
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), statusCode, statusMessage);
     String page = resp.body().toString();
-    Assert.assertEquals("<html><body>An unexpected error occurred.404.Not Found</body></html>", page);
+    assertEquals("<html><body>An unexpected error occurred.404.Not Found</body></html>", page);
   }
 
 
@@ -200,33 +200,33 @@ public class ErrorHandlerTest extends WebTestBase {
 
   private void checkHtmlResponse(Buffer buff, HttpResponse<Buffer> resp, int statusCode, String statusMessage,
                                  Exception e, boolean displayExceptionDetails) {
-    Assert.assertEquals("text/html", resp.headers().get(HttpHeaders.CONTENT_TYPE));
+    assertEquals("text/html", resp.headers().get(HttpHeaders.CONTENT_TYPE));
     String page = buff.toString();
-    Assert.assertTrue(page.startsWith("<html>"));
-    Assert.assertTrue(page.contains(String.valueOf(statusCode)));
-    Assert.assertTrue(page.contains(statusMessage));
-    Assert.assertTrue(page.contains("An unexpected error occurred"));
+    assertTrue(page.startsWith("<html>"));
+    assertTrue(page.contains(String.valueOf(statusCode)));
+    assertTrue(page.contains(statusMessage));
+    assertTrue(page.contains("An unexpected error occurred"));
     if (e != null) {
       if (displayExceptionDetails) {
         // in this case the status message is replaced by the exception message
-        Assert.assertTrue(page.contains(e.getMessage()));
-        Assert.assertTrue(page.contains(e.getStackTrace()[0].toString()));
+        assertTrue(page.contains(e.getMessage()));
+        assertTrue(page.contains(e.getStackTrace()[0].toString()));
       } else {
-        Assert.assertFalse(page.contains(e.getStackTrace()[0].toString()));
+        assertFalse(page.contains(e.getStackTrace()[0].toString()));
       }
     }
   }
 
   private void checkJsonResponse(Buffer buff, HttpResponse<Buffer> resp, int statusCode, String statusMessage) {
-    Assert.assertEquals("application/json", resp.headers().get(HttpHeaders.CONTENT_TYPE));
+    assertEquals("application/json", resp.headers().get(HttpHeaders.CONTENT_TYPE));
     String page = buff.toString();
-    Assert.assertEquals("{\"error\":{\"code\":" + statusCode +",\"message\":\"" + statusMessage + "\"}}", page);
+    assertEquals("{\"error\":{\"code\":" + statusCode +",\"message\":\"" + statusMessage + "\"}}", page);
   }
 
   private void checkTextResponse(Buffer buff, HttpResponse<Buffer> resp, int statusCode, String statusMessage) {
-    Assert.assertEquals("text/plain", resp.headers().get(HttpHeaders.CONTENT_TYPE));
+    assertEquals("text/plain", resp.headers().get(HttpHeaders.CONTENT_TYPE));
     String page = buff.toString();
-    Assert.assertEquals("Error " + statusCode + ": " + statusMessage, page);
+    assertEquals("Error " + statusCode + ": " + statusMessage, page);
   }
 
 }

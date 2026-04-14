@@ -16,9 +16,9 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpResponseHead;
 import io.vertx.core.http.RequestOptions;
@@ -27,34 +27,30 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CSRFHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 import static java.util.stream.Collectors.joining;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class CSRFHandlerTest extends WebTestBase {
+public class CSRFHandlerTest extends WebTestBase2 {
 
-  public CSRFHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
-
-  @AfterClass
+  @AfterAll
   public static void oneTimeTearDown() throws IOException {
     cleanupFileUploadDir();
   }
@@ -67,21 +63,19 @@ public class CSRFHandlerTest extends WebTestBase {
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
     List<String> cookies = resp.headers().getAll("set-cookie");
-    Assert.assertEquals(1, cookies.size());
-    Assert.assertEquals(CSRFHandler.DEFAULT_COOKIE_NAME, cookies.get(0).substring(0, cookies.get(0).indexOf('=')));
+    assertEquals(1, cookies.size());
+    assertEquals(CSRFHandler.DEFAULT_COOKIE_NAME, cookies.get(0).substring(0, cookies.get(0).indexOf('=')));
   }
 
   @Test
-  public void testPostWithoutHeader() throws Exception {
+  public void testPostWithoutHeader(VertxTestContext testContext) {
     router.route()
       .handler(BodyHandler.create())
       .handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route().handler(rc -> rc.response().end());
-    router.errorHandler(403, rc -> testComplete());
+    router.errorHandler(403, rc -> testContext.completeNow());
 
     testRequest(HttpMethod.POST, "/", 403, "Forbidden", null);
-
-    await();
   }
 
   private final Map<String, String> cookieJar = Collections.synchronizedMap(new HashMap<>());
@@ -173,7 +167,7 @@ public class CSRFHandlerTest extends WebTestBase {
     cookieJar.put(CSRFHandler.DEFAULT_COOKIE_NAME, resp.bodyAsString());
 
     // There is always 1 cookie (csrf)
-    Assert.assertEquals(1, resp.headers().getAll("set-cookie").size());
+    assertEquals(1, resp.headers().getAll("set-cookie").size());
 
     // will fail as the cookie is always required to be validated!
     String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
@@ -209,13 +203,13 @@ public class CSRFHandlerTest extends WebTestBase {
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
     storeCookies(resp);
-    Assert.assertEquals(2, cookieJar.size());
+    assertEquals(2, cookieJar.size());
 
     HttpResponse<Buffer> resp2 = testRequest(webClient.get("/")
       .putHeader("cookie", encodeCookies())
       .send(), 200, "OK");
     // session cookie is untouched, so not sent back
-    Assert.assertTrue(resp2.headers().getAll("set-cookie").isEmpty());
+    assertTrue(resp2.headers().getAll("set-cookie").isEmpty());
   }
 
   @Test
@@ -226,7 +220,7 @@ public class CSRFHandlerTest extends WebTestBase {
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
     storeCookies(resp);
-    Assert.assertEquals(2, cookieJar.size());
+    assertEquals(2, cookieJar.size());
 
     // POST shall be OK as the token is on the session
     HttpResponse<Buffer> resp2 = testRequest(webClient.post("/")
@@ -235,7 +229,7 @@ public class CSRFHandlerTest extends WebTestBase {
       .send(), 200, "OK");
     List<String> cookies = resp2.headers().getAll("set-cookie");
     // as this request was fine, we must invalidate the old cookie
-    Assert.assertEquals(1, cookies.size());
+    assertEquals(1, cookies.size());
 
     // The token shouldn't be reusable as it's been renewed
     testRequest(webClient.post("/")
@@ -252,7 +246,7 @@ public class CSRFHandlerTest extends WebTestBase {
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
     storeCookies(resp);
-    Assert.assertEquals(2, cookieJar.size());
+    assertEquals(2, cookieJar.size());
 
     // GET shall not have any impact on the token as they are on the session, so we can reuse it further on...
     HttpResponse<Buffer> resp2 = testRequest(webClient.get("/")
@@ -260,7 +254,7 @@ public class CSRFHandlerTest extends WebTestBase {
       .send(), 200, "OK");
     List<String> cookies = resp2.headers().getAll("set-cookie");
     // as there is a session, the cookie jar should be untouched
-    Assert.assertEquals(0, cookies.size());
+    assertEquals(0, cookies.size());
 
     // POST shall be OK as the token is on the session
     testRequest(webClient.post("/")
@@ -313,7 +307,7 @@ public class CSRFHandlerTest extends WebTestBase {
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
     storeCookies(resp);
-    Assert.assertEquals(2, cookieJar.size());
+    assertEquals(2, cookieJar.size());
 
     // POST shall be OK as the token is on the session
     HttpResponse<Buffer> resp2 = testRequest(webClient.post("/")
@@ -323,10 +317,10 @@ public class CSRFHandlerTest extends WebTestBase {
     Map<String, String> oldState = new HashMap<>(cookieJar);
     cookieJar.clear();
     storeCookies(resp2);
-    Assert.assertEquals(1, cookieJar.size());
+    assertEquals(1, cookieJar.size());
     // CSRF cookies must be different now
-    Assert.assertTrue(cookieJar.containsKey(CSRFHandler.DEFAULT_COOKIE_NAME));
-    Assert.assertFalse(cookieJar.get(CSRFHandler.DEFAULT_COOKIE_NAME).equals(oldState.get(CSRFHandler.DEFAULT_COOKIE_NAME)));
+    assertTrue(cookieJar.containsKey(CSRFHandler.DEFAULT_COOKIE_NAME));
+    assertFalse(cookieJar.get(CSRFHandler.DEFAULT_COOKIE_NAME).equals(oldState.get(CSRFHandler.DEFAULT_COOKIE_NAME)));
     // Now put back the session ID
     oldState.remove(CSRFHandler.DEFAULT_COOKIE_NAME);
     cookieJar.putAll(oldState);
@@ -360,10 +354,10 @@ public class CSRFHandlerTest extends WebTestBase {
     Map<String, String> oldState = new HashMap<>(cookieJar);
     cookieJar.clear();
     storeCookies(resp2);
-    Assert.assertEquals(1, cookieJar.size());
+    assertEquals(1, cookieJar.size());
     // CSRF cookies must be different now
-    Assert.assertTrue(cookieJar.containsKey(CSRFHandler.DEFAULT_COOKIE_NAME));
-    Assert.assertFalse(cookieJar.get(CSRFHandler.DEFAULT_COOKIE_NAME).equals(oldState.get(CSRFHandler.DEFAULT_COOKIE_NAME)));
+    assertTrue(cookieJar.containsKey(CSRFHandler.DEFAULT_COOKIE_NAME));
+    assertFalse(cookieJar.get(CSRFHandler.DEFAULT_COOKIE_NAME).equals(oldState.get(CSRFHandler.DEFAULT_COOKIE_NAME)));
 
     // second POST should be fine
     testRequest(webClient.post("/")
@@ -381,7 +375,7 @@ public class CSRFHandlerTest extends WebTestBase {
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
     storeCookies(resp);
-    Assert.assertEquals(2, cookieJar.size());
+    assertEquals(2, cookieJar.size());
 
     for (int i = 0; i < 5; i++) {
       HttpResponse<Buffer> loopResp = testRequest(webClient.get("/")
@@ -389,7 +383,7 @@ public class CSRFHandlerTest extends WebTestBase {
         .send(), 200, "OK");
       List<String> cookies = loopResp.headers().getAll("set-cookie");
       // within the same session tokens are preserved across requests if not used
-      Assert.assertEquals(0, cookies.size());
+      assertEquals(0, cookies.size());
     }
   }
 
@@ -410,20 +404,17 @@ public class CSRFHandlerTest extends WebTestBase {
       .send(), 200, "OK");
     storeCookies(resp2);
 
-    CountDownLatch latch = new CountDownLatch(1);
-    // this request will never return
-    client.request(
-      new RequestOptions().setMethod(HttpMethod.POST)
-        .setHost("localhost").setPort(8080).setURI("/broken")
-        .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, cookieJar.get(CSRFHandler.DEFAULT_COOKIE_NAME))
-        .putHeader("Cookie", encodeCookies())
-    ).onComplete(TestUtils.onSuccess(req -> {
-      req.send().onComplete(TestUtils.onFailure(throwable -> {
-        latch.countDown();
-      }));
-    }));
-
-    TestUtils.awaitLatch(latch);
+    try {
+      client.request(
+        new RequestOptions().setMethod(HttpMethod.POST)
+          .setHost("localhost").setPort(8080).setURI("/broken")
+          .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, cookieJar.get(CSRFHandler.DEFAULT_COOKIE_NAME))
+          .putHeader("Cookie", encodeCookies())
+      ).await().send().await();
+      fail("Should have thrown");
+    } catch (Exception expected) {
+      // connection closed by server
+    }
 
     HttpResponse<Buffer> resp3 = testRequest(webClient.get("/working").send(), 200, "OK");
     storeCookies(resp3);
@@ -460,38 +451,29 @@ public class CSRFHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/csrf/basic").send(), 200, "OK");
     storeCookies(resp);
 
-    final CountDownLatch latch = new CountDownLatch(2);
     //Send the GET that will only resolve after a subsequent POST to /csrf/second
-    client.request(
-      new RequestOptions().setMethod(HttpMethod.GET)
-        .putHeader("Cookie", encodeCookies())
-        .setHost("localhost").setPort(8080).setURI("/csrf/first")
-    ).compose(HttpClientRequest::send).onComplete(onSuccess(res -> {
-      Assertions.assertThat(res.headers().get("set-cookie")).isNull();
-      latch.countDown();
-    }));
+    Future<HttpResponse<Buffer>> getFuture = webClient.get("/csrf/first")
+      .putHeader("Cookie", encodeCookies())
+      .send();
 
-    client.request(
-      new RequestOptions().setMethod(HttpMethod.POST)
-        .putHeader("Cookie", encodeCookies())
-        .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, cookieJar.get(CSRFHandler.DEFAULT_COOKIE_NAME))
-        .setHost("localhost").setPort(8080).setURI("/csrf/second")
-    ).compose(HttpClientRequest::send).onComplete(onSuccess(res -> {
-      Map<String, String> oldState = new HashMap<>(cookieJar);
-      cookieJar.clear();
+    HttpResponse<Buffer> postResp = webClient.post("/csrf/second")
+      .putHeader("Cookie", encodeCookies())
+      .putHeader(CSRFHandler.DEFAULT_HEADER_NAME, cookieJar.get(CSRFHandler.DEFAULT_COOKIE_NAME))
+      .send()
+      .await();
 
-      storeCookies(res);
-      Assert.assertEquals("Should only have one set-cookie", 1, cookieJar.size());
-      Assert.assertTrue("Should be token cookie", cookieJar.containsKey(CSRFHandler.DEFAULT_COOKIE_NAME));
+    Map<String, String> oldState = new HashMap<>(cookieJar);
+    cookieJar.clear();
+    storeCookies(postResp);
+    assertEquals(1, cookieJar.size(), "Should only have one set-cookie");
+    assertTrue(cookieJar.containsKey(CSRFHandler.DEFAULT_COOKIE_NAME), "Should be token cookie");
 
-      // Get the session ID back in the cookie jar
-      oldState.remove(CSRFHandler.DEFAULT_COOKIE_NAME);
-      cookieJar.putAll(oldState);
+    // Get the session ID back in the cookie jar
+    oldState.remove(CSRFHandler.DEFAULT_COOKIE_NAME);
+    cookieJar.putAll(oldState);
 
-      latch.countDown();
-    }));
-
-    TestUtils.awaitLatch(latch);
+    HttpResponse<Buffer> getResp = getFuture.await();
+    Assertions.assertThat(getResp.headers().get("set-cookie")).isNull();
 
     // The above has confirmed that the GET did not send back a new cookie
     // Now to confirm the new token from the POST works
@@ -520,7 +502,7 @@ public class CSRFHandlerTest extends WebTestBase {
     Map<String, String> oldState = new HashMap<>(cookieJar);
     cookieJar.clear();
     storeCookies(resp2);
-    Assert.assertEquals(1, cookieJar.size()); // reroute loses session cookie
+    assertEquals(1, cookieJar.size()); // reroute loses session cookie
     // Add session cookie again
     cookieJar.forEach(oldState::remove);
     cookieJar.putAll(oldState);

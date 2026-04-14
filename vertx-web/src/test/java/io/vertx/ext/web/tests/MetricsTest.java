@@ -1,5 +1,6 @@
 package io.vertx.ext.web.tests;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerConfig;
@@ -11,40 +12,46 @@ import io.vertx.core.spi.metrics.VertxMetrics;
 import io.vertx.core.spi.observability.HttpRequest;
 import io.vertx.core.spi.observability.HttpResponse;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.junit5.VertxTestContext;
+import io.vertx.junit5.VertxProvider;
+import io.vertx.junit5.ProvidedBy;
 import io.vertx.test.fakemetrics.FakeMetricsBase;
 import io.vertx.test.fakemetrics.HttpServerMetric;
 import io.vertx.test.fakemetrics.WebSocketMetric;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MetricsTest extends WebTestBase {
+public class MetricsTest extends WebTestBase2 {
 
-  public MetricsTest() {
-    super(ReportMode.FORBIDDEN);
+  static final FakeHttpServerMetrics fakeHttpServerMetrics = new FakeHttpServerMetrics();
+
+  public static class MetricsVertxProvider implements VertxProvider {
+    @Override
+    public Vertx get() {
+      return Vertx.builder()
+        .with(new VertxOptions().setMetricsOptions(new MetricsOptions().setEnabled(true)))
+        .withMetrics(options -> new VertxMetrics() {
+          @Override
+          public HttpServerMetrics<?, ?> createHttpServerMetrics(HttpServerConfig config, SocketAddress tcpLocalAddress, SocketAddress udpLocalAddress) {
+            return fakeHttpServerMetrics;
+          }
+        })
+        .build();
+    }
   }
 
-  final FakeHttpServerMetrics fakeHttpServerMetrics = new FakeHttpServerMetrics();
-
   @Override
-  protected VertxMetricsFactory getMetrics() {
-    return options -> new VertxMetrics() {
-      @Override
-      public HttpServerMetrics<?, ?> createHttpServerMetrics(HttpServerConfig config, SocketAddress tcpLocalAddress, SocketAddress udpLocalAddress) {
-        return fakeHttpServerMetrics;
-      }
-    };
-  }
-
-  @Override
-  public VertxOptions getOptions() {
-    return new VertxOptions().setMetricsOptions(new MetricsOptions().setEnabled(true));
+  @BeforeEach
+  public void setUp(@ProvidedBy(MetricsVertxProvider.class) Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
   }
 
   @Test
-  public void testSimpleRoute() throws Exception {
+  public void testSimpleRoute() {
     fakeHttpServerMetrics.reset(new String[] { null });
     // ensure that the metrics are called in the right order
     router.route().handler(rc -> rc.response().end());
@@ -52,7 +59,7 @@ public class MetricsTest extends WebTestBase {
   }
 
   @Test
-  public void testSimpleRouterMultipleRoutes() throws Exception {
+  public void testSimpleRouterMultipleRoutes() {
     fakeHttpServerMetrics.reset("A", "B", "C", "D", "E");
     // ensure that the metrics are called in the right order
     router.route().setName("A").handler(RoutingContext::next);
@@ -64,7 +71,7 @@ public class MetricsTest extends WebTestBase {
   }
 
   @Test
-  public void testSimpleRouterMultipleRoutesSomeSkiped() throws Exception {
+  public void testSimpleRouterMultipleRoutesSomeSkiped() {
     fakeHttpServerMetrics.reset("A", "B", "D", "E");
     // ensure that the metrics are called in the right order
     router.route().setName("A").handler(RoutingContext::next);

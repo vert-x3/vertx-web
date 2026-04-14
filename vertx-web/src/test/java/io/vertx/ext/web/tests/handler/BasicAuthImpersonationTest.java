@@ -13,18 +13,17 @@ import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.sstore.SessionStore;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class BasicAuthImpersonationTest extends WebTestBase {
-
-  public BasicAuthImpersonationTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class BasicAuthImpersonationTest extends WebTestBase2 {
 
   AuthenticationProvider authn;
   AuthorizationProvider authz;
@@ -32,8 +31,9 @@ public class BasicAuthImpersonationTest extends WebTestBase {
   private static final String USER_SWITCH_KEY = "__vertx.user-switch-ref";
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     authn = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     authz = PropertyFileAuthorization.create(vertx, "login/loginusers.properties");
   }
@@ -92,7 +92,7 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       .route("/protected/base")
       .handler(AuthorizationHandler.create(RoleBasedAuthorization.create("read")).addAuthorizationProvider(authz))
       .handler(rc -> {
-        Assert.assertNotNull(rc.user());
+        assertNotNull(rc.user());
         userRef.set(rc.user());
         rc.end("OK");
       });
@@ -103,18 +103,18 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       .route("/protected/admin")
       .handler(AuthorizationHandler.create(RoleBasedAuthorization.create("write")).addAuthorizationProvider(authz))
       .handler(rc -> {
-        Assert.assertNotNull(rc.user());
+        assertNotNull(rc.user());
 
         // assert that the old and new users are not the same
         User oldUser = userRef.get();
-        Assert.assertNotNull(oldUser);
+        assertNotNull(oldUser);
         User newUser = rc.user();
-        Assert.assertFalse(oldUser.equals(newUser));
+        assertFalse(oldUser.equals(newUser));
 
         // also the old user should be in the session
         User prevUser = rc.session().get(USER_SWITCH_KEY);
-        Assert.assertNotNull(prevUser);
-        Assert.assertEquals(prevUser, oldUser);
+        assertNotNull(prevUser);
+        assertEquals(prevUser, oldUser);
 
         rc.response().end("Welcome to the 2nd protected resource!");
       });
@@ -139,10 +139,10 @@ public class BasicAuthImpersonationTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/base").send(), 401, "Unauthorized");
     // in this case we should get a WWW-Authenticate
     String redirectURL = resp.getHeader("WWW-Authenticate");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
     // there's no session yet
     String setCookie = resp.headers().get("set-cookie");
-    Assert.assertNull(setCookie);
+    assertNull(setCookie);
 
     // 3. fake the redirect from the IdP. This happens with a success authn validation, we need to pass the right state
     // Expectations:
@@ -155,7 +155,7 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       .send(), 200, "OK");
     // session upgrade (secure against replay attacks)
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
     sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
 
     // 4. Confirm that we can get the secured resource
@@ -196,12 +196,12 @@ public class BasicAuthImpersonationTest extends WebTestBase {
     // in this case we should get a redirect, and the session id must change
     // session upgrade (secure against replay attacks)
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
     // the session must change
-    Assert.assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+    assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
     sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
     String destination = resp.getHeader(HttpHeaders.LOCATION.toString());
-    Assert.assertNotNull(destination);
+    assertNotNull(destination);
 
     // verify that the switch isn't possible for non authn requests
     // Expectations:
@@ -219,10 +219,10 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       .send(), 401, "Unauthorized");
     // in this case we should get a WWW-Authenticate
     redirectURL = resp.getHeader("WWW-Authenticate");
-    Assert.assertNotNull(redirectURL);
+    assertNotNull(redirectURL);
     // there's no session yet
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNull(setCookie);
+    assertNull(setCookie);
 
     // user is authenticated, it now escalates the permissions by re-doing the auth flow to upgrade the user
     // Expectations:
@@ -235,7 +235,7 @@ public class BasicAuthImpersonationTest extends WebTestBase {
       .send(), 200, "OK");
     // session upgrade (secure against replay attacks)
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
     sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
 
     ////////////////////////////////////////
@@ -258,12 +258,12 @@ public class BasicAuthImpersonationTest extends WebTestBase {
     // in this case we should get a redirect, and the session id must change
     // session upgrade (secure against replay attacks)
     setCookie = resp.headers().get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
     // the session must change
-    Assert.assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+    assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
     sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
     destination = resp.getHeader(HttpHeaders.LOCATION.toString());
-    Assert.assertNotNull(destination);
+    assertNotNull(destination);
 
     // final call to verify that the desired de-escalated user can get the final resource
     testRequest(webClient.get("/protected/base")

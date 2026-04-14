@@ -24,14 +24,10 @@ import io.vertx.ext.auth.authorization.AuthorizationProvider;
 import io.vertx.ext.auth.authorization.WildcardPermissionBasedAuthorization;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import org.junit.jupiter.api.Test;
 
-public class ABACHandlerTest extends WebTestBase {
-
-  public ABACHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class ABACHandlerTest extends WebTestBase2 {
 
   @Test
   public void testABAC() throws Exception {

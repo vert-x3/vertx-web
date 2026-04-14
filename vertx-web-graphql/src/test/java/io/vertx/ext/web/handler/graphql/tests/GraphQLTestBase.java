@@ -24,8 +24,10 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
+import org.junit.jupiter.api.BeforeEach;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
-import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.jupiter.api.BeforeEach;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.handler.BodyHandler;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
@@ -34,14 +36,15 @@ import static java.util.stream.Collectors.toList;
 /**
  * @author Thomas Segismont
  */
-public class GraphQLTestBase extends WebTestBase {
+public class GraphQLTestBase extends WebTestBase2 {
 
   protected TestData testData = new TestData();
   protected GraphQLHandler graphQLHandler;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(io.vertx.core.Vertx vertx, io.vertx.junit5.VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     router.route().handler(BodyHandler.create());
     graphQLHandler = GraphQLHandler.create(graphQL(), createOptions());
     router.route("/graphql").order(100).handler(graphQLHandler);

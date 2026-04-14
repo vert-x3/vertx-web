@@ -22,8 +22,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.client.HttpResponse;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,16 +31,20 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Thomas Segismont
  */
 public class SockJSStreamTest extends SockJSTestBase {
 
+  @BeforeEach
   @Override
-  public void setUp() throws Exception {
+  public void setUp(Vertx vertx) throws Exception {
     numServers = 2;
-    super.setUp();
+    super.setUp(vertx);
   }
 
   @Test
@@ -49,13 +53,13 @@ public class SockJSStreamTest extends SockJSTestBase {
     socketHandler = () -> {
       return socket -> {
         Context context = Vertx.currentContext();
-        Assert.assertNotNull(context);
-        Assert.assertTrue(sessionContext.compareAndSet(null, context));
+        assertNotNull(context);
+        assertTrue(sessionContext.compareAndSet(null, context));
         socket.setWriteQueueMaxSize(5);
         socket.write("Hello");
-        Assert.assertTrue(socket.writeQueueFull());
+        assertTrue(socket.writeQueueFull());
         socket.drainHandler(v -> {
-          Assert.assertEquals(sessionContext.get(), Vertx.currentContext());
+          assertEquals(sessionContext.get(), Vertx.currentContext());
           socket.write("World");
         });
       };
@@ -75,6 +79,6 @@ public class SockJSStreamTest extends SockJSTestBase {
         messages.addAll(content.stream().map(Object::toString).collect(toList()));
       }
     }
-    Assert.assertEquals(Arrays.asList("Hello", "World"), messages);
+    assertEquals(Arrays.asList("Hello", "World"), messages);
   }
 }

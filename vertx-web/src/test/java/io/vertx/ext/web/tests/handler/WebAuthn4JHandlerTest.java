@@ -19,6 +19,7 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
@@ -38,12 +39,12 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.WebAuthn4JHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.test.core.TestUtils;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.Assert;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.webauthn4j.converter.AttestedCredentialDataConverter;
 import com.webauthn4j.converter.AuthenticationExtensionsClientOutputsConverter;
@@ -83,15 +84,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class WebAuthn4JHandlerTest extends WebTestBase {
-
-	public WebAuthn4JHandlerTest() {
-		super(ReportMode.FORBIDDEN);
-	}
+public class WebAuthn4JHandlerTest extends WebTestBase2 {
 
 	private final ObjectConverter objectConverter = new ObjectConverter();
 
@@ -173,7 +169,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		testStorage = new TestStorage(vertx.getOrCreateContext());
 		WebAuthn4J webauthn = WebAuthn4J.create(vertx, new WebAuthn4JOptions()
@@ -202,8 +198,8 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 	public void testRegisterAndLogin() throws Exception {
 
 		Handler<RoutingContext> handler = rc -> {
-			Assert.assertNotNull(rc.user());
-			Assert.assertEquals(username, rc.user().subject());
+			assertNotNull(rc.user());
+			assertEquals(username, rc.user().subject());
 			rc.response().end("Welcome to the protected resource!");
 		};
 
@@ -265,16 +261,16 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 
 		testStorage.find(username, null)
 		.onSuccess(authenticators -> {
-			Assert.assertNotNull(authenticators);
-			Assert.assertEquals(1, authenticators.size());
+			assertNotNull(authenticators);
+			assertEquals(1, authenticators.size());
 			Authenticator authenticator = authenticators.get(0);
 			// Check username, credid, counter, publicKey
-			Assert.assertEquals(username, authenticator.getUsername());
-			Assert.assertEquals(credId, authenticator.getCredID());
-			Assert.assertEquals(1, authenticator.getCounter());
-			Assert.assertEquals(publicKey, authenticator.getPublicKey());
+			assertEquals(username, authenticator.getUsername());
+			assertEquals(credId, authenticator.getCredID());
+			assertEquals(1, authenticator.getCounter());
+			assertEquals(publicKey, authenticator.getPublicKey());
 		})
-		.onFailure(x -> Assert.fail("Well that did not work"));
+		.onFailure(x -> fail("Well that did not work"));
 
 		return obtainedCookie[0];
 	}
@@ -370,16 +366,16 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 
 		testStorage.find(username, null)
 		.onSuccess(authenticators -> {
-			Assert.assertNotNull(authenticators);
-			Assert.assertEquals(1, authenticators.size());
+			assertNotNull(authenticators);
+			assertEquals(1, authenticators.size());
 			Authenticator authenticator = authenticators.get(0);
 			// Check username, credid, counter, publicKey
-			Assert.assertEquals(username, authenticator.getUsername());
-			Assert.assertEquals(credId, authenticator.getCredID());
-			Assert.assertEquals(2, authenticator.getCounter());
-			Assert.assertEquals(publicKey, authenticator.getPublicKey());
+			assertEquals(username, authenticator.getUsername());
+			assertEquals(credId, authenticator.getCredID());
+			assertEquals(2, authenticator.getCounter());
+			assertEquals(publicKey, authenticator.getPublicKey());
 		})
-		.onFailure(x -> Assert.fail("Well that did not work"));
+		.onFailure(x -> fail("Well that did not work"));
 
 		return obtainedCookie[0];
 	}
@@ -414,20 +410,20 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			int statusCode, String statusMessage,
 			Consumer<Buffer> responseBodyBufferAction) throws Exception {
 		RequestOptions requestOptions = new RequestOptions().setMethod(method).setPort(8080).setURI(path).setHost("localhost");
-		CountDownLatch latch = new CountDownLatch(1);
+		Promise<Void> promise = Promise.promise();
 		client.request(requestOptions).onComplete(TestUtils.onSuccess(req -> {
 			req.response().onComplete(TestUtils.onSuccess(resp -> {
-				Assert.assertEquals(statusCode, resp.statusCode());
-				Assert.assertEquals(statusMessage, resp.statusMessage());
+				assertEquals(statusCode, resp.statusCode());
+				assertEquals(statusMessage, resp.statusMessage());
 				if (responseAction != null) {
 					responseAction.accept(resp);
 				}
 				if (responseBodyBufferAction == null) {
-					latch.countDown();
+					promise.complete();
 				} else {
 					resp.bodyHandler(buff -> {
 						responseBodyBufferAction.accept(buff);
-						latch.countDown();
+						promise.complete();
 					});
 				}
 			}));
@@ -436,6 +432,6 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			}
 			req.end();
 		}));
-		TestUtils.awaitLatch(latch);
+		promise.future().await();
 	}
 }

@@ -20,18 +20,14 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.FaviconHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class FaviconHandlerTest extends WebTestBase {
-
-  public FaviconHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class FaviconHandlerTest extends WebTestBase2 {
 
   @Test
   public void testFaviconClasspath() throws Exception {
@@ -62,10 +58,10 @@ public class FaviconHandlerTest extends WebTestBase {
     router.route().handler(rc -> rc.response().end());
     Buffer icon = vertx.fileSystem().readFileBlocking("favicon.ico");
     HttpResponse<Buffer> resp = testRequest(webClient.get("/favicon.ico").send(), 200, "OK");
-    Assert.assertEquals("image/x-icon", resp.headers().get("content-type"));
-    Assert.assertEquals(icon.length(), Integer.valueOf(resp.headers().get("content-length")).intValue());
-    Assert.assertEquals("public, max-age=" + maxAgeSeconds, resp.headers().get("cache-control"));
-    Assert.assertEquals(icon, resp.body());
+    assertEquals("image/x-icon", resp.headers().get("content-type"));
+    assertEquals(icon.length(), Integer.valueOf(resp.headers().get("content-length")).intValue());
+    assertEquals("public, max-age=" + maxAgeSeconds, resp.headers().get("cache-control"));
+    assertEquals(icon, resp.body());
   }
 
   @Test

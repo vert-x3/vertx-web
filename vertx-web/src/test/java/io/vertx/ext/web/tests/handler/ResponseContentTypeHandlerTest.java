@@ -24,9 +24,12 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.handler.ResponseTimeHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Assert;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Random;
 
@@ -36,17 +39,14 @@ import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
 /**
  * @author Thomas Segismont
  */
-public class ResponseContentTypeHandlerTest extends WebTestBase {
-
-  public ResponseContentTypeHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class ResponseContentTypeHandlerTest extends WebTestBase2 {
 
   private Route testRoute;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     router.route().handler(ResponseContentTypeHandler.create());
     // Added to make sure ResponseContentTypeHandler works well with others
     router.route().handler(ResponseTimeHandler.create());
@@ -61,7 +61,7 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .send()
       .expecting(HttpResponseExpectation.SC_OK)
       .await();
-    Assert.assertNull(contentType(resp));
+    assertNull(contentType(resp));
   }
 
   @Test
@@ -72,7 +72,7 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .send()
       .expecting(HttpResponseExpectation.SC_OK)
       .await();
-    Assert.assertEquals("text/plain", contentType(resp));
+    assertEquals("text/plain", contentType(resp));
   }
 
   @Test
@@ -85,8 +85,8 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .expecting(HttpResponseExpectation.SC_OK)
       .expecting(HttpResponseExpectation.contentType("application/json"))
       .await();
-    Assert.assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
-    Assert.assertEquals(buffer, resp.body());
+    assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
+    assertEquals(buffer, resp.body());
   }
 
   @Test
@@ -98,8 +98,8 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .send()
       .expecting(HttpResponseExpectation.SC_OK)
       .await();
-    Assert.assertNull(contentLength(resp));
-    Assert.assertEquals(buffer, resp.body());
+    assertNull(contentLength(resp));
+    assertEquals(buffer, resp.body());
   }
 
   @Test
@@ -110,8 +110,8 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .send()
       .expecting(HttpResponseExpectation.SC_OK)
       .await();
-    Assert.assertNull(contentType(resp));
-    Assert.assertEquals(Integer.valueOf(0), contentLength(resp));
+    assertNull(contentType(resp));
+    assertEquals(Integer.valueOf(0), contentLength(resp));
   }
 
   @Test
@@ -129,9 +129,9 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       .send()
       .expecting(HttpResponseExpectation.SC_OK)
       .await();
-    Assert.assertNull(contentType(resp));
-    Assert.assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
-    Assert.assertEquals(buffer, resp.body());
+    assertNull(contentType(resp));
+    assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
+    assertEquals(buffer, resp.body());
   }
 
   @Test

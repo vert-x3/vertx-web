@@ -24,20 +24,20 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import io.vertx.ext.web.handler.graphql.UploadScalar;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class Result {
   private final String id;
@@ -47,10 +47,11 @@ class Result {
   }
 }
 
-public class MultipartRequestTest extends WebTestBase {
+public class MultipartRequestTest extends WebTestBase2 {
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(io.vertx.core.Vertx vertx, io.vertx.junit5.VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     GraphQLHandler graphQLHandler = GraphQLHandler.create(graphQL(), createOptions());
     router.route().handler(BodyHandler.create());
     router.route("/graphql").order(100).handler(graphQLHandler);
@@ -86,76 +87,56 @@ public class MultipartRequestTest extends WebTestBase {
 
   @Test
   public void testSingleUploadMutation() {
-    final HttpClient client = vertx.createHttpClient(getHttpClientOptions());
-
     final Buffer bodyBuffer = vertx.fileSystem().readFileBlocking("singleUpload.txt");
 
-    client.request(new RequestOptions()
-      .setMethod(HttpMethod.POST)
-      .setURI("/graphql")
-      .setIdleTimeout(10000)
-      .addHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryBpwmk50wSJmsTPAH")
-      .addHeader("accept", "application/json"))
-      .compose(req -> req.send(bodyBuffer)
-        .compose(HttpClientResponse::body)
-      ).onComplete(onSuccess(buffer -> {
-      final JsonObject json = ((JsonObject) buffer.toJsonValue()).getJsonObject("data").getJsonObject("singleUpload");
-      assertEquals("a.txt", json.getString("id"));
-      complete();
-    }));
-
-    await();
+    HttpResponse<Buffer> response = webClient.post(8080, "localhost", "/graphql")
+      .putHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryBpwmk50wSJmsTPAH")
+      .putHeader("accept", "application/json")
+      .timeout(10000)
+      .sendBuffer(bodyBuffer)
+      .await();
+    final JsonObject json = response
+      .bodyAsJsonObject()
+      .getJsonObject("data")
+      .getJsonObject("singleUpload");
+    assertEquals("a.txt", json.getString("id"));
   }
 
   @Test
   public void testMultipleUploadMutation() {
-    final HttpClient client = vertx.createHttpClient(getHttpClientOptions());
-
     final Buffer bodyBuffer = vertx.fileSystem().readFileBlocking("multipleUpload.txt");
-    client.request(new RequestOptions()
-      .setMethod(HttpMethod.POST)
-      .setURI("/graphql")
-      .addHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryhvb6BzAACEqQKt0Z")
-      .addHeader("accept", "application/json")
-      .setIdleTimeout(10000))
-      .compose(req -> req.send(bodyBuffer).compose(HttpClientResponse::body))
-      .onComplete(onSuccess(buffer -> {
-        final JsonObject json = ((JsonObject) buffer.toJsonValue()).getJsonObject("data").getJsonObject("multipleUpload");
-        assertEquals("b.txt c.txt", json.getString("id"));
-        complete();
-      }));
 
-    await();
+    HttpResponse<Buffer> response = webClient.post(8080, "localhost", "/graphql")
+      .putHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryhvb6BzAACEqQKt0Z")
+      .putHeader("accept", "application/json")
+      .timeout(10000)
+      .sendBuffer(bodyBuffer).await();
+    final JsonObject json = response
+      .bodyAsJsonObject()
+      .getJsonObject("data")
+      .getJsonObject("multipleUpload");
+    assertEquals("b.txt c.txt", json.getString("id"));
   }
 
   @Test
   public void testBatchUploadMutation() {
-    final HttpClient client = vertx.createHttpClient(getHttpClientOptions());
-
     final Buffer bodyBuffer = vertx.fileSystem().readFileBlocking("batchUpload.txt");
-    client.request(new RequestOptions()
-        .setMethod(HttpMethod.POST)
-        .setURI("/graphql")
-        .addHeader("Content-Type", "multipart/form-data; boundary=------------------------560b6209af099a26")
-        .addHeader("accept", "application/json")
-        .setIdleTimeout(10000))
-      .compose(req -> req.send(bodyBuffer).compose(HttpClientResponse::body))
-      .onComplete(onSuccess(buffer -> {
-      final JsonObject result = new JsonObject("{ \"array\":" + buffer.toString() + "}");
-      assertEquals("a.txt", result.getJsonArray("array")
-        .getJsonObject(0).getJsonObject("data")
-        .getJsonObject("singleUpload").getString("id")
-      );
 
-      assertEquals("b.txt c.txt", result.getJsonArray("array")
-        .getJsonObject(1).getJsonObject("data")
-        .getJsonObject("multipleUpload").getString("id")
-      );
+    HttpResponse<Buffer> response = webClient.post(8080, "localhost", "/graphql")
+      .putHeader("Content-Type", "multipart/form-data; boundary=------------------------560b6209af099a26")
+      .putHeader("accept", "application/json")
+      .timeout(10000)
+      .sendBuffer(bodyBuffer).await();
+    final JsonObject result = new JsonObject("{ \"array\":" + response.bodyAsString() + "}");
+    assertEquals("a.txt", result.getJsonArray("array")
+      .getJsonObject(0).getJsonObject("data")
+      .getJsonObject("singleUpload").getString("id")
+    );
 
-      complete();
-      }));
-
-    await();
+    assertEquals("b.txt c.txt", result.getJsonArray("array")
+      .getJsonObject(1).getJsonObject("data")
+      .getJsonObject("multipleUpload").getString("id")
+    );
   }
 
   private Object singleUpload(DataFetchingEnvironment env) {

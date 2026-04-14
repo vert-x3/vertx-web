@@ -9,17 +9,13 @@ import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.handler.impl.SimpleAuthenticationHandlerImpl;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
-public class ChainAuthMixHandlerTest extends WebTestBase {
-
-  public ChainAuthMixHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class ChainAuthMixHandlerTest extends WebTestBase2 {
 
   private static final User USER = User.create(new JsonObject().put("id", "paulo"));
 
@@ -114,11 +110,13 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
         .add(BasicAuthHandler.create(null));
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testRedirectAndHandlerFail() {
-    ChainAuthHandler.all()
-      .add(OAuth2AuthHandler.create(vertx, null, "http://server.com/callback"))
-      .add(BasicAuthHandler.create(null));
+    assertThrows(IllegalStateException.class, () -> {
+      ChainAuthHandler.all()
+        .add(OAuth2AuthHandler.create(vertx, null, "http://server.com/callback"))
+        .add(BasicAuthHandler.create(null));
+    });
   }
 
   @Test
@@ -143,7 +141,7 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
     router.route().handler(chain);
-    router.route().handler(ctx -> Assert.fail());
+    router.route().handler(ctx -> fail());
 
     testRequest(HttpMethod.GET, "/", 200, "OK", "Peekaboo");
   }

@@ -9,25 +9,25 @@ import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-public class ChainAuthHandlerTest extends WebTestBase {
-
-  public ChainAuthHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class ChainAuthHandlerTest extends WebTestBase2 {
 
   private AuthenticationProvider authProvider;
   protected ChainAuthHandler chain;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
 
     authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     AuthenticationHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
@@ -77,7 +77,7 @@ public class ChainAuthHandlerTest extends WebTestBase {
     router.route().handler(ctx -> ctx.response().end());
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX==").send(), 401, "Unauthorized", "Unauthorized");
-    Assert.assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate"));
+    assertEquals("Basic realm=\"vertx-web\"", resp.getHeader("WWW-Authenticate"));
   }
 
   @Test
@@ -94,12 +94,12 @@ public class ChainAuthHandlerTest extends WebTestBase {
     router.route().handler(ctx -> ctx.response().end());
 
     HttpResponse<Buffer> resp2 = testRequest(webClient.get("/").send(), 401, "Unauthorized", "Unauthorized");
-    Assert.assertNotNull(resp2.getHeader("WWW-Authenticate"));
+    assertNotNull(resp2.getHeader("WWW-Authenticate"));
     List<String> headers = resp2.headers().getAll("WWW-Authenticate");
-    Assert.assertNotNull(headers);
-    Assert.assertEquals(2, headers.size());
-    Assert.assertTrue(headers.get(0).startsWith("Basic realm=\"vertx-web\""));
-    Assert.assertTrue(headers.get(1).startsWith("Digest realm=\"testrealm@host.com\""));
+    assertNotNull(headers);
+    assertEquals(2, headers.size());
+    assertTrue(headers.get(0).startsWith("Basic realm=\"vertx-web\""));
+    assertTrue(headers.get(1).startsWith("Digest realm=\"testrealm@host.com\""));
   }
 
   @Test
@@ -132,9 +132,9 @@ public class ChainAuthHandlerTest extends WebTestBase {
     MultiMap respHeaders = resp.headers();
     // session will be upgraded
     String setCookie = respHeaders.get("set-cookie");
-    Assert.assertNotNull(setCookie);
+    assertNotNull(setCookie);
     // client will be redirected
-    Assert.assertTrue(respHeaders.contains(HttpHeaders.LOCATION, "/welcome", false));
+    assertTrue(respHeaders.contains(HttpHeaders.LOCATION, "/welcome", false));
   }
 
 }

@@ -20,23 +20,19 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Test;
+import io.vertx.ext.web.tests.WebTestBase2;
+import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 /**
  * @author Paulo Lopes
  */
-public class RerouteTest extends WebTestBase {
+public class RerouteTest extends WebTestBase2 {
 
-  public RerouteTest() {
-    super(ReportMode.FORBIDDEN);
-  }
-
-  @AfterClass
+  @AfterAll
   public static void oneTimeTearDown() throws IOException {
     cleanupFileUploadDir();
   }
@@ -100,7 +96,7 @@ public class RerouteTest extends WebTestBase {
     });
 
     HttpResponse<Buffer> res = testRequest(webClient.get("/me").send(), 200, "OK", "/users/:name");
-    Assert.assertNull(res.getHeader("X-woop"));
+    assertNull(res.getHeader("X-woop"));
   }
 
   @Test
@@ -115,7 +111,7 @@ public class RerouteTest extends WebTestBase {
     });
 
     HttpResponse<Buffer> res = testRequest(webClient.get("/me").send(), 200, "OK", "/users/:name");
-    Assert.assertEquals("durp2", res.getHeader("X-woop"));
+    assertEquals("durp2", res.getHeader("X-woop"));
   }
 
   @Test
@@ -130,8 +126,8 @@ public class RerouteTest extends WebTestBase {
     });
 
     HttpResponse<Buffer> res = testRequest(webClient.get("/me").send(), 200, "OK", "/users/:name");
-    Assert.assertEquals("durp2", res.getHeader("X-woop"));
-    Assert.assertNull(res.getHeader("Cookie"));
+    assertEquals("durp2", res.getHeader("X-woop"));
+    assertNull(res.getHeader("Cookie"));
   }
 
   @Test
@@ -145,10 +141,10 @@ public class RerouteTest extends WebTestBase {
   @Test
   public void testRerouteAbsoluteURI() throws Exception {
     router.get("/other").handler(ctx -> {
-      Assert.assertEquals("http://localhost:8080/other?paramter1=p1&parameter2=p2", ctx.request().absoluteURI());
+      assertEquals("http://localhost:8080/other?paramter1=p1&parameter2=p2", ctx.request().absoluteURI());
       // assert the parameters have been parsed
-      Assert.assertEquals("p1", ctx.queryParam("paramter1").get(0));
-      Assert.assertEquals("p2", ctx.queryParam("parameter2").get(0));
+      assertEquals("p1", ctx.queryParam("paramter1").get(0));
+      assertEquals("p2", ctx.queryParam("parameter2").get(0));
       ctx.response().end("/other");
     });
     router.get("/base").handler(ctx -> {
@@ -164,26 +160,26 @@ public class RerouteTest extends WebTestBase {
     router.get("/other").handler(ctx -> {
       HttpServerRequest req = ctx.request();
 
-      Assert.assertEquals(HttpMethod.GET, req.method());
-      Assert.assertEquals("GET", req.method().name());
-      Assert.assertEquals("/other", req.path());
-      Assert.assertEquals("paramter1=p1&parameter2=p2", req.query());
-      Assert.assertEquals("/other?paramter1=p1&parameter2=p2", req.uri());
-      Assert.assertEquals("http://localhost:8080/other?paramter1=p1&parameter2=p2", req.absoluteURI());
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.method().name());
+      assertEquals("/other", req.path());
+      assertEquals("paramter1=p1&parameter2=p2", req.query());
+      assertEquals("/other?paramter1=p1&parameter2=p2", req.uri());
+      assertEquals("http://localhost:8080/other?paramter1=p1&parameter2=p2", req.absoluteURI());
 
       // assert the parameters have been parsed
-      Assert.assertEquals("p1", ctx.queryParam("paramter1").get(0));
-      Assert.assertEquals("p2", ctx.queryParam("parameter2").get(0));
+      assertEquals("p1", ctx.queryParam("paramter1").get(0));
+      assertEquals("p2", ctx.queryParam("parameter2").get(0));
       ctx.response().end("/other");
     });
     router.get("/base").handler(ctx -> {
       HttpServerRequest req = ctx.request();
-      Assert.assertEquals(HttpMethod.GET, req.method());
-      Assert.assertEquals("GET", req.method().name());
-      Assert.assertEquals("/base", req.path());
-      Assert.assertEquals("p=1", req.query());
-      Assert.assertEquals("/base?p=1", req.uri());
-      Assert.assertEquals("http://localhost:8080/base?p=1", req.absoluteURI());
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.method().name());
+      assertEquals("/base", req.path());
+      assertEquals("p=1", req.query());
+      assertEquals("/base?p=1", req.uri());
+      assertEquals("http://localhost:8080/base?p=1", req.absoluteURI());
 
       ctx.reroute("/other?paramter1=p1&parameter2=p2");
     });
@@ -196,26 +192,26 @@ public class RerouteTest extends WebTestBase {
     router.get("/other").handler(ctx -> {
       HttpServerRequest req = ctx.request();
 
-      Assert.assertEquals(HttpMethod.GET, req.method());
-      Assert.assertEquals("GET", req.method().name());
-      Assert.assertEquals("/other", req.path());
-      Assert.assertEquals("paramter1=p1&parameter2=p2", req.query());
-      Assert.assertEquals("/other?paramter1=p1&parameter2=p2#frag", req.uri());
-      Assert.assertEquals("http://localhost:8080/other?paramter1=p1&parameter2=p2#frag", req.absoluteURI());
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.method().name());
+      assertEquals("/other", req.path());
+      assertEquals("paramter1=p1&parameter2=p2", req.query());
+      assertEquals("/other?paramter1=p1&parameter2=p2#frag", req.uri());
+      assertEquals("http://localhost:8080/other?paramter1=p1&parameter2=p2#frag", req.absoluteURI());
 
       // assert the parameters have been parsed
-      Assert.assertEquals("p1", ctx.queryParam("paramter1").get(0));
-      Assert.assertEquals("p2", ctx.queryParam("parameter2").get(0));
+      assertEquals("p1", ctx.queryParam("paramter1").get(0));
+      assertEquals("p2", ctx.queryParam("parameter2").get(0));
       ctx.response().end("/other");
     });
     router.get("/base").handler(ctx -> {
       HttpServerRequest req = ctx.request();
-      Assert.assertEquals(HttpMethod.GET, req.method());
-      Assert.assertEquals("GET", req.method().name());
-      Assert.assertEquals("/base", req.path());
-      Assert.assertEquals("p=1", req.query());
-      Assert.assertEquals("/base?p=1", req.uri());
-      Assert.assertEquals("http://localhost:8080/base?p=1", req.absoluteURI());
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.method().name());
+      assertEquals("/base", req.path());
+      assertEquals("p=1", req.query());
+      assertEquals("/base?p=1", req.uri());
+      assertEquals("http://localhost:8080/base?p=1", req.absoluteURI());
 
       ctx.reroute("/other?paramter1=p1&parameter2=p2#frag");
     });
@@ -228,22 +224,22 @@ public class RerouteTest extends WebTestBase {
     router.get("/other").handler(ctx -> {
       HttpServerRequest req = ctx.request();
 
-      Assert.assertEquals(HttpMethod.GET, req.method());
-      Assert.assertEquals("GET", req.method().name());
-      Assert.assertEquals("/other", req.path());
-      Assert.assertNull(req.query());
-      Assert.assertEquals("/other#frag", req.uri());
-      Assert.assertEquals("http://localhost:8080/other#frag", req.absoluteURI());
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.method().name());
+      assertEquals("/other", req.path());
+      assertNull(req.query());
+      assertEquals("/other#frag", req.uri());
+      assertEquals("http://localhost:8080/other#frag", req.absoluteURI());
       ctx.response().end("/other");
     });
     router.get("/base").handler(ctx -> {
       HttpServerRequest req = ctx.request();
-      Assert.assertEquals(HttpMethod.GET, req.method());
-      Assert.assertEquals("GET", req.method().name());
-      Assert.assertEquals("/base", req.path());
-      Assert.assertEquals("p=1", req.query());
-      Assert.assertEquals("/base?p=1", req.uri());
-      Assert.assertEquals("http://localhost:8080/base?p=1", req.absoluteURI());
+      assertEquals(HttpMethod.GET, req.method());
+      assertEquals("GET", req.method().name());
+      assertEquals("/base", req.path());
+      assertEquals("p=1", req.query());
+      assertEquals("/base?p=1", req.uri());
+      assertEquals("http://localhost:8080/base?p=1", req.absoluteURI());
 
       ctx.reroute("/other#frag");
     });
@@ -254,7 +250,7 @@ public class RerouteTest extends WebTestBase {
   @Test
   public void testRerouteWhenBaseRequestHasBadlyEncodedParams() throws Exception {
     router.get("/other").handler(ctx -> {
-      Assert.assertEquals(true, ctx.request().params().isEmpty());
+      assertEquals(true, ctx.request().params().isEmpty());
       ctx.response().end("/other");
     });
     router.get("/base").handler(ctx -> ctx.reroute("/other"));

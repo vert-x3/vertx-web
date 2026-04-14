@@ -33,12 +33,17 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.impl.Utils;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.test.core.TestUtils;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Assumptions;
+
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +53,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.util.function.BiFunction;
@@ -60,11 +64,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class StaticHandlerTest extends WebTestBase {
-
-  public StaticHandlerTest() {
-    super(ReportMode.FORBIDDEN);
-  }
+public class StaticHandlerTest extends WebTestBase2 {
 
   private static final Path webRootSrc;
 
@@ -85,8 +85,9 @@ public class StaticHandlerTest extends WebTestBase {
   protected StaticHandler stat;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(io.vertx.core.Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     webRootTarget = Files.createTempDirectory(webRootSrc.getParent(), "webroot");
     copyWebRootFiles();
     stat = StaticHandler.create(webRootTarget.getFileName().toString());
@@ -114,8 +115,9 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
+  @AfterEach
+  public void tearDown(VertxTestContext testContext) throws Exception {
+    super.tearDown(testContext);
     deleteWebRootFiles();
   }
 
@@ -145,7 +147,7 @@ public class StaticHandlerTest extends WebTestBase {
     // in the case the file is a directory, it redirects to the root.
     HttpResponse<Buffer> resp = testRequest(webClient.get("/somedir").followRedirects(false).send(), 301, "Moved Permanently");
     String location = resp.headers().get("location");
-    Assert.assertEquals("/somedir/", location);
+    assertEquals("/somedir/", location);
   }
 
   @Test
@@ -235,9 +237,9 @@ public class StaticHandlerTest extends WebTestBase {
   public void testDateHeaderSet() throws Exception {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/otherpage.html").send(), 200, "OK");
     String dateHeader = resp.headers().get("date");
-    Assert.assertNotNull(dateHeader);
+    assertNotNull(dateHeader);
     long diff = System.currentTimeMillis() - toDateTime(dateHeader);
-    Assert.assertTrue(diff > 0 && diff < 2000);
+    assertTrue(diff > 0 && diff < 2000);
   }
 
   @Test
@@ -246,13 +248,13 @@ public class StaticHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/otherpage.html").send(), 200, "OK");
     String contentType = resp.headers().get("content-type");
     String contentLength = resp.headers().get("content-length");
-    Assert.assertEquals("text/html;charset=UTF-8", contentType);
-    Assert.assertEquals(fileSize("src/test/resources/webroot/otherpage.html"), Integer.valueOf(contentLength).intValue());
+    assertEquals("text/html;charset=UTF-8", contentType);
+    assertEquals(fileSize("src/test/resources/webroot/otherpage.html"), Integer.valueOf(contentLength).intValue());
     resp = testRequest(webClient.get("/foo.json").send(), 200, "OK");
     contentType = resp.headers().get("content-type");
     contentLength = resp.headers().get("content-length");
-    Assert.assertEquals("application/json", contentType);
-    Assert.assertEquals(fileSize("src/test/resources/webroot/foo.json"), Integer.valueOf(contentLength).intValue());
+    assertEquals("application/json", contentType);
+    assertEquals(fileSize("src/test/resources/webroot/foo.json"), Integer.valueOf(contentLength).intValue());
   }
 
   @Test
@@ -263,7 +265,7 @@ public class StaticHandlerTest extends WebTestBase {
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/testLinkPreload.html").send(), 200, "OK");
     List<String> linkHeaders = resp.headers().getAll("Link");
-    Assert.assertTrue(linkHeaders.isEmpty());
+    assertTrue(linkHeaders.isEmpty());
   }
 
   @Test
@@ -279,8 +281,8 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setHttp2PushMapping(mappings);
     HttpResponse<Buffer> resp = testRequest(webClient.get("/testLinkPreload.html").send(), 200, "OK");
     List<String> linkHeaders = resp.headers().getAll("Link");
-    Assert.assertTrue(linkHeaders.contains("<style.css>; rel=preload; as=style"));
-    Assert.assertTrue(linkHeaders.contains("<coin.png>; rel=preload; as=image"));
+    assertTrue(linkHeaders.contains("<style.css>; rel=preload; as=style"));
+    assertTrue(linkHeaders.contains("<coin.png>; rel=preload; as=image"));
   }
 
   @Test
@@ -302,25 +304,21 @@ public class StaticHandlerTest extends WebTestBase {
         .setSsl(true)
       .setKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")));
     (server.requestHandler(router).listen(8443)).await();
-    client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
-      .onComplete(TestUtils.onSuccess(req -> {
+    HttpClientResponse resp = client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
+      .compose(req -> {
         req.pushHandler(pushedReq -> pushedReq.response().onComplete(pushedResp -> {
-          Assert.fail();
+          fail();
         }));
-        req.send().onComplete(TestUtils.onSuccess(resp -> {
-          Assert.assertEquals(200, resp.statusCode());
-          Assert.assertEquals(HttpVersion.HTTP_2, resp.version());
-          resp.bodyHandler(body -> Assert.assertNotNull(body));
-          testComplete();
-        }));
-      }));
-
-    await();
+        return req.send();
+      }).await();
+    assertEquals(200, resp.statusCode());
+    assertEquals(HttpVersion.HTTP_2, resp.version());
+    assertNotNull(resp.body().await());
   }
 
   @Test
-  public void testHttp2Push() throws Exception {
-    waitFor(2);
+  public void testHttp2Push(VertxTestContext testContext) throws Exception {
+    Checkpoint pushReceived = testContext.checkpoint(2);
 
     List<Http2PushMapping> mappings = new ArrayList<>();
     mappings.add(new Http2PushMapping("style.css", "style", false));
@@ -352,11 +350,11 @@ public class StaticHandlerTest extends WebTestBase {
     client.request(HttpMethod.GET, 8443, "localhost", "/testLinkPreload.html")
       .compose(req ->
         req.pushHandler(push -> {
-            Assert.assertNotNull(push);
+            assertNotNull(push);
             push.response().onComplete(TestUtils.onSuccess(resp -> {
               resp.body().onComplete(TestUtils.onSuccess(body -> {
-                Assert.assertTrue(body.length() > 0);
-                complete();
+                assertTrue(body.length() > 0);
+                pushReceived.flag();
               }));
             }));
         }).send()
@@ -364,8 +362,6 @@ public class StaticHandlerTest extends WebTestBase {
           .expecting(resp -> resp.version() == HttpVersion.HTTP_2)
           .compose(HttpClientResponse::body)
       ).await();
-
-    await();
   }
 
   @Test
@@ -404,14 +400,14 @@ public class StaticHandlerTest extends WebTestBase {
         .await();
       actualEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING.toString()));
     }
-    Assert.assertEquals(expectedContentEncodings, actualEncodings);
+    assertEquals(expectedContentEncodings, actualEncodings);
   }
 
   @Test
   public void testHead() throws Exception {
     HttpResponse<Buffer> resp = testRequest(webClient.head("/otherpage.html").send(), 200, "OK");
     Buffer body = resp.body();
-    Assert.assertTrue(body == null || body.length() == 0);
+    assertTrue(body == null || body.length() == 0);
   }
 
   @Test
@@ -438,9 +434,9 @@ public class StaticHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/otherpage.html").send(), 200, "OK", "<html><body>Other page</body></html>");
     String cacheControl = resp.headers().get("cache-control");
     String lastModified = resp.headers().get("last-modified");
-    Assert.assertNotNull(cacheControl);
-    Assert.assertNotNull(lastModified);
-    Assert.assertEquals("public, immutable, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
+    assertNotNull(cacheControl);
+    assertNotNull(lastModified);
+    assertEquals("public, immutable, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     testRequest(handler.apply(lastModified, webClient.get("/otherpage.html")), expectedStatusCode, expectedStatusMessage, expectedStatusBody);
   }
 
@@ -449,9 +445,9 @@ public class StaticHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/somedir/").send(), 200, "OK", "<html><body>Subdirectory index page</body></html>");
     String cacheControl = resp.headers().get("cache-control");
     String lastModified = resp.headers().get("last-modified");
-    Assert.assertNotNull(cacheControl);
-    Assert.assertNotNull(lastModified);
-    Assert.assertEquals("public, immutable, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
+    assertNotNull(cacheControl);
+    assertNotNull(lastModified);
+    assertEquals("public, immutable, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     testRequest(webClient.get("/somedir/").putHeader("if-modified-since", lastModified).send(), 304, "Not Modified");
   }
 
@@ -461,8 +457,8 @@ public class StaticHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/otherpage.html").send(), 200, "OK", "<html><body>Other page</body></html>");
     String cacheControl = resp.headers().get("cache-control");
     String lastModified = resp.headers().get("last-modified");
-    Assert.assertNull(cacheControl);
-    Assert.assertNull(lastModified);
+    assertNull(cacheControl);
+    assertNull(lastModified);
   }
 
   @Test
@@ -487,24 +483,24 @@ public class StaticHandlerTest extends WebTestBase {
     String cacheControl = resp.headers().get("cache-control");
     String lastModified = resp.headers().get("last-modified");
     String vary = resp.headers().get("vary");
-    Assert.assertEquals("test1", cacheControl);
-    Assert.assertEquals("test2", lastModified);
-    Assert.assertEquals("test3", vary);
+    assertEquals("test1", cacheControl);
+    assertEquals("test2", lastModified);
+    assertEquals("test3", vary);
   }
 
   @Test
   public void testSendVaryAcceptEncodingHeader() throws Exception {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/otherpage.html").putHeader("accept-encoding", "gzip").send(), 200, "OK", "<html><body>Other page</body></html>");
     String vary = resp.headers().get("vary");
-    Assert.assertNotNull(vary);
-    Assert.assertEquals("accept-encoding", vary);
+    assertNotNull(vary);
+    assertEquals("accept-encoding", vary);
   }
 
   @Test
   public void testNoSendingOfVaryAcceptEncodingHeader() throws Exception {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/otherpage.html").send(), 200, "OK", "<html><body>Other page</body></html>");
     String vary = resp.headers().get("vary");
-    Assert.assertNull(vary);
+    assertNull(vary);
   }
 
   @Test
@@ -513,7 +509,7 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setMaxAgeSeconds(maxAge);
     HttpResponse<Buffer> resp = testRequest(webClient.get("/otherpage.html").send(), 200, "OK", "<html><body>Other page</body></html>");
     String cacheControl = resp.headers().get("cache-control");
-    Assert.assertEquals("public, immutable, max-age=" + maxAge, cacheControl);
+    assertEquals("public, immutable, max-age=" + maxAge, cacheControl);
   }
 
   @Test
@@ -574,7 +570,7 @@ public class StaticHandlerTest extends WebTestBase {
     long modified = Utils.secondsFactor(new File("src/test/filesystemwebroot", "fspage.html").lastModified());
     HttpResponse<Buffer> resp = testRequest(webClient.get("/fspage.html").send(), 200, "OK", "<html><body>File system page</body></html>");
     String lastModified = resp.headers().get("last-modified");
-    Assert.assertEquals(modified, toDateTime(lastModified));
+    assertEquals(modified, toDateTime(lastModified));
     testRequest(webClient.get("/fspage.html").putHeader("if-modified-since", Utils.formatRFC1123DateTime(modified)).send(), 304, "Not Modified");
   }
 
@@ -589,7 +585,7 @@ public class StaticHandlerTest extends WebTestBase {
     long modified = resource.lastModified();
     HttpResponse<Buffer> resp = testRequest(webClient.get("/fspage.html").send(), 200, "OK", "<html><body>File system page</body></html>");
     String lastModified = resp.headers().get("last-modified");
-    Assert.assertEquals(modified, toDateTime(lastModified));
+    assertEquals(modified, toDateTime(lastModified));
     // Now update the web resource
     resource.setLastModified(modified + 1000);
     // But it should still return not modified as the entry is cached
@@ -613,14 +609,14 @@ public class StaticHandlerTest extends WebTestBase {
     long modified = Utils.secondsFactor(resource.lastModified());
     HttpResponse<Buffer> resp = testRequest(webClient.get(page).send(), 200, "OK", html);
     String lastModified = resp.headers().get("last-modified");
-    Assert.assertEquals(modified, toDateTime(lastModified));
+    assertEquals(modified, toDateTime(lastModified));
     // Now update the web resource
     resource.setLastModified(modified + 1000);
     // But it should return a new entry as the entry is now old
     Thread.sleep(cacheEntryTimeout + 1);
     resp = testRequest(webClient.get(page).putHeader("if-modified-since", Utils.formatRFC1123DateTime(modified)).send(), 200, "OK", html);
     lastModified = resp.headers().get("last-modified");
-    Assert.assertEquals(modified + 1000, toDateTime(lastModified));
+    assertEquals(modified + 1000, toDateTime(lastModified));
 
     // 304 must still work when cacheEntry.isOutOfDate() == true, https://github.com/vert-x3/vertx-web/issues/726
     Thread.sleep(cacheEntryTimeout + 1);
@@ -659,9 +655,9 @@ public class StaticHandlerTest extends WebTestBase {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
     String sBuff = resp.body().toString();
     String[] elems = sBuff.split("\n");
-    Assert.assertEquals(expected.size(), elems.length);
+    assertEquals(expected.size(), elems.length);
     for (String elem : elems) {
-      Assert.assertTrue(expected.contains(elem));
+      assertTrue(expected.contains(elem));
     }
   }
 
@@ -671,12 +667,12 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setIncludeHidden(false);
     Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html", "sockjs", "swaggerui"));
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
-    Assert.assertEquals("text/plain", resp.headers().get("content-type"));
+    assertEquals("text/plain", resp.headers().get("content-type"));
     String sBuff = resp.body().toString();
     String[] elems = sBuff.split("\n");
-    Assert.assertEquals(expected.size(), elems.length);
+    assertEquals(expected.size(), elems.length);
     for (String elem : elems) {
-      Assert.assertTrue(expected.contains(elem));
+      assertTrue(expected.contains(elem));
     }
   }
 
@@ -685,12 +681,12 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setDirectoryListing(true);
     Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "a", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html", "sockjs", "swaggerui"));
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("accept", "application/json").send(), 200, "OK");
-    Assert.assertEquals("application/json", resp.headers().get("content-type"));
+    assertEquals("application/json", resp.headers().get("content-type"));
     String sBuff = resp.body().toString();
     JsonArray arr = new JsonArray(sBuff);
-    Assert.assertEquals(expected.size(), arr.size());
+    assertEquals(expected.size(), arr.size());
     for (Object elem : arr) {
-      Assert.assertTrue(expected.contains(elem));
+      assertTrue(expected.contains(elem));
     }
   }
 
@@ -700,12 +696,12 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setIncludeHidden(false);
     Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html", "sockjs", "swaggerui"));
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("accept", "application/json").send(), 200, "OK");
-    Assert.assertEquals("application/json", resp.headers().get("content-type"));
+    assertEquals("application/json", resp.headers().get("content-type"));
     String sBuff = resp.body().toString();
     JsonArray arr = new JsonArray(sBuff);
-    Assert.assertEquals(expected.size(), arr.size());
+    assertEquals(expected.size(), arr.size());
     for (Object elem : arr) {
-      Assert.assertTrue(expected.contains(elem));
+      assertTrue(expected.contains(elem));
     }
   }
 
@@ -731,7 +727,7 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testCustomDirectoryListingHtmlEscaping() throws Exception {
-    Assume.assumeFalse(PlatformDependent.isWindows());
+    Assumptions.assumeFalse(PlatformDependent.isWindows());
 
     Path testDir = webRootTarget.resolve("dirxss");
     Files.createDirectories(testDir);
@@ -757,9 +753,9 @@ public class StaticHandlerTest extends WebTestBase {
     String expected = directoryTemplate.replace("{directory}", path).replace("{parent}", parentLink).replace("{files}", files);
 
     HttpResponse<Buffer> resp = testRequest(webClient.get(path).putHeader("accept", "text/html").send(), 200, "OK");
-    Assert.assertEquals("text/html", resp.headers().get("content-type"));
+    assertEquals("text/html", resp.headers().get("content-type"));
     String sBuff = resp.body().toString();
-    Assert.assertEquals(expected, sBuff);
+    assertEquals(expected, sBuff);
   }
 
   @Test
@@ -770,8 +766,8 @@ public class StaticHandlerTest extends WebTestBase {
       HttpResponse<Buffer> resp = testRequest(webClient.get("/otherpage.html").send(), 200, "OK", "<html><body>Other page</body></html>");
       String cacheControl = resp.headers().get("cache-control");
       String lastModified = resp.headers().get("last-modified");
-      Assert.assertNull(cacheControl);
-      Assert.assertNull(lastModified);
+      assertNull(cacheControl);
+      assertNull(lastModified);
     }
   }
 
@@ -801,85 +797,85 @@ public class StaticHandlerTest extends WebTestBase {
     // 4. request bytes from 1000 up to 5000000 if available (which isn't)
 
     HttpResponse<Buffer> resp = testRequest(webClient.head("/somedir/range.jpg").send(), 200, "OK");
-    Assert.assertEquals("bytes", resp.headers().get("Accept-Ranges"));
-    Assert.assertEquals("15783", resp.headers().get("Content-Length"));
+    assertEquals("bytes", resp.headers().get("Accept-Ranges"));
+    assertEquals("15783", resp.headers().get("Content-Length"));
 
     resp = testRequest(webClient.get("/somedir/range.jpg").putHeader("Range", "bytes=0-999").send(), 206, "Partial Content");
-    Assert.assertEquals("bytes", resp.headers().get("Accept-Ranges"));
-    Assert.assertEquals("1000", resp.headers().get("Content-Length"));
-    Assert.assertEquals("bytes 0-999/15783", resp.headers().get("Content-Range"));
+    assertEquals("bytes", resp.headers().get("Accept-Ranges"));
+    assertEquals("1000", resp.headers().get("Content-Length"));
+    assertEquals("bytes 0-999/15783", resp.headers().get("Content-Range"));
 
     resp = testRequest(webClient.get("/somedir/range.jpg").putHeader("Range", "bytes=1000-").send(), 206, "Partial Content");
-    Assert.assertEquals("bytes", resp.headers().get("Accept-Ranges"));
-    Assert.assertEquals("14783", resp.headers().get("Content-Length"));
-    Assert.assertEquals("bytes 1000-15782/15783", resp.headers().get("Content-Range"));
+    assertEquals("bytes", resp.headers().get("Accept-Ranges"));
+    assertEquals("14783", resp.headers().get("Content-Length"));
+    assertEquals("bytes 1000-15782/15783", resp.headers().get("Content-Range"));
 
     resp = testRequest(webClient.get("/somedir/range.jpg").putHeader("Range", "bytes=1000-5000000").send(), 206, "Partial Content");
-    Assert.assertEquals("bytes", resp.headers().get("Accept-Ranges"));
-    Assert.assertEquals("14783", resp.headers().get("Content-Length"));
-    Assert.assertEquals("bytes 1000-15782/15783", resp.headers().get("Content-Range"));
+    assertEquals("bytes", resp.headers().get("Accept-Ranges"));
+    assertEquals("14783", resp.headers().get("Content-Length"));
+    assertEquals("bytes 1000-15782/15783", resp.headers().get("Content-Range"));
   }
 
   @Test
   public void testRangeAwareRequestBody() throws Exception {
     stat.setEnableRangeSupport(true);
     HttpResponse<Buffer> resp = testRequest(webClient.get("/somedir/range.jpg").putHeader("Range", "bytes=0-999").send(), 206, "Partial Content");
-    Assert.assertEquals("bytes", resp.headers().get("Accept-Ranges"));
-    Assert.assertEquals("1000", resp.headers().get("Content-Length"));
-    Assert.assertEquals("bytes 0-999/15783", resp.headers().get("Content-Range"));
-    Assert.assertEquals(1000, resp.body().length());
+    assertEquals("bytes", resp.headers().get("Accept-Ranges"));
+    assertEquals("1000", resp.headers().get("Content-Length"));
+    assertEquals("bytes 0-999/15783", resp.headers().get("Content-Range"));
+    assertEquals(1000, resp.body().length());
   }
 
   @Test
   public void testRangeAwareRequestSegment() throws Exception {
     stat.setEnableRangeSupport(true);
     HttpResponse<Buffer> resp = testRequest(webClient.get("/somedir/range.bin").putHeader("Range", "bytes=0-1023").send(), 206, "Partial Content");
-    Assert.assertEquals("bytes", resp.headers().get("Accept-Ranges"));
-    Assert.assertEquals("1024", resp.headers().get("Content-Length"));
-    Assert.assertEquals(1024, resp.body().length());
+    assertEquals("bytes", resp.headers().get("Accept-Ranges"));
+    assertEquals("1024", resp.headers().get("Content-Length"));
+    assertEquals(1024, resp.body().length());
 
     resp = testRequest(webClient.get("/somedir/range.bin").putHeader("Range", "bytes=1024-2047").send(), 206, "Partial Content");
-    Assert.assertEquals("bytes", resp.headers().get("Accept-Ranges"));
-    Assert.assertEquals("1024", resp.headers().get("Content-Length"));
-    Assert.assertEquals(1024, resp.body().length());
+    assertEquals("bytes", resp.headers().get("Accept-Ranges"));
+    assertEquals("1024", resp.headers().get("Content-Length"));
+    assertEquals(1024, resp.body().length());
 
     resp = testRequest(webClient.get("/somedir/range.bin").putHeader("Range", "bytes=2048-3071").send(), 206, "Partial Content");
-    Assert.assertEquals("bytes", resp.headers().get("Accept-Ranges"));
-    Assert.assertEquals("1024", resp.headers().get("Content-Length"));
-    Assert.assertEquals(1024, resp.body().length());
+    assertEquals("bytes", resp.headers().get("Accept-Ranges"));
+    assertEquals("1024", resp.headers().get("Content-Length"));
+    assertEquals(1024, resp.body().length());
 
     resp = testRequest(webClient.get("/somedir/range.bin").putHeader("Range", "bytes=3072-4095").send(), 206, "Partial Content");
-    Assert.assertEquals("bytes", resp.headers().get("Accept-Ranges"));
-    Assert.assertEquals("1024", resp.headers().get("Content-Length"));
-    Assert.assertEquals(1024, resp.body().length());
+    assertEquals("bytes", resp.headers().get("Accept-Ranges"));
+    assertEquals("1024", resp.headers().get("Content-Length"));
+    assertEquals(1024, resp.body().length());
 
     resp = testRequest(webClient.get("/somedir/range.bin").putHeader("Range", "bytes=4096-5119").send(), 206, "Partial Content");
-    Assert.assertEquals("bytes", resp.headers().get("Accept-Ranges"));
-    Assert.assertEquals("1024", resp.headers().get("Content-Length"));
-    Assert.assertEquals(1024, resp.body().length());
+    assertEquals("bytes", resp.headers().get("Accept-Ranges"));
+    assertEquals("1024", resp.headers().get("Content-Length"));
+    assertEquals(1024, resp.body().length());
   }
 
   @Test
   public void testRangeAwareRequestBodyForDisabledRangeSupport() throws Exception {
     stat.setEnableRangeSupport(false);
     HttpResponse<Buffer> resp = testRequest(webClient.get("/somedir/range.jpg").putHeader("Range", "bytes=0-999").send(), 200, "OK");
-    Assert.assertNull(resp.headers().get("Accept-Ranges"));
-    Assert.assertNotSame("1000", resp.headers().get("Content-Length"));
-    Assert.assertNotSame(1000, resp.body().length());
+    assertNull(resp.headers().get("Accept-Ranges"));
+    assertNotSame("1000", resp.headers().get("Content-Length"));
+    assertNotSame(1000, resp.body().length());
   }
 
   @Test
   public void testOutOfRangeRequestBody() throws Exception {
     stat.setEnableRangeSupport(true);
     HttpResponse<Buffer> resp = testRequest(webClient.get("/somedir/range.jpg").putHeader("Range", "bytes=15783-").send(), 416, "Requested Range Not Satisfiable");
-    Assert.assertEquals("bytes */15783", resp.headers().get("Content-Range"));
+    assertEquals("bytes */15783", resp.headers().get("Content-Range"));
   }
 
   @Test
   public void testContentTypeSupport() throws Exception {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/somedir/range.jpg").send(), 200, "OK");
-    Assert.assertNotNull(resp.getHeader("Content-Type"));
-    Assert.assertEquals("image/jpeg", resp.getHeader("Content-Type"));
+    assertNotNull(resp.getHeader("Content-Type"));
+    assertEquals("image/jpeg", resp.getHeader("Content-Type"));
   }
 
   @Test
@@ -888,7 +884,7 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/non_existing.html", 404, "Not Found");
   }
 
-  @Ignore("handle me")
+  @Disabled("handle me")
   @Test
   public void testServerFileSystemPath() throws Exception {
     router.clear();
@@ -899,7 +895,7 @@ public class StaticHandlerTest extends WebTestBase {
     // remap stat to the temp dir
     try {
       stat = StaticHandler.create(file.getParent());
-      Assert.fail();
+      fail();
     } catch (IllegalArgumentException e) {
       // expected
     }
@@ -910,7 +906,7 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/" + file.getName(), 200, "OK", "");
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testAccessToRootPath() throws Exception {
     router.clear();
 
@@ -918,14 +914,14 @@ public class StaticHandlerTest extends WebTestBase {
     file.deleteOnExit();
 
     // remap stat to the temp dir
-    stat = StaticHandler.create(FileSystemAccess.RELATIVE, file.getParent());
+    assertThrows(IllegalArgumentException.class, () -> StaticHandler.create(FileSystemAccess.RELATIVE, file.getParent()));
   }
 
   @Test
   public void testLastModifiedInGMT() throws Exception {
     HttpResponse<Buffer> resp = testRequest(webClient.get("/otherpage.html").send(), 200, "OK", "<html><body>Other page</body></html>");
     String lastModified = resp.headers().get("last-modified");
-    Assert.assertTrue(lastModified.endsWith("GMT"));
+    assertTrue(lastModified.endsWith("GMT"));
   }
 
   @Test
@@ -933,7 +929,7 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setDefaultContentEncoding("ISO-8859-1");
     HttpResponse<Buffer> resp = testRequest(webClient.get("/otherpage.html").send(), 200, "OK", "<html><body>Other page</body></html>");
     String contentType = resp.headers().get("Content-Type");
-    Assert.assertEquals("text/html;charset=ISO-8859-1", contentType);
+    assertEquals("text/html;charset=ISO-8859-1", contentType);
   }
 
   @Test
@@ -943,8 +939,8 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testWriteResponseWhenAlreadyClosed() throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
+  public void testWriteResponseWhenAlreadyClosed(VertxTestContext testContext) throws Exception {
+    Checkpoint done = testContext.checkpoint();
     router.clear();
     router
       .route()
@@ -955,12 +951,11 @@ public class StaticHandlerTest extends WebTestBase {
         ctx.exceptionHandler(expected -> {
           // Thrown by static handler when trying to send the file and the response has already
           // been sent
-          latch.countDown();
+          done.flag();
         });
       })
       .handler(stat);
     testRequest(HttpMethod.GET, "/index.html", 200, "OK", "OtherResponse");
-    TestUtils.awaitLatch(latch);
   }
 
   @Test
@@ -1001,7 +996,7 @@ public class StaticHandlerTest extends WebTestBase {
       }
     }, new DeploymentOptions().setClassLoader(classLoader))).await();
     testRequest(HttpMethod.GET, "/index.html", 200, "OK", "hello");
-    Assert.assertTrue(used.get());
+    assertTrue(used.get());
   }
 
   // TODO
@@ -1012,7 +1007,7 @@ public class StaticHandlerTest extends WebTestBase {
     try {
       return Utils.parseRFC1123DateTime(header);
     } catch (Exception e) {
-      Assert.fail(e.getMessage());
+      fail(e.getMessage());
       return -1;
     }
   }

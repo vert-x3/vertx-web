@@ -21,16 +21,15 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.ext.web.tests.WebTestBase2;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.test.core.TestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -39,17 +38,14 @@ import java.util.function.Function;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class CookielessSessionHandlerTestBase extends WebTestBase {
-
-	public CookielessSessionHandlerTestBase() {
-		super(ReportMode.FORBIDDEN);
-	}
+public class CookielessSessionHandlerTestBase extends WebTestBase2 {
 
 	private SessionStore store;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(io.vertx.core.Vertx vertx, io.vertx.junit5.VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     store = LocalSessionStore.create(vertx);
   }
 
@@ -63,8 +59,8 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
     });
 		HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
 		String sessionId = resp.headers().get("X-Session-Id");
-		Assert.assertTrue(sessionId.startsWith("("));
-		Assert.assertTrue(sessionId.endsWith(")"));
+		assertTrue(sessionId.startsWith("("));
+		assertTrue(sessionId.endsWith(")"));
 	}
 
 	@Test
@@ -74,22 +70,22 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 		AtomicInteger requestCount = new AtomicInteger();
 		router.route().handler(rc -> {
 			Session sess = rc.session();
-			Assert.assertNotNull(sess);
-			Assert.assertNotNull(sess.id());
+			assertNotNull(sess);
+			assertNotNull(sess.id());
 			switch (requestCount.get()) {
 			case 0:
 				rid.set(sess.id());
 				sess.put("foo", "bar");
 				break;
 			case 1:
-				Assert.assertEquals(rid.get(), sess.id());
-				Assert.assertEquals("bar", sess.get("foo"));
+				assertEquals(rid.get(), sess.id());
+				assertEquals("bar", sess.get("foo"));
 				sess.put("eek", "wibble");
 				break;
 			case 2:
-				Assert.assertEquals(rid.get(), sess.id());
-				Assert.assertEquals("bar", sess.get("foo"));
-				Assert.assertEquals("wibble", sess.get("eek"));
+				assertEquals(rid.get(), sess.id());
+				assertEquals("bar", sess.get("foo"));
+				assertEquals("wibble", sess.get("eek"));
 			}
 			requestCount.incrementAndGet();
 			rc.response().end();
@@ -111,16 +107,16 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 		AtomicInteger requestCount = new AtomicInteger();
 		router.route().handler(rc -> {
 			Session sess = rc.session();
-			Assert.assertNotNull(sess);
-			Assert.assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
-			Assert.assertNotNull(sess.id());
+			assertNotNull(sess);
+			assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
+			assertNotNull(sess.id());
 			switch (requestCount.get()) {
 			case 0:
 				sess.put("foo", "bar");
 				break;
 			case 1:
-				Assert.assertFalse(rid.get().equals(sess.id())); // New session
-				Assert.assertNull(sess.get("foo"));
+				assertFalse(rid.get().equals(sess.id())); // New session
+				assertNull(sess.get("foo"));
 				break;
 			}
 			rid.set(sess.id());
@@ -131,9 +127,9 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", 200, "OK");
 		Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
     testRequest(HttpMethod.GET, "/(" + rid.get() + ")", 200, "OK");
-    waitUntil(() -> testSessionBlocking(rid.get(), Objects::nonNull));
+    assertWaitUntil(() -> testSessionBlocking(rid.get(), Objects::nonNull));
 		Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
-    waitUntil(() -> testSessionBlocking(rid.get(), Objects::isNull));
+    assertWaitUntil(() -> testSessionBlocking(rid.get(), Objects::isNull));
   }
 
   private boolean testSessionBlocking(String sessionId, Function<Session, Boolean> test) {
@@ -162,9 +158,9 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 		AtomicInteger requestCount = new AtomicInteger();
 		router.route().handler(rc -> {
 			Session sess = rc.session();
-			Assert.assertNotNull(sess);
-			Assert.assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
-			Assert.assertNotNull(sess.id());
+			assertNotNull(sess);
+			assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
+			assertNotNull(sess.id());
 			switch (requestCount.get()) {
 			case 0:
 				rid.set(sess.id());
@@ -172,8 +168,8 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 				sess.destroy();
 				break;
 			case 1:
-				Assert.assertFalse(rid.get().equals(sess.id())); // New session
-				Assert.assertNull(sess.get("foo"));
+				assertFalse(rid.get().equals(sess.id())); // New session
+				assertNull(sess.get("foo"));
 				rid.set(sess.id());
 				sess.destroy();
 				break;
@@ -184,12 +180,8 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", 200, "OK");
 		testRequest(HttpMethod.GET, "/", 200, "OK");
 		Thread.sleep(500); // Needed because session.destroy is async
-		CountDownLatch latch1 = new CountDownLatch(1);
-		store.get(rid.get()).onComplete(TestUtils.onSuccess(res -> {
-			Assert.assertNull(res);
-			latch1.countDown();
-		}));
-		TestUtils.awaitLatch(latch1);
+		Session result = store.get(rid.get()).await();
+		assertNull(result);
 	}
 
 	@Test
@@ -202,11 +194,11 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 			rc.response().end();
 		});
 		testRequest(HttpMethod.GET, "/", 200, "OK");
-		Assert.assertTrue(rid.get().lastAccessed() - start < 500);
+		assertTrue(rid.get().lastAccessed() - start < 500);
 		start = System.currentTimeMillis();
 		Thread.sleep(1000);
 		testRequest(HttpMethod.GET, "/", 200, "OK");
-		Assert.assertTrue(rid.get().lastAccessed() - start >= 1000);
+		assertTrue(rid.get().lastAccessed() - start >= 1000);
 	}
 
 	@Test
@@ -220,7 +212,7 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 		});
 		testRequest(HttpMethod.GET, "/", 200, "OK");
 		// accessed() is called after request too
-		Assert.assertTrue(rid.get().lastAccessed() - System.currentTimeMillis() < 500);
+		assertTrue(rid.get().lastAccessed() - System.currentTimeMillis() < 500);
 	}
 
 	@Test
