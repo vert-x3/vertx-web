@@ -16,15 +16,10 @@
 
 package io.vertx.ext.web.handler.graphql.tests;
 
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,43 +34,35 @@ public class BatchRequestsTest extends GraphQLTestBase {
   }
 
   @Test
-  public void testEmptyBatch() throws Exception {
-    HttpClientResponse response = client
-      .request(HttpMethod.POST, 8080, "localhost", "/graphql")
-      .compose(request -> request
-        .send(new JsonArray().toBuffer()))
-      .await(20, TimeUnit.SECONDS);
+  public void testEmptyBatch() {
+    var response = webClient.post("/graphql")
+      .sendBuffer(new JsonArray().toBuffer())
+      .await();
     assertEquals(200, response.statusCode());
-    Buffer buffer = response.body().await();
-    Object json = buffer.toJsonValue();
-    assertInstanceOf(JsonArray.class, json);
-    JsonArray results = (JsonArray) json;
+    JsonArray results = response.bodyAsJsonArray();
     assertTrue(results.isEmpty());
   }
 
   @Test
-  public void testSimpleBatch() throws Exception {
+  public void testSimpleBatch() {
     JsonObject query = new JsonObject()
       .put("query", "query { allLinks { url } }");
-    HttpClientResponse response = client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
-      .compose(request -> request.send(new JsonArray().add(query).toBuffer()))
-      .await(20, TimeUnit.SECONDS);
+    var response = webClient.post("/graphql")
+      .sendBuffer(new JsonArray().add(query).toBuffer())
+      .await();
     assertEquals(200, response.statusCode());
-    Buffer buffer = response.body().await();
-    Object json = buffer.toJsonValue();
-    assertInstanceOf(JsonArray.class, json);
-    JsonArray results = (JsonArray) json;
+    JsonArray results = response.bodyAsJsonArray();
     assertEquals(1, results.size());
     testData.checkLinkUrls(testData.urls(), results.getJsonObject(0));
   }
 
   @Test
-  public void testMissingQuery() throws Exception {
+  public void testMissingQuery() {
     JsonObject query = new JsonObject()
       .put("foo", "bar");
-    HttpClientResponse response = client.request(HttpMethod.POST, 8080, "localhost", "/graphql")
-      .compose(request -> request.send(new JsonArray().add(query).toBuffer()))
-      .await(20, TimeUnit.SECONDS);
+    var response = webClient.post("/graphql")
+      .sendBuffer(new JsonArray().add(query).toBuffer())
+      .await();
     assertEquals(400, response.statusCode());
   }
 }
