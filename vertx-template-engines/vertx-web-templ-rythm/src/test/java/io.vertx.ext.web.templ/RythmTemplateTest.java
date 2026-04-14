@@ -2,101 +2,96 @@ package io.vertx.ext.web.templ;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.rythm.RythmTemplateEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(VertxUnitRunner.class)
 public class RythmTemplateTest {
 
   private static Vertx vertx;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspath(TestContext should) {
+  public void testTemplateHandlerOnClasspath() {
     TemplateEngine engine = RythmTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-rythm-template2.html").onComplete(should.asyncAssertSuccess(render -> {
-      final String expected =
-        "<!DOCTYPE html>\n" +
-          "<html lang=\"en\">\n" +
-          "<head>\n" +
-          "<meta charset=\"UTF-8\">\n" +
-          "<title>Title</title>\n" +
-          "</head>\n" +
-          "<body>\n" +
-          "<p>badger</p>\n" +
-          "<p>fox</p>\n" +
-          "</body>\n" +
-          "</html>\n";
+    Buffer render = engine.render(context, "somedir/test-rythm-template2.html").await();
+    final String expected =
+      "<!DOCTYPE html>\n" +
+        "<html lang=\"en\">\n" +
+        "<head>\n" +
+        "<meta charset=\"UTF-8\">\n" +
+        "<title>Title</title>\n" +
+        "</head>\n" +
+        "<body>\n" +
+        "<p>badger</p>\n" +
+        "<p>fox</p>\n" +
+        "</body>\n" +
+        "</html>\n";
 
-      should.assertEquals(expected, normalizeCRLF(render.toString()));
-    }));
+    assertEquals(expected, normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerOnFileSystem(TestContext should) {
+  public void testTemplateHandlerOnFileSystem() {
     TemplateEngine engine = RythmTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "src/test/filesystemtemplates/test-rythm-template.html").onComplete(should.asyncAssertSuccess(render -> {
-      final String expected =
-        "<!DOCTYPE html>\n" +
-          "<html lang=\"en\">\n" +
-          "<head>\n" +
-          "<meta charset=\"UTF-8\">\n" +
-          "<title>FS</title>\n" +
-          "</head>\n" +
-          "<body>\n" +
-          "<p>badger</p>\n" +
-          "<p>fox</p>\n" +
-          "</body>\n" +
-          "</html>\n";
+    Buffer render = engine.render(context, "src/test/filesystemtemplates/test-rythm-template.html").await();
+    final String expected =
+      "<!DOCTYPE html>\n" +
+        "<html lang=\"en\">\n" +
+        "<head>\n" +
+        "<meta charset=\"UTF-8\">\n" +
+        "<title>FS</title>\n" +
+        "</head>\n" +
+        "<body>\n" +
+        "<p>badger</p>\n" +
+        "<p>fox</p>\n" +
+        "</body>\n" +
+        "</html>\n";
 
-      should.assertEquals(expected, normalizeCRLF(render.toString()));
-    }));
+    assertEquals(expected, normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) {
+  public void testTemplateHandlerOnClasspathDisableCaching() {
     System.setProperty("vertxweb.environment", "development");
-    testTemplateHandlerOnClasspath(should);
+    testTemplateHandlerOnClasspath();
   }
 
   @Test
-  public void testNoSuchTemplate(TestContext should) {
+  public void testNoSuchTemplate() {
     TemplateEngine engine = RythmTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "nosuchtemplate.html").onComplete(should.asyncAssertFailure());
+    assertThrows(Exception.class, () -> engine.render(context, "nosuchtemplate.html").await());
   }
 
   @Test
-  public void testWithLocale(TestContext should) {
+  public void testWithLocale() {
     TemplateEngine engine = RythmTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -104,22 +99,21 @@ public class RythmTemplateTest {
       .put("bar", "fox")
       .put("lang", "en-gb");
 
-    engine.render(context, "somedir/test-rythm-template2.html").onComplete(should.asyncAssertSuccess(render -> {
-      final String expected =
-        "<!DOCTYPE html>\n" +
-          "<html lang=\"en\">\n" +
-          "<head>\n" +
-          "<meta charset=\"UTF-8\">\n" +
-          "<title>Title</title>\n" +
-          "</head>\n" +
-          "<body>\n" +
-          "<p>badger</p>\n" +
-          "<p>fox</p>\n" +
-          "</body>\n" +
-          "</html>\n";
+    Buffer render = engine.render(context, "somedir/test-rythm-template2.html").await();
+    final String expected =
+      "<!DOCTYPE html>\n" +
+        "<html lang=\"en\">\n" +
+        "<head>\n" +
+        "<meta charset=\"UTF-8\">\n" +
+        "<title>Title</title>\n" +
+        "</head>\n" +
+        "<body>\n" +
+        "<p>badger</p>\n" +
+        "<p>fox</p>\n" +
+        "</body>\n" +
+        "</html>\n";
 
-      should.assertEquals(expected, normalizeCRLF(render.toString()));
-    }));
+    assertEquals(expected, normalizeCRLF(render.toString()));
   }
 
   @Test
@@ -129,7 +123,7 @@ public class RythmTemplateTest {
   }
 
   @Test
-  public void testCachingEnabled(TestContext should) throws IOException {
+  public void testCachingEnabled() throws IOException {
     System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = RythmTemplateEngine.create(vertx);
 
@@ -141,21 +135,17 @@ public class RythmTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("before", normalizeCRLF(render.toString()));
-      // cache is enabled so if we change the content that should not affect the result
+    Buffer render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("before", normalizeCRLF(render.toString()));
+    // cache is enabled so if we change the content that should not affect the result
 
-      try (PrintWriter out2 = new PrintWriter(temp)) {
-        out2.print("after");
-        out2.flush();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    try (PrintWriter out2 = new PrintWriter(temp)) {
+      out2.print("after");
+      out2.flush();
+    }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
-        should.assertEquals("before", normalizeCRLF(render2.toString()));
-      }));
-    }));
+    render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("before", normalizeCRLF(render.toString()));
   }
 
   // For windows testing

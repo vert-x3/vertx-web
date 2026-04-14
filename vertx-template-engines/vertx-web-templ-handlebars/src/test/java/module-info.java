@@ -15,9 +15,9 @@
  */
 open module io.vertx.web.template.handlebars.tests {
   requires io.netty.common;
-  requires io.vertx.testing.unit;
   requires io.vertx.core;
   requires io.vertx.web.common;
   requires io.vertx.web.template.handlebars;
-  requires junit;
+  requires handlebars;
+  requires org.junit.jupiter.api;
 }

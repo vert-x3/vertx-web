@@ -19,19 +19,17 @@ package io.vertx.ext.web.templ;
 import io.pebbletemplates.pebble.PebbleEngine;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.extension.TestExtension;
 import io.vertx.ext.web.templ.pebble.impl.PebbleVertxLoader;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import io.vertx.ext.web.templ.pebble.PebbleTemplateEngine;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,21 +38,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * @author Dan Kristensen
  */
-@RunWith(VertxUnitRunner.class)
 public class PebbleTemplateTest {
 
   private static Vertx vertx;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspath(TestContext should) {
+  public void testTemplateHandlerOnClasspath() {
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -62,13 +61,12 @@ public class PebbleTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-pebble-template2.peb"));
 
-    engine.render(context, "somedir/test-pebble-template2.peb").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and foxRequest path is /test-pebble-template2.peb", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "somedir/test-pebble-template2.peb").await();
+    assertEquals("Hello badger and foxRequest path is /test-pebble-template2.peb", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerOnFileSystem(TestContext should) {
+  public void testTemplateHandlerOnFileSystem() {
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -76,13 +74,12 @@ public class PebbleTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-pebble-template3.peb"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-pebble-template3.peb").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and foxRequest path is /test-pebble-template3.peb", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "src/test/filesystemtemplates/test-pebble-template3.peb").await();
+    assertEquals("Hello badger and foxRequest path is /test-pebble-template3.peb", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testRenderJsonArrayAndJavaObjects(TestContext should) {
+  public void testRenderJsonArrayAndJavaObjects() {
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
     JsonArray array = new JsonArray()
       .add(new JsonObject().put("bar","badger"));
@@ -103,19 +100,18 @@ public class PebbleTemplateTest {
     final String templateExpected = "Hello badger and foxRequest path is /test-pebble-template6.peb" +
       "Java HashMap foo foxJsonArray size 1badgerArrayList size 1bar";
 
-    engine.render(context, "src/test/filesystemtemplates/test-pebble-template6.peb").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals(templateExpected, normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "src/test/filesystemtemplates/test-pebble-template6.peb").await();
+    assertEquals(templateExpected, normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) {
+  public void testTemplateHandlerOnClasspathDisableCaching() {
     System.setProperty("vertxweb.environment", "development");
-    testTemplateHandlerOnClasspath(should);
+    testTemplateHandlerOnClasspath();
   }
 
   @Test
-  public void testTemplateHandlerNoExtension(TestContext should) {
+  public void testTemplateHandlerNoExtension() {
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -123,13 +119,12 @@ public class PebbleTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-pebble-template2.peb"));
 
-    engine.render(context, "somedir/test-pebble-template2").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and foxRequest path is /test-pebble-template2.peb", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "somedir/test-pebble-template2").await();
+    assertEquals("Hello badger and foxRequest path is /test-pebble-template2.peb", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerChangeExtension(TestContext should) {
+  public void testTemplateHandlerChangeExtension() {
     TemplateEngine engine = PebbleTemplateEngine.create(vertx, "beb");
 
     final JsonObject context = new JsonObject()
@@ -137,22 +132,21 @@ public class PebbleTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-pebble-template2.peb"));
 
-    engine.render(context, "somedir/test-pebble-template2").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Cheerio badger and foxRequest path is /test-pebble-template2.peb", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "somedir/test-pebble-template2").await();
+    assertEquals("Cheerio badger and foxRequest path is /test-pebble-template2.peb", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testNoSuchTemplate(TestContext should) {
+  public void testNoSuchTemplate() {
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "non-existing").onComplete(should.asyncAssertFailure());
+    assertThrows(Exception.class, () -> engine.render(context, "non-existing").await());
   }
 
   @Test
-  public void testTemplateComplex(TestContext should) {
+  public void testTemplateComplex() {
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
     String expected = "Hello.Hi fox.\nHi badger!\nFooter - badger";
@@ -161,13 +155,12 @@ public class PebbleTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "src/test/filesystemtemplates/test-pebble-complex.peb").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals(expected, normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "src/test/filesystemtemplates/test-pebble-complex.peb").await();
+    assertEquals(expected, normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateBigAndComplex(TestContext should) {
+  public void testTemplateBigAndComplex() {
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
     String bigTemplateExpected = "<html>\n" +
@@ -418,13 +411,12 @@ public class PebbleTemplateTest {
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "src/test/filesystemtemplates/test-pebble-template4.peb").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals(bigTemplateExpected, normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "src/test/filesystemtemplates/test-pebble-template4.peb").await();
+    assertEquals(bigTemplateExpected, normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void customBuilderShouldRender(TestContext should) {
+  public void customBuilderShouldRender() {
     final TemplateEngine engine = PebbleTemplateEngine.create(vertx, new PebbleEngine.Builder().extension(new TestExtension()).loader(new PebbleVertxLoader(vertx)).build());
 
     final JsonObject context = new JsonObject()
@@ -432,13 +424,12 @@ public class PebbleTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-pebble-template5.peb"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-pebble-template5.peb").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and foxString is TESTRequest path is /test-pebble-template5.peb", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "src/test/filesystemtemplates/test-pebble-template5.peb").await();
+    assertEquals("Hello badger and foxString is TESTRequest path is /test-pebble-template5.peb", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testCachingEnabled(TestContext should) throws Exception {
+  public void testCachingEnabled() throws Exception {
     System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
@@ -450,41 +441,35 @@ public class PebbleTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("before", normalizeCRLF(render.toString()));
-      // cache is enabled so if we change the content that should not affect the result
+    Buffer render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("before", normalizeCRLF(render.toString()));
+    // cache is enabled so if we change the content that should not affect the result
 
-      try (PrintWriter out2 = new PrintWriter(temp)) {
-        out2.print("after");
-        out2.flush();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    try (PrintWriter out2 = new PrintWriter(temp)) {
+      out2.print("after");
+      out2.flush();
+    }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
-        should.assertEquals("before", normalizeCRLF(render2.toString()));
-      }));
-    }));
+    render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("before", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void noLocaleShouldUseDefaultLocale(TestContext should) {
+  public void noLocaleShouldUseDefaultLocale() {
     Locale.setDefault(Locale.US);
     final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject(), "src/test/filesystemtemplates/test-pebble-template-i18n.peb").onComplete(should.asyncAssertSuccess(render2 -> {
-      should.assertEquals("Hi", normalizeCRLF(render2.toString()));
-    }));
+    Buffer render = engine.render(new JsonObject(), "src/test/filesystemtemplates/test-pebble-template-i18n.peb").await();
+    assertEquals("Hi", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void acceptLanguageHeaderShouldBeUsedWhenSet(TestContext should) {
+  public void acceptLanguageHeaderShouldBeUsedWhenSet() {
     Locale.setDefault(Locale.US);
     final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject().put("lang", "de-DE"), "src/test/filesystemtemplates/test-pebble-template-i18n.peb").onComplete(should.asyncAssertSuccess(render2 -> {
-      should.assertEquals("Hallo", normalizeCRLF(render2.toString()));
-    }));
+    Buffer render = engine.render(new JsonObject().put("lang", "de-DE"), "src/test/filesystemtemplates/test-pebble-template-i18n.peb").await();
+    assertEquals("Hallo", normalizeCRLF(render.toString()));
   }
 
   // For windows testing

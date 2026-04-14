@@ -18,37 +18,34 @@ package io.vertx.ext.web.templ.mvel.tests;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@RunWith(VertxUnitRunner.class)
 public class MVELTemplateTest {
 
   private static Vertx vertx;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspath(TestContext should) {
+  public void testTemplateHandlerOnClasspath() throws Throwable {
     TemplateEngine engine = MVELTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -58,13 +55,12 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template2.templ"));
 
     String tmplPath = "somedir/test-mvel-template2.templ".replace('/', File.separatorChar);
-    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template2.templ\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, tmplPath).await();
+    assertEquals("Hello badger and fox\nRequest path is /test-mvel-template2.templ\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void MVELTemplateTestMVELTemplateTestMVELTemplateTest(TestContext should) {
+  public void MVELTemplateTestMVELTemplateTestMVELTemplateTest() throws Throwable {
     TemplateEngine engine = MVELTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -74,13 +70,12 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template3.templ"));
 
     String tmplPath = "src/test/filesystemtemplates/test-mvel-template3.templ".replace('/', File.separatorChar);
-    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template3.templ\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, tmplPath).await();
+    assertEquals("Hello badger and fox\nRequest path is /test-mvel-template3.templ\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerWithInclude(TestContext should) {
+  public void testTemplateHandlerWithInclude() throws Throwable {
     TemplateEngine engine = MVELTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -90,21 +85,18 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template4.templ"));
 
     String tmplPath = "src/test/filesystemtemplates/test-mvel-template4.templ".replace('/', File.separatorChar);
-    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
-      should.verify(v -> {
-        assertEquals("\nHello badger and fox\n\nHi honey!\n\nRequest path is /test-mvel-template4.templ\n", normalizeCRLF(render.toString()));
-      });
-    }));
+    Buffer render = engine.render(context, tmplPath).await();
+    assertEquals("\nHello badger and fox\n\nHi honey!\n\nRequest path is /test-mvel-template4.templ\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) {
+  public void testTemplateHandlerOnClasspathDisableCaching() throws Throwable {
     System.setProperty("vertxweb.environment", "development");
-    testTemplateHandlerOnClasspath(should);
+    testTemplateHandlerOnClasspath();
   }
 
   @Test
-  public void testTemplateHandlerNoExtension(TestContext should) {
+  public void testTemplateHandlerNoExtension() throws Throwable {
     TemplateEngine engine = MVELTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -114,13 +106,12 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template2.templ"));
 
     String tmplPath = "somedir/test-mvel-template2".replace('/', File.separatorChar);
-    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template2.templ\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, tmplPath).await();
+    assertEquals("Hello badger and fox\nRequest path is /test-mvel-template2.templ\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerChangeExtension(TestContext should) {
+  public void testTemplateHandlerChangeExtension() throws Throwable {
     TemplateEngine engine = MVELTemplateEngine.create(vertx, "bempl");
 
     final JsonObject context = new JsonObject()
@@ -130,19 +121,18 @@ public class MVELTemplateTest {
     context.put("context", new JsonObject().put("path", "/test-mvel-template2"));
 
     String tmplPath = "somedir/test-mvel-template2".replace('/', File.separatorChar);
-    engine.render(context, tmplPath).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Cheerio badger and fox\nRequest path is /test-mvel-template2\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, tmplPath).await();
+    assertEquals("Cheerio badger and fox\nRequest path is /test-mvel-template2\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testNoSuchTemplate(TestContext should) {
+  public void testNoSuchTemplate() {
     TemplateEngine engine = MVELTemplateEngine.create(vertx);
-    engine.render(new JsonObject(), "nosuchtemplate.templ").onComplete(should.asyncAssertFailure());
+    assertThrows(Exception.class, () -> engine.render(new JsonObject(), "nosuchtemplate.templ").await());
   }
 
   @Test
-  public void testCachingEnabled(TestContext should) throws IOException {
+  public void testCachingEnabled() throws Throwable {
     System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = MVELTemplateEngine.create(vertx);
 
@@ -155,24 +145,17 @@ public class MVELTemplateTest {
     out.flush();
     out.close();
 
-    engine.render(new JsonObject(), temp.getParent() + File.separatorChar + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("before", render.toString());
-      // cache is enabled so if we change the content that should not affect the result
+    Buffer render = engine.render(new JsonObject(), temp.getParent() + File.separatorChar + temp.getName()).await();
+    assertEquals("before", render.toString());
+    // cache is enabled so if we change the content that should not affect the result
 
-      try {
-        PrintWriter out2 = new PrintWriter(temp);
-        out2.print("after");
-        out2.flush();
-        out2.close();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    PrintWriter out2 = new PrintWriter(temp);
+    out2.print("after");
+    out2.flush();
+    out2.close();
 
-      engine.render(new JsonObject(), temp.getParent() + File.separatorChar + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
-        should.assertEquals("before", render2.toString());
-      }));
-
-    }));
+    render = engine.render(new JsonObject(), temp.getParent() + File.separatorChar + temp.getName()).await();
+    assertEquals("before", render.toString());
   }
 
   // For windows testing

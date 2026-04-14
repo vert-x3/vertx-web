@@ -21,22 +21,18 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import io.vertx.ext.web.templ.pug.PugTemplateEngine;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * This implementation has been copied from
@@ -47,18 +43,17 @@ import static org.junit.Assert.assertTrue;
  *
  * For authors of this file see git history.
  */
-@RunWith(VertxUnitRunner.class)
 public class PugTemplateTest {
 
   private static Vertx vertx;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspath(TestContext should) {
+  public void testTemplateHandlerOnClasspath() {
     TemplateEngine engine = PugTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -67,13 +62,12 @@ public class PugTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-pug-template2.pug"));
 
-    engine.render(context, "somedir/test-pug-template2.pug").onComplete(should.asyncAssertSuccess(render -> {
-      assertContains(render, "<title>badger/test-pug-template2.pug</title>");
-    }));
+    Buffer render = engine.render(context, "somedir/test-pug-template2.pug").await();
+    assertContains(render, "<title>badger/test-pug-template2.pug</title>");
   }
 
   @Test
-  public void testTemplateHandlerOnFileSystem(TestContext should) {
+  public void testTemplateHandlerOnFileSystem() {
     TemplateEngine engine = PugTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -82,19 +76,18 @@ public class PugTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-pug-template3.pug"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-pug-template3.pug").onComplete(should.asyncAssertSuccess(render -> {
-      assertContains(render, "<title>badger/test-pug-template3.pug</title>");
-    }));
+    Buffer render = engine.render(context, "src/test/filesystemtemplates/test-pug-template3.pug").await();
+    assertContains(render, "<title>badger/test-pug-template3.pug</title>");
   }
 
   @Test
-  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) {
+  public void testTemplateHandlerOnClasspathDisableCaching() {
     System.setProperty("vertxweb.environment", "development");
-    testTemplateHandlerOnClasspath(should);
+    testTemplateHandlerOnClasspath();
   }
 
   @Test
-  public void testTemplateHandlerNoExtension(TestContext should) {
+  public void testTemplateHandlerNoExtension() {
     TemplateEngine engine = PugTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -103,13 +96,12 @@ public class PugTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-pug-template2.pug"));
 
-    engine.render(context, "somedir/test-pug-template2").onComplete(should.asyncAssertSuccess(render -> {
-      assertContains(render, "<title>badger/test-pug-template2.pug</title>");
-    }));
+    Buffer render = engine.render(context, "somedir/test-pug-template2").await();
+    assertContains(render, "<title>badger/test-pug-template2.pug</title>");
   }
 
   @Test
-  public void testTemplateHandlerChangeExtension(TestContext should) {
+  public void testTemplateHandlerChangeExtension() {
     TemplateEngine engine = PugTemplateEngine.create(vertx, "made");
 
     final JsonObject context = new JsonObject()
@@ -118,36 +110,33 @@ public class PugTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-pug-template2.pug"));
 
-    engine.render(context, "somedir/test-pug-template2").onComplete(should.asyncAssertSuccess(render -> {
-      assertContains(render, "<title>aardvark/test-pug-template2.pug</title>");
-    }));
+    Buffer render = engine.render(context, "somedir/test-pug-template2").await();
+    assertContains(render, "<title>aardvark/test-pug-template2.pug</title>");
   }
 
   @Test
-  public void testDefaultEncoding(TestContext should) {
+  public void testDefaultEncoding() {
     TemplateEngine engine = PugTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject(), "somedir/test-pug-template-umlaut").onComplete(should.asyncAssertSuccess(render -> {
-      assertContains(render, "<title>&auml;</title>");
-    }));
+    Buffer render = engine.render(new JsonObject(), "somedir/test-pug-template-umlaut").await();
+    assertContains(render, "<title>&auml;</title>");
   }
 
   @Test
-  public void testIsoEncoding(TestContext should) {
+  public void testIsoEncoding() {
     TemplateEngine engine = PugTemplateEngine.create(vertx, "pug", StandardCharsets.ISO_8859_1.name());
 
-    engine.render(new JsonObject(), "somedir/test-pug-template-umlaut").onComplete(should.asyncAssertSuccess(render -> {
-      assertContains(render, "<title>&Atilde;&curren;</title>");
-    }));
+    Buffer render = engine.render(new JsonObject(), "somedir/test-pug-template-umlaut").await();
+    assertContains(render, "<title>&Atilde;&curren;</title>");
   }
 
   @Test
-  public void testNoSuchTemplate(TestContext should) {
+  public void testNoSuchTemplate() {
     TemplateEngine engine = PugTemplateEngine.create(vertx, "made");
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "somedir/foo").onComplete(should.asyncAssertFailure());
+    assertThrows(Exception.class, () -> engine.render(context, "somedir/foo").await());
   }
 
   @Test
@@ -157,7 +146,7 @@ public class PugTemplateTest {
   }
 
   @Test
-  public void testCachingEnabled(TestContext should) throws IOException {
+  public void testCachingEnabled() throws IOException {
     System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = PugTemplateEngine.create(vertx);
 
@@ -169,24 +158,20 @@ public class PugTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("<before></before>", render.toString());
-      // cache is enabled so if we change the content that should not affect the result
+    Buffer render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("<before></before>", render.toString());
+    // cache is enabled so if we change the content that should not affect the result
 
-      try (PrintWriter out2 = new PrintWriter(temp)) {
-        out2.print("after");
-        out2.flush();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    try (PrintWriter out2 = new PrintWriter(temp)) {
+      out2.print("after");
+      out2.flush();
+    }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
-        should.assertEquals("<before></before>", render2.toString());
-      }));
-    }));
+    render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("<before></before>", render.toString());
   }
 
   private void assertContains(Buffer render, String chunk) {
-    assertTrue(chunk, render.toString().contains(chunk));
+    assertTrue(render.toString().contains(chunk), chunk);
   }
 }

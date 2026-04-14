@@ -17,58 +17,55 @@
 package io.vertx.ext.web.templ.jte.tests;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.jte.JteTemplateEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:andy@mazebert.com">Andreas Hager</a>
  */
-@RunWith(VertxUnitRunner.class)
 public class JteTemplateEngineTest {
 
   private static TemplateEngine engine;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     Vertx vertx = Vertx.vertx();
     engine = JteTemplateEngine.create(vertx, "src/test/jte");
   }
 
   @Test
-  public void testTemplateHandler(TestContext should) {
+  public void testTemplateHandler() throws Exception {
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/testTemplate2.jte"));
 
-    engine.render(context, "testTemplate2.jte").onComplete(should.asyncAssertSuccess(render ->
-      should.assertEquals("\nHello badger and fox\nRequest path is /testTemplate2.jte\n", normalizeCRLF(render.toString()))
-    ));
+    Buffer render = engine.render(context, "testTemplate2.jte").await();
+    assertEquals("\nHello badger and fox\nRequest path is /testTemplate2.jte\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerIncludes(TestContext should) {
+  public void testTemplateHandlerIncludes() throws Exception {
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/base"));
 
-    engine.render(context, "base.jte").onComplete(should.asyncAssertSuccess(render ->
-      should.assertEquals("Vert.x rules\n\n", normalizeCRLF(render.toString()))
-    ));
+    Buffer render = engine.render(context, "base.jte").await();
+    assertEquals("Vert.x rules\n\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testNoSuchTemplate(TestContext should) {
+  public void testNoSuchTemplate() {
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "nosuchtemplate.jte").onComplete(should.asyncAssertFailure());
+    assertThrows(Exception.class, () -> engine.render(context, "nosuchtemplate.jte").await());
   }
 
   // For windows testing

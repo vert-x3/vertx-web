@@ -14,9 +14,8 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 open module io.vertx.web.template.thymeleaf.tests {
-  requires io.vertx.testing.unit;
   requires io.vertx.core;
   requires io.vertx.web.common;
   requires io.vertx.web.template.thymeleaf;
-  requires junit;
+  requires org.junit.jupiter.api;
 }

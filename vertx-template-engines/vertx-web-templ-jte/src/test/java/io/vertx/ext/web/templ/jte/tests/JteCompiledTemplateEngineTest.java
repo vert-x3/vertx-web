@@ -16,38 +16,36 @@
 
 package io.vertx.ext.web.templ.jte.tests;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.jte.JteTemplateEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:andy@mazebert.com">Andreas Hager</a>
  */
-@RunWith(VertxUnitRunner.class)
 public class JteCompiledTemplateEngineTest {
 
   private static TemplateEngine engine;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     engine = JteTemplateEngine.create();
   }
 
   @Test
-  public void testTemplateHandler(TestContext should) {
+  public void testTemplateHandler() throws Exception {
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/testTemplate2.jte"));
 
-    engine.render(context, "compiled.jte").onComplete(should.asyncAssertSuccess(render ->
-      should.assertEquals("\nHello compiled badger and fox\nRequest path is /testTemplate2.jte\n", normalizeCRLF(render.toString()))
-    ));
+    Buffer render = engine.render(context, "compiled.jte").await();
+    assertEquals("\nHello compiled badger and fox\nRequest path is /testTemplate2.jte\n", normalizeCRLF(render.toString()));
   }
 
   // For windows testing

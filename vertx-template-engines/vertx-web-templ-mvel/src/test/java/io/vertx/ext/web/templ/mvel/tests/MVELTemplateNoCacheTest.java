@@ -18,39 +18,35 @@ package io.vertx.ext.web.templ.mvel.tests;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@RunWith(VertxUnitRunner.class)
 public class MVELTemplateNoCacheTest {
 
   private static Vertx vertx;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(false)));
   }
 
   @Test
-  public void testCachingDisabled(TestContext should) throws IOException {
-    final Async test = should.async();
-
+  public void testCachingDisabled() throws Throwable {
     System.setProperty("vertxweb.environment", "development");
     TemplateEngine engine = MVELTemplateEngine.create(vertx);
 
@@ -63,26 +59,16 @@ public class MVELTemplateNoCacheTest {
     out.flush();
     out.close();
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("before", render.result().toString());
-      // cache is enabled so if we change the content that should not affect the result
+    Buffer render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("before", render.toString());
+    // cache is enabled so if we change the content that should not affect the result
 
-      try {
-        PrintWriter out2 = new PrintWriter(temp);
-        out2.print("after");
-        out2.flush();
-        out2.close();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    PrintWriter out2 = new PrintWriter(temp);
+    out2.print("after");
+    out2.flush();
+    out2.close();
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(render2 -> {
-        should.assertTrue(render2.succeeded());
-        should.assertEquals("after", render2.result().toString());
-        test.complete();
-      });
-    });
-    test.await();
+    render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("after", render.toString());
   }
 }

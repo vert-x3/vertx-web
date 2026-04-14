@@ -18,38 +18,35 @@ package io.vertx.ext.web.templ.thymeleaf.tests;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine;
-import org.junit.runner.RunWith;
 
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@RunWith(VertxUnitRunner.class)
 public class ThymeleafTemplateTest {
 
   private static Vertx vertx;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspath(TestContext should) {
+  public void testTemplateHandlerOnClasspath() {
     TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -57,26 +54,25 @@ public class ThymeleafTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
-    engine.render(context, "somedir/test-thymeleaf-template2.html").onComplete(should.asyncAssertSuccess(render -> {
-      final String expected =
-        "<!doctype html>\n" +
-          "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
-          "<head>\n" +
-          "  <meta charset=\"utf-8\">\n" +
-          "</head>\n" +
-          "<body>\n" +
-          "<p>badger</p>\n" +
-          "<p>fox</p>\n" +
-          "<p>/test-thymeleaf-template2.html</p>\n" +
-          "</body>\n" +
-          "</html>\n";
+    Buffer render = engine.render(context, "somedir/test-thymeleaf-template2.html").await();
+    final String expected =
+      "<!doctype html>\n" +
+        "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+        "<head>\n" +
+        "  <meta charset=\"utf-8\">\n" +
+        "</head>\n" +
+        "<body>\n" +
+        "<p>badger</p>\n" +
+        "<p>fox</p>\n" +
+        "<p>/test-thymeleaf-template2.html</p>\n" +
+        "</body>\n" +
+        "</html>\n";
 
-      should.assertEquals(expected, normalizeCRLF(render.toString()));
-    }));
+    assertEquals(expected, normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerOnFileSystem(TestContext should) {
+  public void testTemplateHandlerOnFileSystem() {
     TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -84,41 +80,40 @@ public class ThymeleafTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-thymeleaf-template3.html").onComplete(should.asyncAssertSuccess(render -> {
-      final String expected =
-        "<!doctype html>\n" +
-          "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
-          "<head>\n" +
-          "  <meta charset=\"utf-8\">\n" +
-          "</head>\n" +
-          "<body>\n" +
-          "<p>badger</p>\n" +
-          "<p>fox</p>\n" +
-          "<p>/test-thymeleaf-template2.html</p>\n" +
-          "</body>\n" +
-          "</html>\n";
+    Buffer render = engine.render(context, "src/test/filesystemtemplates/test-thymeleaf-template3.html").await();
+    final String expected =
+      "<!doctype html>\n" +
+        "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+        "<head>\n" +
+        "  <meta charset=\"utf-8\">\n" +
+        "</head>\n" +
+        "<body>\n" +
+        "<p>badger</p>\n" +
+        "<p>fox</p>\n" +
+        "<p>/test-thymeleaf-template2.html</p>\n" +
+        "</body>\n" +
+        "</html>\n";
 
-      should.assertEquals(expected, normalizeCRLF(render.toString()));
-    }));
+    assertEquals(expected, normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) {
+  public void testTemplateHandlerOnClasspathDisableCaching() {
     System.setProperty("vertxweb.environment", "development");
-    testTemplateHandlerOnClasspath(should);
+    testTemplateHandlerOnClasspath();
   }
 
   @Test
-  public void testNoSuchTemplate(TestContext should) {
+  public void testNoSuchTemplate() {
     TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject();
 
-    engine.render(context, "nosuchtemplate.html").onComplete(should.asyncAssertFailure());
+    assertThrows(Exception.class, () -> engine.render(context, "nosuchtemplate.html").await());
   }
 
   @Test
-  public void testWithLocale(TestContext should) {
+  public void testWithLocale() {
     TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -127,22 +122,21 @@ public class ThymeleafTemplateTest {
       .put("lang", "en-gb")
       .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
-    engine.render(context, "somedir/test-thymeleaf-template2.html").onComplete(should.asyncAssertSuccess(render -> {
-      final String expected =
-        "<!doctype html>\n" +
-          "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
-          "<head>\n" +
-          "  <meta charset=\"utf-8\">\n" +
-          "</head>\n" +
-          "<body>\n" +
-          "<p>badger</p>\n" +
-          "<p>fox</p>\n" +
-          "<p>/test-thymeleaf-template2.html</p>\n" +
-          "</body>\n" +
-          "</html>\n";
+    Buffer render = engine.render(context, "somedir/test-thymeleaf-template2.html").await();
+    final String expected =
+      "<!doctype html>\n" +
+        "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+        "<head>\n" +
+        "  <meta charset=\"utf-8\">\n" +
+        "</head>\n" +
+        "<body>\n" +
+        "<p>badger</p>\n" +
+        "<p>fox</p>\n" +
+        "<p>/test-thymeleaf-template2.html</p>\n" +
+        "</body>\n" +
+        "</html>\n";
 
-      should.assertEquals(expected, normalizeCRLF(render.toString()));
-    }));
+    assertEquals(expected, normalizeCRLF(render.toString()));
   }
 
   @Test
@@ -152,7 +146,7 @@ public class ThymeleafTemplateTest {
   }
 
   @Test
-  public void testFragmentedTemplates(TestContext should) {
+  public void testFragmentedTemplates() {
     TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -160,27 +154,26 @@ public class ThymeleafTemplateTest {
       .put("bar", "fox")
       .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
-    engine.render(context, "somedir/test-thymeleaf-fragmented.html").onComplete(should.asyncAssertSuccess(render -> {
-      final String expected =
-        "<!doctype html>\n" +
-          "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
-          "<head>\n" +
-          "  <meta charset=\"utf-8\">\n" +
-          "  <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"/resources/images/favicon.png\">\n" +
-          "</head>\n" +
-          "<body>\n" +
-          "<p>badger</p>\n" +
-          "<p>fox</p>\n" +
-          "<p>/test-thymeleaf-template2.html</p>\n" +
-          "</body>\n" +
-          "</html>\n";
+    Buffer render = engine.render(context, "somedir/test-thymeleaf-fragmented.html").await();
+    final String expected =
+      "<!doctype html>\n" +
+        "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+        "<head>\n" +
+        "  <meta charset=\"utf-8\">\n" +
+        "  <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"/resources/images/favicon.png\">\n" +
+        "</head>\n" +
+        "<body>\n" +
+        "<p>badger</p>\n" +
+        "<p>fox</p>\n" +
+        "<p>/test-thymeleaf-template2.html</p>\n" +
+        "</body>\n" +
+        "</html>\n";
 
-      should.assertEquals(expected, normalizeCRLF(render.toString()));
-    }));
+    assertEquals(expected, normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testCachingEnabled(TestContext should) throws IOException {
+  public void testCachingEnabled() throws IOException {
     System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 
@@ -192,21 +185,17 @@ public class ThymeleafTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("before", normalizeCRLF(render.toString()));
-      // cache is enabled so if we change the content that should not affect the result
+    Buffer render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("before", normalizeCRLF(render.toString()));
+    // cache is enabled so if we change the content that should not affect the result
 
-      try (PrintWriter out2 = new PrintWriter(temp)) {
-        out2.print("after");
-        out2.flush();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    try (PrintWriter out2 = new PrintWriter(temp)) {
+      out2.print("after");
+      out2.flush();
+    }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
-        should.assertEquals("before", normalizeCRLF(render2.toString()));
-      }));
-    }));
+    render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("before", normalizeCRLF(render.toString()));
   }
 
   // For windows testing
