@@ -26,11 +26,12 @@ public class HandlerExceptionTest {
 
 
   @BeforeEach
-  public void setUp(Vertx vertx, VertxTestContext testContext) {
+  public void setUp(Vertx vertx) {
     this.vertx = vertx;
     vertx.createHttpServer()
       .requestHandler(req -> req.response().end("OK"))
-      .listen(8080).onComplete(testContext.succeedingThenComplete());
+      .listen(8080)
+      .await();
   }
 
   @Test

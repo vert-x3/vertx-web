@@ -25,7 +25,7 @@ public class JsonStreamTest {
   private WebClient client;
 
   @BeforeEach
-  public void setup(Vertx vertx, VertxTestContext testContext) {
+  public void setup(Vertx vertx) {
     client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
 
     vertx.createHttpServer().requestHandler(req -> {
@@ -47,7 +47,8 @@ public class JsonStreamTest {
         req.response().write(separator);
       }
       req.response().end();
-    }).listen(8080).onComplete(testContext.succeedingThenComplete());
+    }).listen(8080)
+      .await();
   }
 
   @Test

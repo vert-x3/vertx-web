@@ -81,8 +81,12 @@ public class HandlerParamsTest {
   }
 
   @AfterEach
-  public void tearDown(VertxTestContext testContext) {
-    if (consumer != null) consumer.unregister().onComplete(testContext.succeeding(v -> testContext.completeNow()));
+  public void tearDown() {
+    if (consumer != null) {
+      consumer
+        .unregister()
+        .await();
+    };
   }
 
   @Test

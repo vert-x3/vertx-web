@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.MalformedValueException;
+import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.tests.testutils.TestSchemas;
@@ -24,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
@@ -42,7 +44,7 @@ class FormBodyProcessorImplTest {
   }
 
   @Test
-  public void testFormBodyProcessor(VertxTestContext testContext) {
+  public void testFormBodyProcessor() {
     ObjectSchemaBuilder schemaBuilder = TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER;
 
     MultiMap map = MultiMap.caseInsensitiveMultiMap();
@@ -61,26 +63,22 @@ class FormBodyProcessorImplTest {
 
     assertThat(processor.canProcess("application/x-www-form-urlencoded")).isTrue();
 
-    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> {
-        assertThat(rp.isJsonObject())
-          .isTrue();
-        assertThat(rp.getJsonObject())
-          .isEqualTo(
-            new JsonObject()
-              .put("someNumbers", new JsonArray().add(1.1d).add(2.2d))
-              .put("oneNumber", 3.3d)
-              .put("someIntegers", new JsonArray().add(1L).add(2L))
-              .put("oneInteger", 3L)
-              .put("aBoolean", true)
-          );
-      });
-      testContext.completeNow();
-    }));
+    RequestParameter rp = processor.process(mockedContext).await();
+    assertThat(rp.isJsonObject())
+      .isTrue();
+    assertThat(rp.getJsonObject())
+      .isEqualTo(
+        new JsonObject()
+          .put("someNumbers", new JsonArray().add(1.1d).add(2.2d))
+          .put("oneNumber", 3.3d)
+          .put("someIntegers", new JsonArray().add(1L).add(2L))
+          .put("oneInteger", 3L)
+          .put("aBoolean", true)
+      );
   }
 
   @Test
-  public void testFormBodyProcessorParsingFailure(VertxTestContext testContext) {
+  public void testFormBodyProcessorParsingFailure() {
     ObjectSchemaBuilder schemaBuilder = TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER;
 
     MultiMap map = MultiMap.caseInsensitiveMultiMap();
@@ -100,14 +98,14 @@ class FormBodyProcessorImplTest {
 
     assertThat(processor.canProcess("application/x-www-form-urlencoded")).isTrue();
 
-    processor.process(mockedContext).onComplete(testContext.failing(err -> {
-      testContext.verify(() -> {
-        assertThat(err)
-          .isInstanceOf(BodyProcessorException.class)
-          .hasFieldOrPropertyWithValue("actualContentType", "application/x-www-form-urlencoded")
-          .hasCauseInstanceOf(MalformedValueException.class);
-      });
-      testContext.completeNow();
-    }));
+    try {
+      processor.process(mockedContext).await();
+      fail();
+    } catch (Exception err) {
+      assertThat(err)
+        .isInstanceOf(BodyProcessorException.class)
+        .hasFieldOrPropertyWithValue("actualContentType", "application/x-www-form-urlencoded")
+        .hasCauseInstanceOf(MalformedValueException.class);
+    }
   }
 }

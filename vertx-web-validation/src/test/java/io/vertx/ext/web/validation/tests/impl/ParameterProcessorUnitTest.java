@@ -3,6 +3,7 @@ package io.vertx.ext.web.validation.tests.impl;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.ParameterProcessorException;
+import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.parameter.ParameterParser;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
@@ -12,7 +13,6 @@ import io.vertx.json.schema.OutputUnit;
 import io.vertx.json.schema.SchemaRepository;
 import io.vertx.json.schema.Validator;
 import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -20,8 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -83,7 +82,7 @@ public class ParameterProcessorUnitTest {
   }
 
   @Test
-  public void testOptionalParam(VertxTestContext testContext) {
+  public void testOptionalParam() {
     ParameterProcessor processor = new ParameterProcessorImpl(
       "myParam",
       ParameterLocation.QUERY,
@@ -95,17 +94,13 @@ public class ParameterProcessorUnitTest {
 
     when(mockedParser.parseParameter(any())).thenReturn(null);
 
-    processor.process(new HashMap<>()).onComplete(testContext.succeeding(value -> {
-      testContext.verify(() ->
-        assertThat(value).isNull()
-      );
-      testContext.completeNow();
-    }));
+    RequestParameter value = processor.process(new HashMap<>()).await();
+    assertThat(value).isNull();
   }
 
 
   @Test
-  public void testOptionalParamWithDefault(VertxTestContext testContext) {
+  public void testOptionalParamWithDefault() {
     ParameterProcessor processor = new ParameterProcessorImpl(
       "myParam",
       ParameterLocation.QUERY,
@@ -117,12 +112,8 @@ public class ParameterProcessorUnitTest {
 
     when(mockedParser.parseParameter(any())).thenReturn(null);
 
-    processor.process(new HashMap<>()).onComplete(testContext.succeeding(value -> {
-      testContext.verify(() ->
-        assertThat(value.getString()).isEqualTo("bla")
-      );
-      testContext.completeNow();
-    }));
+    RequestParameter value = processor.process(new HashMap<>()).await();
+    assertThat(value.getString()).isEqualTo("bla");
   }
 
   @Test
@@ -170,7 +161,7 @@ public class ParameterProcessorUnitTest {
   }
 
   @Test
-  public void testValidation(VertxTestContext testContext) {
+  public void testValidation() {
     ParameterProcessor processor = new ParameterProcessorImpl(
       "myParam",
       ParameterLocation.QUERY,
@@ -186,17 +177,13 @@ public class ParameterProcessorUnitTest {
     when(mockedValidator.validate(any())).thenReturn(mockedOutputUnit);
     when(mockedOutputUnit.getValid()).thenReturn(true);
 
-    processor.process(new HashMap<>()).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> {
-        assertThat(rp.isString()).isTrue();
-        assertThat(rp.getString()).isEqualTo("aaa");
-      });
-      testContext.completeNow();
-    }));
+    RequestParameter rp = processor.process(new HashMap<>()).await();
+    assertThat(rp.isString()).isTrue();
+    assertThat(rp.getString()).isEqualTo("aaa");
   }
 
   @Test
-  public void testValidationFailure(VertxTestContext testContext) {
+  public void testValidationFailure() {
     ParameterProcessor processor = new ParameterProcessorImpl(
       "myParam",
       ParameterLocation.QUERY,
@@ -212,21 +199,21 @@ public class ParameterProcessorUnitTest {
     when(mockedValidator.validate(any())).thenReturn(mockedOutputUnit);
     when(mockedOutputUnit.getValid()).thenReturn(false);
 
-    processor.process(new HashMap<>()).onComplete(testContext.failing(throwable -> {
-      testContext.verify(() -> {
-        assertThat(throwable)
-          .isInstanceOf(ParameterProcessorException.class)
-          .hasFieldOrPropertyWithValue("errorType",
-            ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
-          .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
-          .hasFieldOrPropertyWithValue("parameterName", "myParam");
-      });
-      testContext.completeNow();
-    }));
+    try {
+      processor.process(new HashMap<>()).await();
+      fail();
+    } catch (Exception err) {
+      assertThat(err)
+        .isInstanceOf(ParameterProcessorException.class)
+        .hasFieldOrPropertyWithValue("errorType",
+          ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
+        .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
+        .hasFieldOrPropertyWithValue("parameterName", "myParam");
+    }
   }
 
   @Test
-  public void testValidationCustomMessageFailure(VertxTestContext testContext) {
+  public void testValidationCustomMessageFailure() {
     String customValidationErrorMessage = "Failed to validate myParam";
     ParameterProcessor processor = new ParameterProcessorImpl(
       "myParam",
@@ -243,17 +230,17 @@ public class ParameterProcessorUnitTest {
     when(mockedValidator.validate(any())).thenReturn(mockedOutputUnit);
     when(mockedOutputUnit.getValid()).thenReturn(false);
 
-    processor.process(new HashMap<>()).onComplete(testContext.failing(throwable -> {
-      testContext.verify(() -> {
-        assertThat(throwable)
-          .isInstanceOf(ParameterProcessorException.class)
-          .hasFieldOrPropertyWithValue("errorType",
-            ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
-          .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
-          .hasFieldOrPropertyWithValue("parameterName", "myParam")
-          .hasFieldOrPropertyWithValue("message", customValidationErrorMessage);
-      });
-      testContext.completeNow();
-    }));
+    try {
+      processor.process(new HashMap<>()).await();
+      fail();
+    } catch (Exception err) {
+      assertThat(err)
+        .isInstanceOf(ParameterProcessorException.class)
+        .hasFieldOrPropertyWithValue("errorType",
+          ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
+        .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
+        .hasFieldOrPropertyWithValue("parameterName", "myParam")
+        .hasFieldOrPropertyWithValue("message", customValidationErrorMessage);
+    }
   }
 }

@@ -32,7 +32,6 @@ import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
@@ -77,8 +76,7 @@ public class SessionAwareWebClientTest {
     return WebClientSession.create(webClient, cookieStore);
   }
 
-  private void prepareServer(VertxTestContext testContext, Consumer<HttpServerRequest> reqHandler) {
-    Checkpoint started = testContext.checkpoint();
+  private void prepareServer(Consumer<HttpServerRequest> reqHandler) {
     server.requestHandler(req -> {
       try {
         reqHandler.accept(req);
@@ -87,12 +85,9 @@ public class SessionAwareWebClientTest {
           req.response().end();
       }
     });
-    server.listen().onComplete(ar -> {
-      if (ar.succeeded()) {
-        started.flag();
-      }
-    });
-    started.await();
+    server
+      .listen()
+      .await();
   }
 
   private Cookie getCookieValue(HttpServerRequest req, String name) {
@@ -109,59 +104,50 @@ public class SessionAwareWebClientTest {
   }
 
   @Test
-  public void testReadCookie(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
-
-    prepareServer(testContext, req -> {
+  public void testReadCookie() {
+    prepareServer(req -> {
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test", "toast")));
     });
-
-    client.get(PORT, "localhost", "/").send().onComplete(ar -> {
-      assertTrue(ar.succeeded());
-      validate(client.cookieStore().get(false, "localhost", "/"),
-          new String[] { "test" }, new String[] { "toast" });
-      done.flag();
-    });
+    client.get(PORT, "localhost", "/").send().await();
+    validate(client.cookieStore().get(false, "localhost", "/"),
+      new String[] { "test" }, new String[] { "toast" });
   }
 
   @Test
-  public void testReadManyCookies(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testReadManyCookies() {
 
-    prepareServer(testContext, req -> {
+    prepareServer(req -> {
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test1", "toast1")));
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test2", "toast2")));
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test3", "toast3")));
     });
 
-    client.get(PORT, "localhost", "/").send().onComplete(ar -> {
-      assertTrue(ar.succeeded());
-      validate(client.cookieStore().get(false, "localhost", "/"),
-          new String[] { "test1" ,"test2", "test3" }, new String[] { "toast1", "toast2", "toast3" });
-      done.flag();
-    });
+    client
+      .get(PORT, "localhost", "/")
+      .send()
+      .await();
+    validate(client.cookieStore().get(false, "localhost", "/"),
+      new String[] { "test1" ,"test2", "test3" }, new String[] { "toast1", "toast2", "toast3" });
   }
 
   @Test
-  public void testReceiveAndSendCookieRegularPath(VertxTestContext testContext) {
-    testReceiveAndSendCookie(testContext, "/", "/");
+  public void testReceiveAndSendCookieRegularPath() {
+    testReceiveAndSendCookie("/", "/");
   }
 
   @Test
-  public void testReceiveAndSendCookieQuestionMark(VertxTestContext testContext) {
-    testReceiveAndSendCookie(testContext, "/path?a=b", "/path");
+  public void testReceiveAndSendCookieQuestionMark() {
+    testReceiveAndSendCookie("/path?a=b", "/path");
   }
 
   @Test
-  public void testReceiveAndSendCookieHash(VertxTestContext testContext) {
-    testReceiveAndSendCookie(testContext, "/path#fragment", "/path");
+  public void testReceiveAndSendCookieHash() {
+    testReceiveAndSendCookie("/path#fragment", "/path");
   }
 
-  public void testReceiveAndSendCookie(VertxTestContext testContext, String pathToCall, String cookiePath) {
-    Checkpoint firstReq = testContext.checkpoint();
-    Checkpoint done = testContext.checkpoint();
+  public void testReceiveAndSendCookie(String pathToCall, String cookiePath) {
 
-    prepareServer(testContext, req -> {
+    prepareServer(req -> {
       req.response().setChunked(true);
       Cookie c = new DefaultCookie("test", "toast");
       c.setPath(cookiePath);
@@ -176,29 +162,19 @@ public class SessionAwareWebClientTest {
 
     HttpRequest<Buffer> req = client.get(PORT, "localhost", pathToCall);
 
-    req.send().onComplete(ar -> {
-      assertTrue(ar.succeeded());
-      firstReq.flag();
-    });
-    firstReq.await();
+    req.send().await();
 
-    req.send().onComplete(ar -> {
-      assertTrue(ar.succeeded());
-      HttpResponse<Buffer> res = ar.result();
-      assertEquals(200, res.statusCode());
-      assertEquals("OK", res.bodyAsString());
-      done.flag();
-    });
+    HttpResponse<Buffer> resp = req.send().await();
+    assertEquals(200, resp.statusCode());
+    assertEquals("OK", resp.bodyAsString());
   }
 
   @Test
-  public void testSessionHeaders(VertxTestContext testContext) {
+  public void testSessionHeaders() {
     String headerName = "x-client-header";
     String headerVal = "MY-HEADER";
 
-    Checkpoint done = testContext.checkpoint();
-
-    prepareServer(testContext, req -> {
+    prepareServer(req -> {
       req.response().setChunked(true);
       if (headerVal.equals(req.getHeader(headerName))) {
         req.response().write("OK");
@@ -208,27 +184,18 @@ public class SessionAwareWebClientTest {
     });
 
     client.addHeader(headerName, headerVal);
-    client.get("/").send().onComplete(ar -> {
-      assertTrue(ar.succeeded());
-      HttpResponse<Buffer> res = ar.result();
-      assertEquals(200, res.statusCode());
-      assertEquals("OK", res.bodyAsString());
-      done.flag();
-    });
+    HttpResponse<Buffer> res = client.get("/").send().await();
+    assertEquals(200, res.statusCode());
+    assertEquals("OK", res.bodyAsString());
   }
 
   @Test
-  public void testSharedWebClient(VertxTestContext testContext) {
+  public void testSharedWebClient() {
     AtomicInteger cnt = new AtomicInteger(0);
 
     int numClients = 4;
-    Checkpoint[] waiters = new Checkpoint[numClients];
-    for (int i = 0; i < numClients; i++) {
-      waiters[i] = testContext.checkpoint();
-    }
-    Checkpoint done = testContext.checkpoint(numClients);
 
-    prepareServer(testContext, req -> {
+    prepareServer(req -> {
       req.response().setChunked(true);
       Cookie c = getCookieValue(req, "test");
       if (c != null) {
@@ -245,34 +212,22 @@ public class SessionAwareWebClientTest {
       .mapToObj(val -> val == 0 ? client :  buildClient(plainWebClient, CookieStore.build()))
       .toArray(WebClientSession[]::new);
 
-    for (int idx = 0; idx < clients.length; idx++) {
-      HttpRequest<Buffer> req = clients[idx].get(PORT, "localhost", "/index.html");
-      Checkpoint waiter = waiters[idx];
+    for (WebClientSession webClientSession : clients) {
+      HttpRequest<Buffer> req = webClientSession.get(PORT, "localhost", "/index.html");
 
-      req.send().onComplete(ar -> {
-        assertTrue(ar.succeeded());
-        waiter.flag();
-      });
-      waiter.await();
+      req.send().await();
 
-      req.send().onComplete(ar -> {
-        assertTrue(ar.succeeded());
-        HttpResponse<Buffer> res = ar.result();
-        assertEquals(200, res.statusCode());
-        assertEquals("OK", res.bodyAsString());
-        done.flag();
-      });
+      HttpResponse<Buffer> res = req.send().await();
+      assertEquals(200, res.statusCode());
+      assertEquals("OK", res.bodyAsString());
     }
   }
 
   @Test
-  public void testClientHeaders(VertxTestContext testContext) {
+  public void testClientHeaders() {
     final String headerPrefix = "x-h";
 
-    Checkpoint firstReq = testContext.checkpoint();
-    Checkpoint done = testContext.checkpoint();
-
-    prepareServer(testContext, req -> {
+    prepareServer(req -> {
       String expected;
       for (int i = 0; i < 3; i++) {
         expected = String.valueOf(i);
@@ -285,34 +240,25 @@ public class SessionAwareWebClientTest {
 
     HttpRequest<Buffer> req = client.get(PORT, "localhost", "/");
 
-    req.send().onComplete(testContext.succeeding(resp -> {
-      assertEquals(500, resp.statusCode());
-      firstReq.flag();
-    }));
-    firstReq.await();
+    HttpResponse<Buffer> resp = req.send().await();
+    assertEquals(500, resp.statusCode());
 
     for (int i = 0; i < 3; i++) {
       req.putHeader(headerPrefix + i, String.valueOf(i));
     }
 
-    req.send().onComplete(ar -> {
-      assertTrue(ar.succeeded());
-      assertEquals(200, ar.result().statusCode());
-      done.flag();
-    });
+    HttpResponse<Buffer> res = req.send().await();
+    assertEquals(200, res.statusCode());
   }
 
   @Test
-  public void testHeadersAndCookies(VertxTestContext testContext) {
+  public void testHeadersAndCookies() {
     String headerName = "x-toolkit";
     String headerValue = "vert.x";
     String cookieName = "JSESSIONID";
     String cookieValue = "123";
 
-    Checkpoint firstReq = testContext.checkpoint();
-    Checkpoint done = testContext.checkpoint();
-
-    prepareServer(testContext, req -> {
+    prepareServer(req -> {
       if (!headerValue.equals(req.getHeader(headerName))) {
         req.response().setStatusCode(500);
       }
@@ -331,76 +277,58 @@ public class SessionAwareWebClientTest {
         .putHeader(headerName, headerValue)
         .addQueryParam("c", "X");
 
-    req.send().onComplete(ar -> {
-      assertTrue(ar.succeeded());
-      assertEquals(200, ar.result().statusCode());
-      firstReq.flag();
-    });
-    firstReq.await();
+    HttpResponse<Buffer> resp = req.send().await();
+    assertEquals(200, resp.statusCode());
 
     req.queryParams().clear();
-    req.send().onComplete(ar -> {
-      assertTrue(ar.succeeded());
-      assertEquals(200, ar.result().statusCode());
-      done.flag();
-    });
+    resp = req.send().await();
+    assertEquals(200, resp.statusCode());
   }
 
   @Test
-  public void testRequestIsPrepared(VertxTestContext testContext) {
-    int numChecks = 29;
-    Checkpoint[] checks = new Checkpoint[numChecks];
-    for (int i = 0; i < numChecks; i++) {
-      checks[i] = testContext.checkpoint();
-    }
-
-    prepareServer(testContext, req -> {
+  public void testRequestIsPrepared() {
+    prepareServer(req -> {
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test", "toast")));
     });
 
-    AtomicInteger idx = new AtomicInteger();
     Consumer<HttpRequest<Buffer>> check = r -> {
-      Checkpoint waiter = checks[idx.getAndIncrement()];
       Cookie c = new DefaultCookie("test", "localhost");
       c.setPath("/");
       client.cookieStore().remove(c);
-      r.send().onComplete(ar -> {
-        waiter.flag();
-        validate(client.cookieStore().get(false, "localhost", "/"),
-            new String[] { "test" }, new String[] { "toast" });
-      });
-      waiter.await();
+      r.send().await();
+      validate(client.cookieStore().get(false, "localhost", "/"),
+        new String[] { "test" }, new String[] { "toast" });
     };
 
     check.accept(client.delete("/"));
     check.accept(client.delete("localhost", "/"));
     check.accept(client.delete(PORT, "localhost", "/"));
-    check.accept(client.deleteAbs("http://localhost/"));
+    check.accept(client.deleteAbs("http://localhost:8080/"));
     check.accept(client.get("/"));
     check.accept(client.get("localhost", "/"));
     check.accept(client.get(PORT, "localhost", "/"));
-    check.accept(client.getAbs("http://localhost/"));
+    check.accept(client.getAbs("http://localhost:8080/"));
     check.accept(client.head("/"));
     check.accept(client.head("localhost", "/"));
     check.accept(client.head(PORT, "localhost", "/"));
-    check.accept(client.headAbs("http://localhost/"));
+    check.accept(client.headAbs("http://localhost:8080/"));
     check.accept(client.patch("/"));
     check.accept(client.patch("localhost", "/"));
     check.accept(client.patch(PORT, "localhost", "/"));
-    check.accept(client.patchAbs("http://localhost/"));
+    check.accept(client.patchAbs("http://localhost:8080/"));
     check.accept(client.post("/"));
     check.accept(client.post("localhost", "/"));
     check.accept(client.post(PORT, "localhost", "/"));
-    check.accept(client.postAbs("http://localhost/"));
+    check.accept(client.postAbs("http://localhost:8080/"));
     check.accept(client.put("/"));
     check.accept(client.put("localhost", "/"));
     check.accept(client.put(PORT, "localhost", "/"));
-    check.accept(client.putAbs("http://localhost/"));
+    check.accept(client.putAbs("http://localhost:8080/"));
     check.accept(client.request(HttpMethod.GET, new RequestOptions()));
     check.accept(client.request(HttpMethod.GET, "/"));
     check.accept(client.request(HttpMethod.GET, "localhost", "/"));
     check.accept(client.request(HttpMethod.GET, PORT, "localhost", "/"));
-    check.accept(client.requestAbs(HttpMethod.GET, "http://localhost/"));
+    check.accept(client.requestAbs(HttpMethod.GET, "http://localhost:8080/"));
   }
 
   @Test
@@ -418,7 +346,7 @@ public class SessionAwareWebClientTest {
     int expected = 7;
     Checkpoint done = testContext.checkpoint(expected);
 
-    prepareServer(testContext, req -> {
+    prepareServer(req -> {
       req.response().headers().add("set-cookie", encodedCookie);
     });
 
@@ -443,16 +371,15 @@ public class SessionAwareWebClientTest {
 
     int numVerticles = 4;
     int runs = 10;
-    Checkpoint deployed = testContext.checkpoint(numVerticles);
-    Checkpoint done = testContext.checkpoint(numVerticles * runs);
 
-    prepareServer(testContext, req -> {
+    prepareServer(req -> {
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie(cookieName, req.toString())));
     });
 
     String host = "localhost";
     String uri = "/";
 
+    Checkpoint done = testContext.checkpoint(numVerticles * runs);
     Deployable v = new VerticleBase() {
       @Override
       public Future<?> start() throws Exception {
@@ -467,9 +394,8 @@ public class SessionAwareWebClientTest {
     };
 
     for (int i = 0; i < numVerticles; i++) {
-      vertx.deployVerticle(v).onComplete(ar -> { deployed.flag(); });
+      vertx.deployVerticle(v).await();
     }
-    deployed.await();
 
     for (int i = 0; i < runs; i++) {
       vertx.eventBus().publish("test", "");
@@ -533,12 +459,10 @@ public class SessionAwareWebClientTest {
   }
 
   @Test
-  public void testRedirectWithoutLosingCookies(VertxTestContext testContext) throws Exception {
+  public void testRedirectWithoutLosingCookies() throws Exception {
     String location = "http://localhost:" + PORT + "/ok";
 
-    Checkpoint done = testContext.checkpoint();
-
-    prepareServer(testContext, req -> {
+    prepareServer(req -> {
       if (req.path().equals("/redirect")) {
         req
           .response()
@@ -553,13 +477,12 @@ public class SessionAwareWebClientTest {
       }
     });
 
-    client.get("/redirect")
+    HttpResponse<Buffer> resp = client.get("/redirect")
       .followRedirects(true)
-      .send().onComplete(testContext.succeeding(resp -> {
-        assertEquals(200, resp.statusCode());
-        assertEquals("/ok", resp.body().toString());
-        done.flag();
-      }));
+      .send()
+      .await();
+    assertEquals(200, resp.statusCode());
+    assertEquals("/ok", resp.body().toString());
   }
 
   public void validate(Iterable<Cookie> cookies, String[] expectedNames, String[] expectedVals) {

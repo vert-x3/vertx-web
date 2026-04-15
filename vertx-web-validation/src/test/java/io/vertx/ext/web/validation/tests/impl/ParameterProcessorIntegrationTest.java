@@ -1,6 +1,7 @@
 package io.vertx.ext.web.validation.tests.impl;
 
 import io.vertx.ext.web.validation.ParameterProcessorException;
+import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.builder.Parameters;
 import io.vertx.ext.web.validation.impl.ParameterLocation;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessor;
@@ -10,7 +11,6 @@ import io.vertx.json.schema.JsonSchemaOptions;
 import io.vertx.json.schema.SchemaRepository;
 import io.vertx.json.schema.ValidationException;
 import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -34,7 +35,7 @@ public class ParameterProcessorIntegrationTest {
   }
 
   @Test
-  public void testJsonParam(VertxTestContext testContext) {
+  public void testJsonParam() {
     ParameterProcessor processor = Parameters
       .jsonParam("myParam", TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER)
       .create(ParameterLocation.QUERY, repository);
@@ -42,20 +43,16 @@ public class ParameterProcessorIntegrationTest {
     Map<String, List<String>> map = new HashMap<>();
     map.put("myParam", Collections.singletonList(TestSchemas.VALID_OBJECT.encode()));
 
-    processor.process(map).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> {
-        assertThat(rp.isJsonObject()).isTrue();
-        assertThat(rp.getJsonObject())
-          .isEqualTo(
-            TestSchemas.VALID_OBJECT
-          );
-      });
-      testContext.completeNow();
-    }));
+    RequestParameter rp = processor.process(map).await();
+    assertThat(rp.isJsonObject()).isTrue();
+    assertThat(rp.getJsonObject())
+      .isEqualTo(
+        TestSchemas.VALID_OBJECT
+      );
   }
 
   @Test
-  public void testInvalidJsonParam(VertxTestContext testContext) {
+  public void testInvalidJsonParam() {
     ParameterProcessor processor = Parameters
       .jsonParam("myParam", TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER)
       .create(ParameterLocation.QUERY, repository);
@@ -63,17 +60,17 @@ public class ParameterProcessorIntegrationTest {
     Map<String, List<String>> map = new HashMap<>();
     map.put("myParam", Collections.singletonList(TestSchemas.INVALID_OBJECT.encode()));
 
-    processor.process(map).onComplete(testContext.failing(throwable -> {
-      testContext.verify(() -> {
-        assertThat(throwable)
-          .isInstanceOf(ParameterProcessorException.class)
-          .hasFieldOrPropertyWithValue("errorType",
-            ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
-          .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
-          .hasFieldOrPropertyWithValue("parameterName", "myParam")
-          .hasCauseInstanceOf(ValidationException.class);
-      });
-      testContext.completeNow();
-    }));
+    try {
+      processor.process(map).await();
+      fail();
+    } catch (Exception err) {
+      assertThat(err)
+        .isInstanceOf(ParameterProcessorException.class)
+        .hasFieldOrPropertyWithValue("errorType",
+          ParameterProcessorException.ParameterProcessorErrorType.VALIDATION_ERROR)
+        .hasFieldOrPropertyWithValue("location", ParameterLocation.QUERY)
+        .hasFieldOrPropertyWithValue("parameterName", "myParam")
+        .hasCauseInstanceOf(ValidationException.class);
+    }
   }
 }
