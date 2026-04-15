@@ -20,6 +20,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
@@ -30,7 +31,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.AfterAll;
@@ -406,7 +406,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testRoutingContextFailedBeforeFileIsFullyUploaded(VertxTestContext testContext) {
+  public void testRoutingContextFailedBeforeFileIsFullyUploaded() {
     String uploadsDirectory = new File(tempUploads, "failUpload").getPath();
     new File(uploadsDirectory).mkdirs();
     router.clear();
@@ -434,34 +434,31 @@ public class BodyHandlerTest extends WebTestBase {
       .setHost("localhost")
       .setPort(8080)
       .setURI("/upload");
-    Checkpoint responseLatch = testContext.checkpoint();
-    client.request(requestOptions).onComplete(TestUtils.onSuccess(req -> {
-      req.response().onComplete(TestUtils.onSuccess(resp -> {
-        assertEquals(503, resp.statusCode());
-        responseLatch.flag();
-      }));
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = TestUtils.randomBuffer(2048);
-      req.headers().set(HttpHeaders.CONTENT_TYPE, "multipart/form-data; boundary=" + boundary);
-      req.headers().set(HttpHeaders.CONTENT_LENGTH, String.valueOf(buffer.length()));
-      req.setChunked(true);
-      req.write("--" + boundary + "\r\n" +
-        "Content-Disposition: form-data; name=\"somename\"; filename=\"somefile.dat\"\r\n" +
-        "Content-Type: application/octet-stream\r\n" +
-        "Content-Transfer-Encoding: binary\r\n" +
-        "\r\n");
-      req.write(buffer.getBuffer(0, 1024));
-      vertx.setPeriodic(50, id -> {
-        if (stop.get()) {
-          vertx.cancelTimer(id);
-          req.write(buffer.getBuffer(0, 1024));
-          String footer = "\r\n--" + boundary + "--\r\n";
-          req.end(footer);
-        }
-      });
-    }));
-
-    responseLatch.await();
+    HttpClientRequest req = client.request(requestOptions).await();
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = TestUtils.randomBuffer(2048);
+    req.headers().set(HttpHeaders.CONTENT_TYPE, "multipart/form-data; boundary=" + boundary);
+    req.headers().set(HttpHeaders.CONTENT_LENGTH, String.valueOf(buffer.length()));
+    req.setChunked(true);
+    req.write("--" + boundary + "\r\n" +
+      "Content-Disposition: form-data; name=\"somename\"; filename=\"somefile.dat\"\r\n" +
+      "Content-Type: application/octet-stream\r\n" +
+      "Content-Transfer-Encoding: binary\r\n" +
+      "\r\n");
+    req.write(buffer.getBuffer(0, 1024));
+    vertx.setPeriodic(50, id -> {
+      if (stop.get()) {
+        vertx.cancelTimer(id);
+        req.write(buffer.getBuffer(0, 1024));
+        String footer = "\r\n--" + boundary + "--\r\n";
+        req.end(footer);
+      }
+    });
+    int resp = req
+      .response()
+      .map(r -> r.statusCode())
+      .await();
+    assertEquals(503, resp);
 
     assertWaitUntil(() -> vertx.fileSystem().readDirBlocking(uploadsDirectory).isEmpty());
   }

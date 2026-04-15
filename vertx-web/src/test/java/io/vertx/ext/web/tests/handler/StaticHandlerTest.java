@@ -349,12 +349,12 @@ public class StaticHandlerTest extends WebTestBase {
       .compose(req ->
         req.pushHandler(push -> {
             assertNotNull(push);
-            push.response().onComplete(TestUtils.onSuccess(resp -> {
-              resp.body().onComplete(TestUtils.onSuccess(body -> {
+            push.response()
+              .compose(HttpClientResponse::body)
+              .onComplete(TestUtils.onSuccess(body -> {
                 assertTrue(body.length() > 0);
                 pushReceived.flag();
               }));
-            }));
         }).send()
           .expecting(HttpResponseExpectation.SC_OK)
           .expecting(resp -> resp.version() == HttpVersion.HTTP_2)

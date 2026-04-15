@@ -17,6 +17,7 @@
 package io.vertx.ext.web.tests;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.net.NetSocket;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -1660,36 +1661,37 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testExceptionHandler() throws Exception {
     AtomicInteger cnt = new AtomicInteger();
-    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(TestUtils.onSuccess(req -> {
-      router.route().handler(rc -> {
-        rc.addEndHandler(done -> {
-          if (done.failed()) {
-            cnt.incrementAndGet();
-          }
-        });
-        rc.next();
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        if (done.failed()) {
+          cnt.incrementAndGet();
+        }
       });
-      router.route().handler(rc -> {
-        rc.addEndHandler(done -> {
-          if (done.failed()) {
-            cnt.incrementAndGet();
-          }
-        });
-        rc.next();
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        if (done.failed()) {
+          cnt.incrementAndGet();
+        }
       });
-      router.route().handler(rc -> {
-        rc.addEndHandler(done -> {
-          if (done.failed()) {
-            cnt.incrementAndGet();
-          }
-        });
-        rc.next();
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        if (done.failed()) {
+          cnt.incrementAndGet();
+        }
       });
-      router.route().handler(rc -> {
-        req.connection().close();
-      });
-      req.end();
-    }));
+      rc.next();
+    });
+    HttpClientRequest request = client
+      .request(HttpMethod.GET, server.actualPort(), "localhost", "/path")
+      .await();
+    router.route().handler(rc -> {
+      request.connection().close();
+    });
+    request.end();
     assertWaitUntil(() -> cnt.get() == 3);
   }
 
@@ -1697,30 +1699,29 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testCloseHandler() throws Exception {
     AtomicInteger cnt = new AtomicInteger();
-    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(TestUtils.onSuccess(req -> {
-      router.route().handler(rc -> {
-        rc.addEndHandler(done -> {
-          cnt.incrementAndGet();
-        });
-        rc.next();
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        cnt.incrementAndGet();
       });
-      router.route().handler(rc -> {
-        rc.addEndHandler(done -> {
-          cnt.incrementAndGet();
-        });
-        rc.next();
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        cnt.incrementAndGet();
       });
-      router.route().handler(rc -> {
-        rc.addEndHandler(done -> {
-          cnt.incrementAndGet();
-        });
-        rc.next();
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        cnt.incrementAndGet();
       });
-      router.route().handler(rc -> {
-        req.connection().close();
-      });
-      req.end();
-    }));
+      rc.next();
+    });
+    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").await();
+    router.route().handler(rc -> {
+      req.connection().close();
+    });
+    req.end();
     assertWaitUntil(() -> cnt.get() == 3);
   }
 
@@ -1730,30 +1731,29 @@ public class RouterTest extends WebTestBase {
     AtomicInteger endCnt = new AtomicInteger();
     AtomicInteger excCnt = new AtomicInteger();
     AtomicInteger closeCnt = new AtomicInteger();
-    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(TestUtils.onSuccess(req -> {
-      router.route().handler(rc -> {
-        rc.addEndHandler(done -> {
-          excCnt.incrementAndGet();
-        });
-        rc.next();
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        excCnt.incrementAndGet();
       });
-      router.route().handler(rc -> {
-        rc.addEndHandler(done -> {
-          endCnt.incrementAndGet();
-        });
-        rc.next();
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        endCnt.incrementAndGet();
       });
-      router.route().handler(rc -> {
-        rc.addEndHandler(done -> {
-          closeCnt.incrementAndGet();
-        });
-        rc.next();
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addEndHandler(done -> {
+        closeCnt.incrementAndGet();
       });
-      router.route().handler(rc -> {
-        req.connection().close();
-      });
-      req.end();
-    }));
+      rc.next();
+    });
+    HttpClientRequest req = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").await();
+    router.route().handler(rc -> {
+      req.connection().close();
+    });
+    req.end();
     assertWaitUntil(() -> endCnt.get() == 1);
     assertWaitUntil(() -> excCnt.get() == 1);
     assertWaitUntil(() -> closeCnt.get() == 1);
@@ -2669,22 +2669,21 @@ public class RouterTest extends WebTestBase {
     Checkpoint done = testContext.checkpoint();
     router.route().handler(rc -> rc.response().end());
     NetClient nc = vertx.createNetClient();
-    nc.connect(SocketAddress.inetSocketAddress(8080, "localhost")).onComplete(TestUtils.onSuccess(so -> {
-      so.write("GET / " + httpVersion + "\r\n\r\n");
-      Buffer response = Buffer.buffer();
-      so.handler(chunk -> {
-        response.appendBuffer(chunk);
-        String s = response.toString();
-        int idx = s.indexOf("\r\n");
-        if (idx >= 0) {
-          so.handler(null);
-          String[] line = s.substring(0, idx).split("\\s+");
-          assertTrue(line.length >= 3);
-          assertEquals("" + expectedStatusCode, line[1]);
-          done.flag();
-        }
-      });
-    }));
+    NetSocket so = nc.connect(SocketAddress.inetSocketAddress(8080, "localhost")).await();
+    Buffer response = Buffer.buffer();
+    so.handler(chunk -> {
+      response.appendBuffer(chunk);
+      String s = response.toString();
+      int idx = s.indexOf("\r\n");
+      if (idx >= 0) {
+        so.handler(null);
+        String[] line = s.substring(0, idx).split("\\s+");
+        assertTrue(line.length >= 3);
+        assertEquals("" + expectedStatusCode, line[1]);
+        done.flag();
+      }
+    });
+    so.write("GET / " + httpVersion + "\r\n\r\n");
   }
 
   @Test
