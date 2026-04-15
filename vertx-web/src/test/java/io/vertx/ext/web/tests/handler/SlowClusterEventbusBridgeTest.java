@@ -145,7 +145,7 @@ public abstract class SlowClusterEventbusBridgeTest {
   }
 
   @Test
-  public void testNoOrphanClusteredSubscription(VertxTestContext testContext) throws Exception {
+  public void testNoOrphanClusteredSubscription() throws Exception {
     String addr = "someaddress";
     String websocketURI = "/eventbus/websocket";
 
@@ -161,16 +161,14 @@ public abstract class SlowClusterEventbusBridgeTest {
       .connect(websocketURI)
       .compose(v -> bridgeClient.register(addr))
       .compose(v -> bridgeClient.unregister(addr))
-      .onComplete(TestUtils.onSuccess(v -> {
-        Promise<List<RegistrationInfo>> promise = Promise.promise();
-        node1.setTimer(1500, l -> {
-          node1.clusterManager().getRegistrations(addr, promise);
-          promise.future().onComplete(TestUtils.onSuccess(registrationInfos -> {
-            assertTrue(registrationInfos == null || registrationInfos.isEmpty());
-            testContext.completeNow();
-          }));
-        });
-      }));
+      .await();
+
+    Thread.sleep(1500);
+
+    Promise<List<RegistrationInfo>> promise = Promise.promise();
+    node1.clusterManager().getRegistrations(addr, promise);
+    List<RegistrationInfo> registrationInfos = promise.future().await();
+    assertTrue(registrationInfos == null || registrationInfos.isEmpty());
   }
 
   private static class SlowClusterManager extends WrappedClusterManager {

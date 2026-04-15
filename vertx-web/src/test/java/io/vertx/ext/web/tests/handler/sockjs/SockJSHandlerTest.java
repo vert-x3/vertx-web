@@ -397,14 +397,11 @@ public class SockJSHandlerTest extends WebTestBase {
 
     wsClient.connect(new WebSocketConnectOptions()
       .setPort(8080)
-      .setURI("/webcontext/websocket")).onComplete(TestUtils.onSuccess(
-        ws -> {
-          wsClient.connect(new WebSocketConnectOptions()
-              .setPort(8080)
-              .setURI("/webcontextuser/websocket")).onComplete(TestUtils.onSuccess(wsuser -> done.flag())
-          );
-        }
-      ));
+      .setURI("/webcontext/websocket"))
+      .compose(ws -> wsClient.connect(new WebSocketConnectOptions()
+        .setPort(8080)
+        .setURI("/webcontextuser/websocket")))
+      .onComplete(TestUtils.onSuccess(wsuser -> done.flag()));
   }
 
   @Test

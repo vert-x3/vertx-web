@@ -411,26 +411,25 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			Consumer<Buffer> responseBodyBufferAction) throws Exception {
 		RequestOptions requestOptions = new RequestOptions().setMethod(method).setPort(8080).setURI(path).setHost("localhost");
 		Promise<Void> promise = Promise.promise();
-		client.request(requestOptions).onComplete(TestUtils.onSuccess(req -> {
-			req.response().onComplete(TestUtils.onSuccess(resp -> {
-				assertEquals(statusCode, resp.statusCode());
-				assertEquals(statusMessage, resp.statusMessage());
-				if (responseAction != null) {
-					responseAction.accept(resp);
-				}
-				if (responseBodyBufferAction == null) {
-					promise.complete();
-				} else {
-					resp.bodyHandler(buff -> {
-						responseBodyBufferAction.accept(buff);
-						promise.complete();
-					});
-				}
-			}));
+		client.request(requestOptions).compose(req -> {
 			if (requestAction != null) {
 				requestAction.accept(req);
 			}
-			req.end();
+			return req.send();
+		}).onComplete(TestUtils.onSuccess(resp -> {
+			assertEquals(statusCode, resp.statusCode());
+			assertEquals(statusMessage, resp.statusMessage());
+			if (responseAction != null) {
+				responseAction.accept(resp);
+			}
+			if (responseBodyBufferAction == null) {
+				promise.complete();
+			} else {
+				resp.bodyHandler(buff -> {
+					responseBodyBufferAction.accept(buff);
+					promise.complete();
+				});
+			}
 		}));
 		promise.future().await();
 	}

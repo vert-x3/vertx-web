@@ -18,6 +18,7 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.netty.util.internal.PlatformDependent;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.junit5.Checkpoint;
@@ -59,8 +60,9 @@ public class SockJSSessionTest extends SockJSTestBase {
       };
     };
     startServers();
-    client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource").onComplete(TestUtils.onSuccess(req -> {
-      req.send().onComplete(TestUtils.onSuccess(resp -> {
+    client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource")
+      .compose(HttpClientRequest::send)
+      .onComplete(TestUtils.onSuccess(resp -> {
         AtomicInteger count = new AtomicInteger();
         resp.handler(msg -> {
           if (count.incrementAndGet() == 400) {
@@ -68,7 +70,6 @@ public class SockJSSessionTest extends SockJSTestBase {
           }
         });
       }));
-    }));
   }
 
   @Test
