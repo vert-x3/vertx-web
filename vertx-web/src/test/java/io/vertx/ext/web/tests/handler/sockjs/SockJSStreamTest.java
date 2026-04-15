@@ -19,27 +19,32 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonArray;
-import org.junit.Test;
+import io.vertx.ext.web.client.HttpResponse;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Thomas Segismont
  */
 public class SockJSStreamTest extends SockJSTestBase {
 
+  @BeforeEach
   @Override
-  public void setUp() throws Exception {
+  public void setUp(Vertx vertx) throws Exception {
     numServers = 2;
-    super.setUp();
+    super.setUp(vertx);
   }
 
   @Test
@@ -62,29 +67,18 @@ public class SockJSStreamTest extends SockJSTestBase {
 
     startServers();
 
-    List<String> messages = Collections.synchronizedList(new ArrayList<>());
-    fetchMessages(messages);
-    await();
-  }
-
-  private void fetchMessages(List<String> messages) {
-    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").compose(
-      req -> req.send(Buffer.buffer()).compose(resp -> {
-        assertEquals(200, resp.statusCode());
-        return resp.body();
-      })
-    ).onComplete(onSuccess(buffer -> {
-      String body = buffer.toString();
+    List<String> messages = new ArrayList<>();
+    while (messages.size() < 2) {
+      HttpResponse<Buffer> resp = webClient.post("/test/400/8ne8e94a/xhr")
+        .sendBuffer(Buffer.buffer())
+        .expecting(HttpResponseExpectation.SC_OK)
+        .await();
+      String body = resp.bodyAsString();
       if (body.startsWith("a")) {
         JsonArray content = new JsonArray(body.substring(1));
         messages.addAll(content.stream().map(Object::toString).collect(toList()));
       }
-      if (messages.size() < 2) {
-        fetchMessages(messages);
-      } else {
-        assertEquals(Arrays.asList("Hello", "World"), messages);
-        testComplete();
-      }
-    }));
+    }
+    assertEquals(Arrays.asList("Hello", "World"), messages);
   }
 }

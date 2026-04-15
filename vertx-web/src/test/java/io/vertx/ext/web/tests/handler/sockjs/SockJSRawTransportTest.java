@@ -18,8 +18,13 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -27,22 +32,22 @@ import org.junit.Test;
 public class SockJSRawTransportTest extends SockJSTestBase {
 
   @Test
-  public void testWriteText() throws Exception {
-    testWrite(true);
+  public void testWriteText(VertxTestContext testContext) throws Exception {
+    testWrite(true, testContext);
   }
 
   @Test
-  public void testWriteBinary() throws Exception {
-    testWrite(false);
+  public void testWriteBinary(VertxTestContext testContext) throws Exception {
+    testWrite(false, testContext);
   }
 
   @Test
-  public void disableHost() throws Exception {
+  public void disableHost(VertxTestContext testContext) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(expected);
       socket.endHandler(v -> {
-        testComplete();
+        testContext.completeNow();
       });
     };
     startServers(new SockJSHandlerOptions());
@@ -51,7 +56,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         .setHost("localhost")
         .setPort(8080)
         .setURI("/test/websocket")
-        .setAllowOriginHeader(false)).onComplete(onSuccess(ws -> {
+        .setAllowOriginHeader(false)).onComplete(TestUtils.onSuccess(ws -> {
         ws.frameHandler(frame -> {
           if (frame.isClose()) {
             //
@@ -62,17 +67,12 @@ public class SockJSRawTransportTest extends SockJSTestBase {
           }
         });
       }));
-    await();
   }
 
   @Test
-  public void disableHostFailWhenOriginIsRequired() throws Exception {
-    String expected = TestUtils.randomAlphaString(64);
+  public void disableHostFailWhenOriginIsRequired(VertxTestContext testContext) throws Exception {
     socketHandler = () -> socket -> {
-      socket.write(expected);
-      socket.endHandler(v -> {
-        testComplete();
-      });
+      socket.write(TestUtils.randomAlphaString(64));
     };
     startServers(new SockJSHandlerOptions().setOrigin("http://localhost:8080"));
     wsClient.connect(
@@ -80,25 +80,24 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         .setHost("localhost")
         .setPort(8080)
         .setURI("/test/websocket")
-        .setAllowOriginHeader(false)).onComplete(onFailure(err -> {
+        .setAllowOriginHeader(false)).onComplete(TestUtils.onFailure(err -> {
         assertNotNull(err);
         assertEquals("WebSocket upgrade failure: 403", err.getMessage());
-        testComplete();
+        testContext.completeNow();
       }));
-    await();
   }
 
   @Test
-  public void goodOrigin() throws Exception {
+  public void goodOrigin(VertxTestContext testContext) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(expected);
       socket.endHandler(v -> {
-        testComplete();
+        testContext.completeNow();
       });
     };
     startServers(new SockJSHandlerOptions().setOrigin("http://localhost:8080"));
-    wsClient.connect("/test/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(ws -> {
       ws.frameHandler(frame -> {
         if (frame.isClose()) {
           //
@@ -109,28 +108,22 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         }
       });
     }));
-    await();
   }
 
   @Test
-  public void badOrigin() throws Exception {
-    String expected = TestUtils.randomAlphaString(64);
+  public void badOrigin(VertxTestContext testContext) throws Exception {
     socketHandler = () -> socket -> {
-      socket.write(expected);
-      socket.endHandler(v -> {
-        testComplete();
-      });
+      socket.write(TestUtils.randomAlphaString(64));
     };
     startServers(new SockJSHandlerOptions().setOrigin("https://www.google.com"));
-    wsClient.connect("/test/websocket").onComplete(onFailure(err -> {
+    wsClient.connect("/test/websocket").onComplete(TestUtils.onFailure(err -> {
       assertNotNull(err);
       assertEquals("WebSocket upgrade failure: 403", err.getMessage());
-      testComplete();
+      testContext.completeNow();
     }));
-    await();
   }
 
-  private void testWrite(boolean text) throws Exception {
+  private void testWrite(boolean text, VertxTestContext testContext) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       if (text) {
@@ -139,11 +132,11 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         socket.write(Buffer.buffer(expected));
       }
       socket.endHandler(v -> {
-        testComplete();
+        testContext.completeNow();
       });
     };
     startServers(new SockJSHandlerOptions());
-    wsClient.connect("/test/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(ws -> {
       ws.frameHandler(frame -> {
         if (frame.isClose()) {
           //
@@ -159,6 +152,5 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         }
       });
     }));
-    await();
   }
 }

@@ -17,6 +17,7 @@
 package io.vertx.ext.web.tests;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
@@ -35,14 +36,15 @@ import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.test.core.TestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -88,7 +90,9 @@ public class RouterTest extends WebTestBase {
       .respond(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
 
     Buffer expected = vertx.fileSystem().readFileBlocking(".htdigest");
-    testRequestBuffer(HttpMethod.GET, "/?file=.htdigest", null, res -> assertEquals(res.getHeader("Content-Type"), "application/octet-stream"), 200, "OK", expected);
+    HttpResponse<Buffer> res = testRequest(webClient.get("/?file=.htdigest").send(), 200, "OK");
+    assertEquals("application/octet-stream", res.getHeader("Content-Type"));
+    assertEquals(expected, res.body());
   }
 
   @Test
@@ -99,7 +103,8 @@ public class RouterTest extends WebTestBase {
           .putHeader("Content-Type", "octet/binary")
           .end(Buffer.buffer("durp")));
 
-    testRequest(HttpMethod.GET, "/", null, res -> assertEquals("octet/binary", res.getHeader("Content-Type")), 200, "OK", "durp");
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK", "durp");
+    assertEquals("octet/binary", resp.getHeader("Content-Type"));
   }
 
   @Test
@@ -111,7 +116,8 @@ public class RouterTest extends WebTestBase {
           .setChunked(true)
           .write("XYZ"));
 
-    testRequest(HttpMethod.GET, "/", null, res -> assertEquals("octet/binary", res.getHeader("Content-Type")), 200, "OK", "XYZ");
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK", "XYZ");
+    assertEquals("octet/binary", resp.getHeader("Content-Type"));
   }
 
   @Test
@@ -122,14 +128,8 @@ public class RouterTest extends WebTestBase {
       .handler(ResponseContentTypeHandler.create())
       .respond(rc -> succeededFuture(new JsonObject().put("hello", "world")));
 
-    testRequest(
-      HttpMethod.GET,
-      "/hello",
-      null,
-      res -> assertEquals("application/json", res.getHeader("Content-Type")),
-      200,
-      "OK",
-      "{\"hello\":\"world\"}");
+    HttpResponse<Buffer> res = testRequest(webClient.get("/hello").send(), 200, "OK", "{\"hello\":\"world\"}");
+    assertEquals("application/json", res.getHeader("Content-Type"));
   }
 
   @Test
@@ -183,8 +183,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRouteDashVariable() throws Exception {
     router.route("/foo/:my-id").handler(rc -> {
-      assertEquals("123", rc.pathParam("my-id"));
-      rc.response().end();
+      fail();
     });
     testRequest(HttpMethod.GET, "/foo/123", 404, "Not Found");
   }
@@ -670,19 +669,18 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testSetExceptionHandler() throws Exception {
+  public void testSetExceptionHandler(VertxTestContext testContext) throws Exception {
+    Checkpoint done = testContext.checkpoint();
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
     });
-    CountDownLatch latch = new CountDownLatch(1);
     router.errorHandler(500, ctx -> {
       Throwable t = ctx.failure();
       assertEquals("ouch!", t.getMessage());
-      latch.countDown();
+      done.flag();
     });
     testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
-    awaitLatch(latch);
   }
 
   @Test
@@ -955,16 +953,16 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, pathRoot + "/wibble/blibble", 404, "Not Found");
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testInvalidPattern() throws Exception {
-    router.route("/blah/:!!!/").handler(rc -> {
-    });
+  @Test
+  public void testInvalidPattern() {
+    assertThrows(IllegalArgumentException.class, () -> router.route("/blah/:!!!/").handler(rc -> {
+    }));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testInvalidPatternWithBuilder() throws Exception {
-    router.route().path("/blah/:!!!/").handler(rc -> {
-    });
+  @Test
+  public void testInvalidPatternWithBuilder() {
+    assertThrows(IllegalArgumentException.class, () -> router.route().path("/blah/:!!!/").handler(rc -> {
+    }));
   }
 
   @Test
@@ -1043,10 +1041,10 @@ public class RouterTest extends WebTestBase {
   public void testConsumes() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    assertEquals("text/html", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
+    assertEquals("text/html", res.getHeader("Accept"));
   }
 
   @Test
@@ -1056,18 +1054,18 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    assertEquals("text/html; boo", res.getHeader("Accept"));
   }
 
   @Test
   public void testConsumesWithParameter() throws Exception {
     router.route().consumes("text/html;boo=ya").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo=ya", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo=ya", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    assertEquals("text/html; boo=ya", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    assertEquals("text/html; boo=ya", res.getHeader("Accept"));
   }
 
   @Test
@@ -1075,29 +1073,29 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html;boo=\"yeah,right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 415, "Unsupported Media Type");
+    assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept"));
     // this might look wrong but since there is only 1 entry per content-type, the comma has no semantic meaning
     // therefore it is ignored
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept")));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    assertEquals("text/html; boo=\"yeah,right\"", res.getHeader("Accept"));
   }
 
   @Test
   public void testConsumesWithQuotedParameterWithQuotes() throws Exception {
     router.route().consumes("text/html;boo=\"yeah\\\"right\"").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah\\\"right\"", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 415, "Unsupported Media Type");
+    assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 415, "Unsupported Media Type");
+    assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 415, "Unsupported Media Type");
+    assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    assertEquals("text/html; boo=\"yeah\\\"right\"", res.getHeader("Accept"));
   }
 
   @Test
@@ -1113,14 +1111,14 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html").consumes("application/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html, application/json", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html, application/json", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html, application/json", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html, application/json", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    assertEquals("text/html, application/json", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
+    assertEquals("text/html, application/json", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    assertEquals("text/html, application/json", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 415, "Unsupported Media Type");
+    assertEquals("text/html, application/json", res.getHeader("Accept"));
   }
 
   @Test
@@ -1130,12 +1128,12 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;works", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=done;it=works", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 415, "Unsupported Media Type",
-      res -> assertEquals("text/html; works, text/html; boo", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 415, "Unsupported Media Type");
+    assertEquals("text/html; works, text/html; boo", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 415, "Unsupported Media Type");
+    assertEquals("text/html; works, text/html; boo", res.getHeader("Accept"));
+    res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 415, "Unsupported Media Type");
+    assertEquals("text/html; works, text/html; boo", res.getHeader("Accept"));
   }
 
   @Test
@@ -1145,8 +1143,8 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type",
-      res -> assertEquals("*/json", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
+    assertEquals("*/json", res.getHeader("Accept"));
   }
 
   @Test
@@ -1154,8 +1152,8 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/*").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 415, "Unsupported Media Type",
-      res -> assertEquals("text/*", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 415, "Unsupported Media Type");
+    assertEquals("text/*", res.getHeader("Accept"));
   }
 
   @Test
@@ -1163,8 +1161,8 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("*/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 415, "Unsupported Media Type",
-      res -> assertEquals("*/json", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 415, "Unsupported Media Type");
+    assertEquals("*/json", res.getHeader("Accept"));
   }
 
   @Test
@@ -1521,12 +1519,11 @@ public class RouterTest extends WebTestBase {
       rc.addHeadersEndHandler(v -> rc.response().putHeader("header3", "foo"));
       rc.response().end();
     });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      MultiMap headers = resp.headers();
-      assertTrue(headers.contains("header1"));
-      assertTrue(headers.contains("header2"));
-      assertTrue(headers.contains("header3"));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+    MultiMap headers = resp.headers();
+    assertTrue(headers.contains("header1"));
+    assertTrue(headers.contains("header2"));
+    assertTrue(headers.contains("header3"));
   }
 
   @Test
@@ -1593,10 +1590,9 @@ public class RouterTest extends WebTestBase {
       });
     });
 
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      MultiMap headers = resp.headers();
-      assertTrue(headers.contains("header1"));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+    MultiMap headers = resp.headers();
+    assertTrue(headers.contains("header1"));
   }
 
   // Test that adding bodyEndhandlers doesn't overwrite other ones
@@ -1664,7 +1660,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testExceptionHandler() throws Exception {
     AtomicInteger cnt = new AtomicInteger();
-    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(TestUtils.onSuccess(req -> {
       router.route().handler(rc -> {
         rc.addEndHandler(done -> {
           if (done.failed()) {
@@ -1701,7 +1697,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testCloseHandler() throws Exception {
     AtomicInteger cnt = new AtomicInteger();
-    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(TestUtils.onSuccess(req -> {
       router.route().handler(rc -> {
         rc.addEndHandler(done -> {
           cnt.incrementAndGet();
@@ -1734,7 +1730,7 @@ public class RouterTest extends WebTestBase {
     AtomicInteger endCnt = new AtomicInteger();
     AtomicInteger excCnt = new AtomicInteger();
     AtomicInteger closeCnt = new AtomicInteger();
-    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(onSuccess(req -> {
+    client.request(HttpMethod.GET, server.actualPort(), "localhost", "/path").onComplete(TestUtils.onSuccess(req -> {
       router.route().handler(rc -> {
         rc.addEndHandler(done -> {
           excCnt.incrementAndGet();
@@ -2093,15 +2089,8 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testIssue170() throws Exception {
-    try {
-      router.route("").handler(rc -> rc.response().end());
-    } catch (IllegalArgumentException e) {
-      testComplete();
-      return;
-    }
-
-    fail("Should fail");
+  public void testIssue170() {
+    assertThrows(IllegalArgumentException.class, () -> router.route("").handler(rc -> rc.response().end()));
   }
 
   @Test
@@ -2125,12 +2114,11 @@ public class RouterTest extends WebTestBase {
       context.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      MultiMap headers = resp.headers();
-      assertTrue(headers.contains("X-Here-1"));
-      assertTrue(headers.contains("X-Here-2"));
-      assertTrue(headers.contains("X-Here-3"));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+    MultiMap headers = resp.headers();
+    assertTrue(headers.contains("X-Here-1"));
+    assertTrue(headers.contains("X-Here-2"));
+    assertTrue(headers.contains("X-Here-3"));
   }
 
   @Test
@@ -2142,8 +2130,8 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da_DK;q=0.9"), 200, "OK", null);
-    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da-DK;q=0.9"), 200, "OK", null);
+    testRequest(webClient.get("/foo").putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da_DK;q=0.9"), 200, "OK");
+    testRequest(webClient.get("/foo").putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da-DK;q=0.9"), 200, "OK");
   }
 
   @Test
@@ -2154,7 +2142,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "da, en-gb;q=0.8, en;q=0.7"), 200, "OK", null);
+    testRequest(webClient.get("/foo").putHeader("Accept-Language", "da, en-gb;q=0.8, en;q=0.7"), 200, "OK");
   }
 
   @Test
@@ -2166,7 +2154,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb"), 200, "OK", null);
+    testRequest(webClient.get("/foo").putHeader("Accept-Language", "en-gb"), 200, "OK");
   }
 
   @Test
@@ -2177,7 +2165,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "pt;q=0.9, en-gb;q=0.9"), 200, "OK", null);
+    testRequest(webClient.get("/foo").putHeader("Accept-Language", "pt;q=0.9, en-gb;q=0.9"), 200, "OK");
   }
 
   @Test
@@ -2251,11 +2239,10 @@ public class RouterTest extends WebTestBase {
       context.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/abc/test", null, resp -> {
-      MultiMap headers = resp.headers();
-      assertTrue(headers.contains("X-Here-1"));
-      assertTrue(headers.contains("X-Here-2"));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/abc/test").send(), 200, "OK");
+    MultiMap headers = resp.headers();
+    assertTrue(headers.contains("X-Here-1"));
+    assertTrue(headers.contains("X-Here-2"));
   }
 
   @Test
@@ -2356,7 +2343,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testMultipleHandlersMultipleConnections() throws Exception {
+  public void testMultipleHandlersMultipleConnections(VertxTestContext testContext) throws Exception {
     router.get("/path").handler(routingContext -> {
       routingContext.put("response", "handler1");
       routingContext.next();
@@ -2368,17 +2355,50 @@ public class RouterTest extends WebTestBase {
       response.setChunked(true);
       response.end(routingContext.get("response") + "handler3");
     });
-    CountDownLatch latch = new CountDownLatch(100);
+    Checkpoint done = testContext.checkpoint(100);
 
     for (int i = 0; i < 100; i++) {
       vertx.executeBlocking(() -> {
         testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
         return null;
-      }).onComplete(onSuccess(v -> {
-        latch.countDown();
+      }).onComplete(TestUtils.onSuccess(v -> {
+        done.flag();
       }));
     }
-    awaitLatch(latch);
+  }
+
+  private void testSyncRequest(String httpMethod, String path, int statusCode, String statusMessage, String responseBody) throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + this.server.actualPort() + path).openConnection();
+    connection.setRequestMethod(httpMethod);
+
+    assertEquals(statusCode, connection.getResponseCode());
+    if (connection.getResponseCode() < 400) { // So dummy compare
+      assertEquals(statusMessage, connection.getResponseMessage());
+
+      BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+      String inputLine;
+      StringBuilder response = new StringBuilder();
+
+      while ((inputLine = in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+
+      assertEquals(responseBody, response.toString());
+    } else {
+      assertEquals(statusMessage, connection.getResponseMessage());
+
+      BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+      String inputLine;
+      StringBuilder response = new StringBuilder();
+
+      while ((inputLine = in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+
+      assertEquals(responseBody, response.toString());
+    }
   }
 
   /*
@@ -2387,7 +2407,7 @@ public class RouterTest extends WebTestBase {
   I've also added a timer when I call routingContext.next()
    */
   @Test
-  public void testMultipleHandlersMultipleConnectionsDelayed() throws Exception {
+  public void testMultipleHandlersMultipleConnectionsDelayed(VertxTestContext testContext) throws Exception {
     router.get("/path").handler(routingContext -> {
       routingContext.put("response", "handler1");
       routingContext.vertx().setTimer((int) (1 + Math.random() * 10), asyncResult -> routingContext.next());
@@ -2400,25 +2420,24 @@ public class RouterTest extends WebTestBase {
       response.end(routingContext.get("response") + "handler3");
     });
 
-    CountDownLatch latch = new CountDownLatch(100);
+    Checkpoint done = testContext.checkpoint(100);
     for (int i = 0; i < 100; i++) {
       // using executeBlocking should create multiple connections
       vertx.executeBlocking(() -> {
         Thread.sleep((int) (1 + Math.random() * 10));
         testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
         return null;
-      }).onComplete(onSuccess(v -> {
-        latch.countDown();
+      }).onComplete(TestUtils.onSuccess(v -> {
+        done.flag();
       }));
     }
-    awaitLatch(latch);
   }
 
   /*
     This test is similar to test above but it mixes right and failing requests
    */
   @Test
-  public void testMultipleHandlersMultipleConnectionsDelayedMixed() throws Exception {
+  public void testMultipleHandlersMultipleConnectionsDelayedMixed(VertxTestContext testContext) throws Exception {
     router.get("/:param").handler(routingContext -> {
       if (routingContext.pathParam("param").equals("fail")) {
         routingContext.fail(400);
@@ -2449,7 +2468,7 @@ public class RouterTest extends WebTestBase {
 
     final int multipleConnections = 500;
 
-    CountDownLatch latch = new CountDownLatch(multipleConnections);
+    Checkpoint done = testContext.checkpoint(multipleConnections);
 
     Callable<Object> execute200Request = () -> {
       Thread.sleep((int) (1 + Math.random() * 10));
@@ -2466,11 +2485,10 @@ public class RouterTest extends WebTestBase {
     for (int i = 0; i < multipleConnections; i++) {
       // using executeBlocking should create multiple connections
       vertx.executeBlocking((new Random().nextBoolean() ? execute200Request : execute400Request), false)
-        .onComplete(onSuccess(v -> {
-          latch.countDown();
+        .onComplete(TestUtils.onSuccess(v -> {
+          done.flag();
         }));
     }
-    awaitLatch(latch);
   }
 
 
@@ -2582,7 +2600,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void stressTestMultipleHandlers() throws Exception {
+  public void stressTestMultipleHandlers(VertxTestContext testContext) throws Exception {
     final int HANDLERS_NUMBER = 100;
     final int REQUESTS_NUMBER = 200;
 
@@ -2601,7 +2619,7 @@ public class RouterTest extends WebTestBase {
         .end(sum.toString());
     });
 
-    CountDownLatch latch = new CountDownLatch(REQUESTS_NUMBER);
+    Checkpoint done = testContext.checkpoint(REQUESTS_NUMBER);
     final StringBuilder sum = new StringBuilder();
     for (int i = 0; i < HANDLERS_NUMBER; i++) {
       sum.append(i);
@@ -2612,11 +2630,10 @@ public class RouterTest extends WebTestBase {
         Thread.sleep((int) (1 + Math.random() * 10));
         testSyncRequest("GET", "/path", 200, "OK", sum.toString());
         return null;
-      }).onComplete(onSuccess(v -> {
-        latch.countDown();
+      }).onComplete(TestUtils.onSuccess(v -> {
+        done.flag();
       }));
     }
-    awaitLatch(latch);
   }
 
   @Test
@@ -2639,19 +2656,20 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testMissingHostHeaderHttp1_1() throws Exception {
-    testMissingHostHeader("HTTP/1.1", 400);
+  public void testMissingHostHeaderHttp1_1(VertxTestContext testContext) {
+    testMissingHostHeader(testContext, "HTTP/1.1", 400);
   }
 
   @Test
-  public void testMissingHostHeaderHttp1_0() throws Exception {
-    testMissingHostHeader("HTTP/1.0", 200);
+  public void testMissingHostHeaderHttp1_0(VertxTestContext testContext) {
+    testMissingHostHeader(testContext, "HTTP/1.0", 200);
   }
 
-  private void testMissingHostHeader(String httpVersion, int expectedStatusCode) throws Exception {
+  private void testMissingHostHeader(VertxTestContext testContext, String httpVersion, int expectedStatusCode) {
+    Checkpoint done = testContext.checkpoint();
     router.route().handler(rc -> rc.response().end());
     NetClient nc = vertx.createNetClient();
-    nc.connect(SocketAddress.inetSocketAddress(8080, "localhost")).onComplete(onSuccess(so -> {
+    nc.connect(SocketAddress.inetSocketAddress(8080, "localhost")).onComplete(TestUtils.onSuccess(so -> {
       so.write("GET / " + httpVersion + "\r\n\r\n");
       Buffer response = Buffer.buffer();
       so.handler(chunk -> {
@@ -2663,19 +2681,14 @@ public class RouterTest extends WebTestBase {
           String[] line = s.substring(0, idx).split("\\s+");
           assertTrue(line.length >= 3);
           assertEquals("" + expectedStatusCode, line[1]);
-          testComplete();
+          done.flag();
         }
       });
     }));
-    try {
-      await();
-    } finally {
-      nc.close();
-    }
   }
 
   @Test
-  public void testMultipleHandlersWithFailuresDeadlock() throws Exception {
+  public void testMultipleHandlersWithFailuresDeadlock(VertxTestContext testContext) throws Exception {
     AtomicBoolean first = new AtomicBoolean(true);
     CountDownLatch firstHandlerLatch = new CountDownLatch(1);
     CountDownLatch secondHandlerLatch = new CountDownLatch(1);
@@ -2685,7 +2698,7 @@ public class RouterTest extends WebTestBase {
         // Second run, block until the second handler runs
         try {
           firstHandlerLatch.countDown();
-          awaitLatch(secondHandlerLatch);
+          TestUtils.awaitLatch(secondHandlerLatch);
 
           // Add a small delay so the exception handler happens first
           Thread.sleep(100);
@@ -2704,7 +2717,7 @@ public class RouterTest extends WebTestBase {
 
     router.get("/path").handler(event -> {
       try {
-        awaitLatch(firstHandlerLatch);
+        TestUtils.awaitLatch(firstHandlerLatch);
       } catch (InterruptedException e) {
         // ignore
       }
@@ -2712,7 +2725,7 @@ public class RouterTest extends WebTestBase {
       event.fail(new NullPointerException());
     });
 
-    CountDownLatch latch = new CountDownLatch(2);
+    Checkpoint done = testContext.checkpoint(2);
     for (int i = 0; i < 2; i++) {
       vertx.executeBlocking(() -> {
         HttpServerRequest request = mock(HttpServerRequestInternal.class);
@@ -2727,11 +2740,10 @@ public class RouterTest extends WebTestBase {
         when(response.ended()).thenReturn(true);
         router.handle(request);
         return null;
-      }, false).onComplete(onSuccess(v -> {
-        latch.countDown();
+      }, false).onComplete(TestUtils.onSuccess(v -> {
+        done.flag();
       }));
     }
-    awaitLatch(latch);
   }
 
   @Test
@@ -2821,11 +2833,10 @@ public class RouterTest extends WebTestBase {
     router.get("/path").handler(rc -> rc.response().end());
     router.post("/path").handler(rc -> rc.response().end());
     router.put("/hello").handler(rc -> rc.response().end());
-    testRequest(HttpMethod.PUT, "/path", null, res -> {
-      assertEquals(2, res.getHeader("allow").split(",").length);
-      assertTrue(res.getHeader("allow").contains("GET"));
-      assertTrue(res.getHeader("allow").contains("POST"));
-    }, HttpResponseStatus.METHOD_NOT_ALLOWED.code(), HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase(), null);
+    HttpResponse<Buffer> resp = testRequest(webClient.request(HttpMethod.PUT, "/path").send(), HttpResponseStatus.METHOD_NOT_ALLOWED.code(), HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase());
+    assertEquals(2, resp.getHeader("allow").split(",").length);
+    assertTrue(resp.getHeader("allow").contains("GET"));
+    assertTrue(resp.getHeader("allow").contains("POST"));
   }
 
   @Test
@@ -2853,8 +2864,7 @@ public class RouterTest extends WebTestBase {
     testRequest(new RequestOptions()
       .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
       .setPort(80)
-      .setHost("www.mysite.com"), req -> {
-    }, 200, "OK", null);
+      .setHost("www.mysite.com"), 200, "OK", null);
   }
 
   @Test
@@ -2866,8 +2876,7 @@ public class RouterTest extends WebTestBase {
     testRequest(new RequestOptions()
       .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
       .setPort(80)
-      .setHost("www.mysite.net"), req -> {
-    }, 500, "Internal Server Error", null);
+      .setHost("www.mysite.net"), 500, "Internal Server Error", null);
   }
 
   @Test
@@ -3005,9 +3014,9 @@ public class RouterTest extends WebTestBase {
       .route()
       .handler(rc -> {
         assertEquals(source, rc.queryParams().get("u"));
-        Assert.assertNotEquals(source, rc.queryParams().get("l"));
+        assertNotEquals(source, rc.queryParams().get("l"));
 
-        Assert.assertNotEquals(source, rc.queryParams(StandardCharsets.ISO_8859_1).get("u"));
+        assertNotEquals(source, rc.queryParams(StandardCharsets.ISO_8859_1).get("u"));
         assertEquals(source, rc.queryParams(StandardCharsets.ISO_8859_1).get("l"));
 
         rc.end();
@@ -3028,13 +3037,9 @@ public class RouterTest extends WebTestBase {
       }
     });
 
-    testRequest(HttpMethod.GET, "/check/e-tag", req -> {
-      req.putHeader("IF-NONE-MATCH", "\"1234\",");
-    }, 304, "Not Modified", "");
+    testRequest(webClient.get("/check/e-tag").putHeader("IF-NONE-MATCH", "\"1234\","), 304, "Not Modified");
 
-    testRequest(HttpMethod.GET, "/check/e-tag", req -> {
-      req.putHeader("IF-NONE-MATCH", "\"1234\"");
-    }, 304, "Not Modified", "");
+    testRequest(webClient.get("/check/e-tag").putHeader("IF-NONE-MATCH", "\"1234\""), 304, "Not Modified");
   }
 
   @Test
@@ -3136,12 +3141,9 @@ public class RouterTest extends WebTestBase {
       .handler(ctx -> ctx.response().setStatusCode(200).end(ctx.body().asString()));
 
     testRequest(
-      HttpMethod.GET,
-      "/fail",
-      req -> {
-        req.putHeader("Content-Type", "application/x-www-form-urlencoded");
-        req.end("{\"confidence\":\"56%\",\"info\":\"a&b\"}");
-      },
+      webClient.get("/fail")
+        .putHeader("Content-Type", "application/x-www-form-urlencoded")
+        .sendBuffer(Buffer.buffer("{\"confidence\":\"56%\",\"info\":\"a&b\"}")),
       400, "Bad Request", "returned in first error handler");
   }
 
@@ -3524,7 +3526,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testPausedConnection() {
+  public void testPausedConnection(VertxTestContext testContext) {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
@@ -3543,24 +3545,28 @@ public class RouterTest extends WebTestBase {
 
     int numRequests = 20;
 
-    waitFor(numRequests);
+    Checkpoint checkpoint = testContext.checkpoint(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0; i < numRequests; i++) {
-      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
-        // 8192 * 8 fills the HTTP server request pending queue
-        // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
-        req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
-          complete();
+      // 8192 * 8 fills the HTTP server request pending queue
+      // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080))
+        .compose(request -> request
+          .send(TestUtils.randomBuffer(8192 * 8))
+          .expecting(HttpResponseExpectation.SC_OK)
+          .compose(HttpClientResponse::end)
+        ).onComplete(TestUtils.onSuccess(resp -> {
+          checkpoint.flag();
         }));
-      }));
     }
 
-    await();
+    // Avoid HttpClient to be GC-ed
+    checkpoint.await();
   }
 
   @Test
-  public void testPausedConnection2() {
+  public void testPausedConnection2(VertxTestContext testContext) {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
@@ -3578,25 +3584,28 @@ public class RouterTest extends WebTestBase {
 
     int numRequests = 20;
 
-    waitFor(numRequests);
+    Checkpoint checkpoint = testContext.checkpoint(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0; i < numRequests; i++) {
-      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
-        // 8192 * 8 fills the HTTP server request pending queue
-        // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
-        req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
-          assertEquals(404, resp.statusCode());
-          complete();
+      // 8192 * 8 fills the HTTP server request pending queue
+      // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080))
+        .compose(request -> request
+          .send()
+          .expecting(HttpResponseExpectation.SC_NOT_FOUND)
+          .compose(HttpClientResponse::end))
+        .onComplete(TestUtils.onSuccess(v -> {
+          checkpoint.flag();
         }));
-      }));
     }
 
-    await();
+    // Avoid HttpClient to be GC-ed
+    checkpoint.await();
   }
 
   @Test
-  public void testPausedConnection3() {
+  public void testPausedConnection3(VertxTestContext testContext) {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
@@ -3616,25 +3625,28 @@ public class RouterTest extends WebTestBase {
 
     int numRequests = 20;
 
-    waitFor(numRequests);
+    Checkpoint checkpoint = testContext.checkpoint(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0; i < numRequests; i++) {
-      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
-        // 8192 * 8 fills the HTTP server request pending queue
-        // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
-        req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
-          assertEquals(200, resp.statusCode());
-          complete();
+      // 8192 * 8 fills the HTTP server request pending queue
+      // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080))
+        .compose(request -> request
+          .send()
+          .expecting(HttpResponseExpectation.SC_OK)
+          .compose(HttpClientResponse::end))
+        .onComplete(TestUtils.onSuccess(v -> {
+          checkpoint.flag();
         }));
-      }));
     }
 
-    await();
+    // Avoid HttpClient to be GC-ed
+    checkpoint.await();
   }
 
   @Test
-  public void testPausedConnection4() {
+  public void testPausedConnection4(VertxTestContext testContext) {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
@@ -3644,20 +3656,24 @@ public class RouterTest extends WebTestBase {
 
     int numRequests = 20;
 
-    waitFor(numRequests);
+    Checkpoint checkpoint = testContext.checkpoint(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0; i < numRequests; i++) {
-      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080)).onComplete(onSuccess(req -> {
-        // 8192 * 8 fills the HTTP server request pending queue
-        // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
-        req.send(TestUtils.randomBuffer(8192 * 8)).onComplete(onSuccess(resp -> {
-          complete();
+      // 8192 * 8 fills the HTTP server request pending queue
+      // => pauses the HttpConnection (see Http1xServerRequest#handleContent(Buffer) that calls Http1xServerConnection#doPause())
+      client.request(new RequestOptions().setMethod(HttpMethod.PUT).setPort(8080))
+        .compose(request -> request
+          .send()
+          .expecting(HttpResponseExpectation.SC_NOT_FOUND)
+          .compose(HttpClientResponse::end))
+        .onComplete(TestUtils.onSuccess(v -> {
+          checkpoint.flag();
         }));
-      }));
     }
 
-    await();
+    // Avoid HttpClient to be GC-ed
+    checkpoint.await();
   }
 
   @Test

@@ -16,17 +16,20 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -40,8 +43,9 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 	private SessionStore store;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(io.vertx.core.Vertx vertx, io.vertx.junit5.VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     store = LocalSessionStore.create(vertx);
   }
 
@@ -53,11 +57,10 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
         .putHeader("X-Session-Id", "(" + rc.session().value() + ")")
         .end();
     });
-		testRequest(HttpMethod.GET, "/", null, resp -> {
-			String sessionId = resp.headers().get("X-Session-Id");
-			assertTrue(sessionId.startsWith("("));
-      assertTrue(sessionId.endsWith(")"));
-		}, 200, "OK", null);
+		HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+		String sessionId = resp.headers().get("X-Session-Id");
+		assertTrue(sessionId.startsWith("("));
+		assertTrue(sessionId.endsWith(")"));
 	}
 
 	@Test
@@ -124,9 +127,9 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", 200, "OK");
 		Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
     testRequest(HttpMethod.GET, "/(" + rid.get() + ")", 200, "OK");
-    waitUntil(() -> testSessionBlocking(rid.get(), Objects::nonNull));
+    assertWaitUntil(() -> testSessionBlocking(rid.get(), Objects::nonNull));
 		Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
-    waitUntil(() -> testSessionBlocking(rid.get(), Objects::isNull));
+    assertWaitUntil(() -> testSessionBlocking(rid.get(), Objects::isNull));
   }
 
   private boolean testSessionBlocking(String sessionId, Function<Session, Boolean> test) {
@@ -177,12 +180,8 @@ public class CookielessSessionHandlerTestBase extends WebTestBase {
 		testRequest(HttpMethod.GET, "/", 200, "OK");
 		testRequest(HttpMethod.GET, "/", 200, "OK");
 		Thread.sleep(500); // Needed because session.destroy is async
-		CountDownLatch latch1 = new CountDownLatch(1);
-		store.get(rid.get()).onComplete(onSuccess(res -> {
-			assertNull(res);
-			latch1.countDown();
-		}));
-		awaitLatch(latch1);
+		Session result = store.get(rid.get()).await();
+		assertNull(result);
 	}
 
 	@Test

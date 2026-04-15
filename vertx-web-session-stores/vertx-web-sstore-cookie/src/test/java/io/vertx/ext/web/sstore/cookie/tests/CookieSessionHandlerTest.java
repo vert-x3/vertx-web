@@ -18,8 +18,11 @@ package io.vertx.ext.web.sstore.cookie.tests;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -28,24 +31,29 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.sstore.cookie.CookieSessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 
+  @BeforeEach
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     store = CookieSessionStore.create(vertx, "KeyboardCat!");
   }
 
   @Test
-  public void testSessionAndUser() throws Exception {
+  public void testSessionAndUser() {
     router.route().handler(BodyHandler.create());
     router.route().handler(SessionHandler.create(store));
     router.route("/authenticate").handler(SimpleAuthenticationHandler.create().authenticate(rc -> {
@@ -75,26 +83,18 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 
     JsonObject myuser = new JsonObject().put("username", "myuser").put("password", System.currentTimeMillis());
     AtomicReference<String> cookie = new AtomicReference<>();
-    testRequest(HttpMethod.POST, "/authenticate",
-      req -> req.putHeader("content-type", "application/json").send(myuser.toString()),
-      resp -> {
-        String setCookie = resp.headers().get("set-cookie");
-        cookie.set(setCookie.substring(0, setCookie.indexOf(";")));
-        resp.body().compose(body -> {
-          assertEquals("Authenticated", body.toString());
-          return Future.succeededFuture();
-        }).onFailure(this::fail);
-      }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.post("/authenticate")
+      .putHeader("content-type", "application/json")
+      .sendBuffer(Buffer.buffer(myuser.toString())), 200, "OK");
+    String setCookie = resp.headers().get("set-cookie");
+    cookie.set(setCookie.substring(0, setCookie.indexOf(";")));
+    assertEquals("Authenticated", resp.bodyAsString());
     assertNotNull(cookie.get());
 
-    testRequest(HttpMethod.GET, "/private/whoami", req -> {
-      req.putHeader("cookie", cookie.get());
-    }, resp -> {
-      resp.body().compose(body -> {
-        assertEquals(myuser, body.toJsonObject());
-        return Future.succeededFuture();
-      }).onFailure(this::fail);
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp2 = testRequest(webClient.get("/private/whoami")
+      .putHeader("cookie", cookie.get())
+      .send(), 200, "OK");
+    assertEquals(myuser, resp2.bodyAsJsonObject());
   }
 
   @Test
@@ -102,15 +102,8 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store.createSession(30_000);
     String cookieId = session.id();
 
-    store
-      .get(session.value())
-      .onComplete(onSuccess(c -> {
-        assertNotNull(c);
-        assertEquals(cookieId, c.id());
-        testComplete();
-    }));
-
-    await();
+    Session c = store.get(session.value()).await();
+    assertEquals(cookieId, c.id());
   }
 
   @Test
@@ -118,18 +111,14 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store.createSession(30_000);
     String cookieValue = session.value();
 
-    store
-      .get(cookieValue)
-      .onComplete(onSuccess(c -> {
-        assertNotNull(c);
-        // the session id must be the same
-        assertEquals(session.id(), c.id());
-        // the session value will not be the same as IV is random
-        assertFalse(cookieValue.equals(c.value()));
-        testComplete();
-    }));
+    Session c = store
+      .get(cookieValue).await();
 
-    await();
+    assertNotNull(c);
+    // the session id must be the same
+    assertEquals(session.id(), c.id());
+    // the session value will not be the same as IV is random
+    assertNotEquals(cookieValue, c.value());
   }
 
   /**
@@ -159,16 +148,16 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
       rc.response().end();
     });
 
-    testRequest(HttpMethod.GET, "/0", null, resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/0").send(), 200, "OK");
+    String setCookie = resp.headers().get("set-cookie");
+    assertNotNull(setCookie);
 
-    testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", "vertx-web.session=" + session.get() + "; Path=/"), resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
-      assertFalse(("vertx-web.session=" + session.get() + "; Path=/").equals(setCookie));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp2 = testRequest(webClient.get("/1")
+      .putHeader("cookie", "vertx-web.session=" + session.get() + "; Path=/")
+      .send(), 200, "OK");
+    String setCookie2 = resp2.headers().get("set-cookie");
+    assertNotNull(setCookie2);
+    assertFalse(("vertx-web.session=" + session.get() + "; Path=/").equals(setCookie2));
   }
 
   @Test
@@ -179,17 +168,14 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     Session session = store1.createSession(30_000);
     String cookieValue = session.value();
 
-    store2
-      .get(cookieValue)
-      .onComplete(onSuccess(c -> {
-        assertNotNull(c);
-        // the session id must be the same
-        assertEquals(session.id(), c.id());
-        // the session value will not be the same as IV is random
-        assertFalse(cookieValue.equals(c.value()));
-        testComplete();
-    }));
-    await();
+    Session c = store2
+      .get(cookieValue).await();
+
+    assertNotNull(c);
+    // the session id must be the same
+    assertEquals(session.id(), c.id());
+    // the session value will not be the same as IV is random
+    assertNotEquals(cookieValue, c.value());
   }
 
   /**
@@ -198,7 +184,7 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
    * @throws Exception
    */
   @Test
-  @Ignore
+  @Disabled
   @Override
   public void testSessionExpires() throws Exception {
   }
@@ -210,7 +196,7 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
    * @throws Exception
    */
   @Test
-  @Ignore
+  @Disabled
   @Override
   public void testSessionCookieSigning() throws Exception {
   }
@@ -231,22 +217,17 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 			assertEquals(SessionHandler.DEFAULT_SESSION_TIMEOUT, sess.timeout());
 			rc.response().end();
 		});
-		testRequest(HttpMethod.GET, "/", null, resp -> {
-			String setCookie = resp.headers().get("set-cookie");
-			assertTrue(setCookie.startsWith(SessionHandler.DEFAULT_SESSION_COOKIE_NAME + "="));
-			int pos = setCookie.indexOf("; Path=" + SessionHandler.DEFAULT_SESSION_COOKIE_PATH);
-			rsession.set(setCookie.substring(18, pos));
-		}, 200, "OK", null);
+		HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+		String setCookie = resp.headers().get("set-cookie");
+		assertTrue(setCookie.startsWith(SessionHandler.DEFAULT_SESSION_COOKIE_NAME + "="));
+		int pos = setCookie.indexOf("; Path=" + SessionHandler.DEFAULT_SESSION_COOKIE_PATH);
+		rsession.set(setCookie.substring(18, pos));
 
 
-      store
-        .get(rsession.get())
-        .onComplete(onSuccess(c -> {
-          assertNotNull(c);
-          assertEquals(rid.get(), c.id());
-          testComplete();
-      }));
+    Session c = store
+      .get(rsession.get()).await();
 
-      await();
+    assertNotNull(c);
+    assertEquals(rid.get(), c.id());
   }
 }

@@ -26,12 +26,13 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.instrumentation.JsonObjectAdapter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static graphql.schema.idl.RuntimeWiring.*;
 import static io.vertx.core.http.HttpMethod.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Thomas Segismont
@@ -73,31 +74,19 @@ public class JsonResultsTest extends GraphQLTestBase {
   }
 
   @Test
-  public void testSimpleGet() throws Exception {
+  public void testSimpleGet() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client).onComplete(onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.urls(), body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertTrue(testData.checkLinkUrls(testData.urls(), body), body.toString());
   }
 
   @Test
-  public void testSimplePost() throws Exception {
+  public void testSimplePost() {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client).onComplete(onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.urls(), body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertTrue(testData.checkLinkUrls(testData.urls(), body), body.toString());
   }
 }

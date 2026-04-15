@@ -13,12 +13,4 @@
 
   <artifactId>vertx-web-common</artifactId>
 
-  <dependencies>
-    <!-- Testing -->
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-unit</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
 </project>

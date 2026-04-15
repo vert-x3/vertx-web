@@ -19,11 +19,13 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.json.JsonObject;
@@ -38,10 +40,11 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.WebAuthn4JHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.test.core.TestUtils;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.Assert;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.webauthn4j.converter.AttestedCredentialDataConverter;
 import com.webauthn4j.converter.AuthenticationExtensionsClientOutputsConverter;
@@ -77,14 +80,10 @@ import com.webauthn4j.test.authenticator.webauthn.WebAuthnAuthenticatorAdaptor;
 import com.webauthn4j.test.client.ClientPlatform;
 import com.webauthn4j.util.Base64UrlUtil;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -170,7 +169,7 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		testStorage = new TestStorage(vertx.getOrCreateContext());
 		WebAuthn4J webauthn = WebAuthn4J.create(vertx, new WebAuthn4JOptions()
@@ -208,11 +207,9 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 		router.route("/welcome").handler(rc -> rc.response().end("Welcome"));
 		router.route("/protected/somepage").handler(handler);
 
-		testRequest(HttpMethod.GET, "/welcome", null, resp -> {
-		}, 200, "OK", "Welcome");
+		testRequest(webClient.get("/welcome").send(), 200, "OK", "Welcome");
 
-		testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-		}, 401, "Unauthorized", null);
+		testRequest(webClient.get("/protected/somepage").send(), 401, "Unauthorized");
 
 		WebAuthnAuthenticatorAdaptor webAuthnAuthenticatorAdaptor = new WebAuthnAuthenticatorAdaptor(EmulatorUtil.PACKED_AUTHENTICATOR);
 		ClientPlatform clientPlatform = new ClientPlatform(origin, webAuthnAuthenticatorAdaptor);
@@ -220,13 +217,13 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 		String session1Cookie = testRegistration(clientPlatform);
 
 		// Now try again with credentials
-		testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader(HttpHeaders.COOKIE, session1Cookie), 200, "OK", "Welcome to the protected resource!");
+		testRequest(webClient.get("/protected/somepage").putHeader(HttpHeaders.COOKIE.toString(), session1Cookie), 200, "OK", "Welcome to the protected resource!");
 
 		// Let's drop this session and try logging in
 		String session2Cookie = testAuthentication(clientPlatform);
 
 		// Now try again with credentials
-		testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader(HttpHeaders.COOKIE, session2Cookie), 200, "OK", "Welcome to the protected resource!");
+		testRequest(webClient.get("/protected/somepage").putHeader(HttpHeaders.COOKIE.toString(), session2Cookie), 200, "OK", "Welcome to the protected resource!");
 	}
 
 	private String testRegistration(ClientPlatform clientPlatform) throws Exception {
@@ -256,26 +253,24 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 						.put("attestationObject", Base64UrlUtil.encodeToString(registrationRequest.getAttestationObject()))
 						.put("clientDataJSON", Base64UrlUtil.encodeToString(registrationRequest.getClientDataJSON())));
 
-		testRequest(HttpMethod.POST, "/webauthn/callback", req -> {
-			req.putHeader(HttpHeaders.COOKIE, obtainedCookie[0]);
-			req.send(request.encode());
-		}, resp -> {
-			String cookie = resp.getHeader(HttpHeaders.SET_COOKIE);
-			obtainedCookie[0] = extractVertxSessionCookie(cookie);
-		}, 204, "No Content", null);
+		HttpResponse<Buffer> resp = testRequest(webClient.post("/webauthn/callback")
+			.putHeader(HttpHeaders.COOKIE.toString(), obtainedCookie[0])
+			.sendBuffer(Buffer.buffer(request.encode())), 204, "No Content");
+		String cookie = resp.getHeader(HttpHeaders.SET_COOKIE.toString());
+		obtainedCookie[0] = extractVertxSessionCookie(cookie);
 
 		testStorage.find(username, null)
 		.onSuccess(authenticators -> {
-			Assert.assertNotNull(authenticators);
-			Assert.assertEquals(1, authenticators.size());
+			assertNotNull(authenticators);
+			assertEquals(1, authenticators.size());
 			Authenticator authenticator = authenticators.get(0);
 			// Check username, credid, counter, publicKey
-			Assert.assertEquals(username, authenticator.getUsername());
-			Assert.assertEquals(credId, authenticator.getCredID());
-			Assert.assertEquals(1, authenticator.getCounter());
-			Assert.assertEquals(publicKey, authenticator.getPublicKey());
+			assertEquals(username, authenticator.getUsername());
+			assertEquals(credId, authenticator.getCredID());
+			assertEquals(1, authenticator.getCounter());
+			assertEquals(publicKey, authenticator.getPublicKey());
 		})
-		.onFailure(x -> Assert.fail("Well that did not work"));
+		.onFailure(x -> fail("Well that did not work"));
 
 		return obtainedCookie[0];
 	}
@@ -363,26 +358,24 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 						.put("authenticatorData", Base64UrlUtil.encodeToString(authenticationRequest.getAuthenticatorData()))
 						.put("clientDataJSON", Base64UrlUtil.encodeToString(authenticationRequest.getClientDataJSON())));
 
-		testRequest(HttpMethod.POST, "/webauthn/callback", req -> {
-			req.putHeader(HttpHeaders.COOKIE, obtainedCookie[0]);
-			req.send(request.encode());
-		}, resp -> {
-			String cookie = resp.getHeader(HttpHeaders.SET_COOKIE);
-			obtainedCookie[0] = extractVertxSessionCookie(cookie);
-		}, 204, "No Content", null);
+		HttpResponse<Buffer> resp = testRequest(webClient.post("/webauthn/callback")
+			.putHeader(HttpHeaders.COOKIE.toString(), obtainedCookie[0])
+			.sendBuffer(Buffer.buffer(request.encode())), 204, "No Content");
+		String cookie = resp.getHeader(HttpHeaders.SET_COOKIE.toString());
+		obtainedCookie[0] = extractVertxSessionCookie(cookie);
 
 		testStorage.find(username, null)
 		.onSuccess(authenticators -> {
-			Assert.assertNotNull(authenticators);
-			Assert.assertEquals(1, authenticators.size());
+			assertNotNull(authenticators);
+			assertEquals(1, authenticators.size());
 			Authenticator authenticator = authenticators.get(0);
 			// Check username, credid, counter, publicKey
-			Assert.assertEquals(username, authenticator.getUsername());
-			Assert.assertEquals(credId, authenticator.getCredID());
-			Assert.assertEquals(2, authenticator.getCounter());
-			Assert.assertEquals(publicKey, authenticator.getPublicKey());
+			assertEquals(username, authenticator.getUsername());
+			assertEquals(credId, authenticator.getCredID());
+			assertEquals(2, authenticator.getCounter());
+			assertEquals(publicKey, authenticator.getPublicKey());
 		})
-		.onFailure(x -> Assert.fail("Well that did not work"));
+		.onFailure(x -> fail("Well that did not work"));
 
 		return obtainedCookie[0];
 	}
@@ -417,20 +410,20 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			int statusCode, String statusMessage,
 			Consumer<Buffer> responseBodyBufferAction) throws Exception {
 		RequestOptions requestOptions = new RequestOptions().setMethod(method).setPort(8080).setURI(path).setHost("localhost");
-		CountDownLatch latch = new CountDownLatch(1);
-		client.request(requestOptions).onComplete(onSuccess(req -> {
-			req.response().onComplete(onSuccess(resp -> {
+		Promise<Void> promise = Promise.promise();
+		client.request(requestOptions).onComplete(TestUtils.onSuccess(req -> {
+			req.response().onComplete(TestUtils.onSuccess(resp -> {
 				assertEquals(statusCode, resp.statusCode());
 				assertEquals(statusMessage, resp.statusMessage());
 				if (responseAction != null) {
 					responseAction.accept(resp);
 				}
 				if (responseBodyBufferAction == null) {
-					latch.countDown();
+					promise.complete();
 				} else {
 					resp.bodyHandler(buff -> {
 						responseBodyBufferAction.accept(buff);
-						latch.countDown();
+						promise.complete();
 					});
 				}
 			}));
@@ -439,6 +432,6 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 			}
 			req.end();
 		}));
-		awaitLatch(latch);
+		promise.future().await();
 	}
 }

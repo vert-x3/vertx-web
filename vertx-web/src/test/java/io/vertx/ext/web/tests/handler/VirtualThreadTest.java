@@ -16,6 +16,7 @@
 package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
@@ -23,15 +24,20 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.ext.web.Router;
-import io.vertx.test.core.VertxTestBase;
-import org.junit.Assume;
-import org.junit.Test;
+import io.vertx.junit5.VertxTest;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.Test;
 
-public class VirtualThreadTest extends VertxTestBase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+@VertxTest
+public class VirtualThreadTest {
 
   @Test
-  public void testBlockingHandler() {
-    Assume.assumeTrue(isVirtualThreadAvailable());
+  public void testBlockingHandler(Vertx vertx, VertxTestContext testContext) {
+    assumeTrue(Runtime.version().feature() >= 21);
     HttpServer server = vertx.createHttpServer();
     HttpClient client = vertx.createHttpClient();
     Router router = Router.router(vertx);
@@ -50,8 +56,7 @@ public class VirtualThreadTest extends VertxTestBase {
         .await();
       assertEquals("Hello", body.toString());
       assertTrue(System.currentTimeMillis() - now >= 200);
-      testComplete();
+      testContext.completeNow();
     });
-    await();
   }
 }

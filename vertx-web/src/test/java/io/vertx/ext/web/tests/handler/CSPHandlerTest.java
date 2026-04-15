@@ -16,10 +16,13 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.CSPHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -30,18 +33,16 @@ public class CSPHandlerTest extends WebTestBase {
   public void testCSPDefault() throws Exception {
     router.route().handler(CSPHandler.create());
     router.route().handler(context -> context.response().end());
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      assertEquals("default-src 'self'", resp.getHeader("Content-Security-Policy"));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+    assertEquals("default-src 'self'", resp.getHeader("Content-Security-Policy"));
   }
 
   @Test
   public void testCSPCustom() throws Exception {
     router.route().handler(CSPHandler.create().addDirective("default-src", "*.trusted.com"));
     router.route().handler(context -> context.response().end());
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      assertEquals("default-src 'self' *.trusted.com", resp.getHeader("Content-Security-Policy"));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+    assertEquals("default-src 'self' *.trusted.com", resp.getHeader("Content-Security-Policy"));
   }
 
   @Test
@@ -54,10 +55,9 @@ public class CSPHandlerTest extends WebTestBase {
 
 
     router.route().handler(context -> context.response().end());
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      String h = resp.getHeader("Content-Security-Policy");
-      assertEquals("default-src 'self'; img-src *; media-src media1.com media2.com; script-src userscripts.example.com", h);
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+    String h = resp.getHeader("Content-Security-Policy");
+    assertEquals("default-src 'self'; img-src *; media-src media1.com media2.com; script-src userscripts.example.com", h);
   }
 
   @Test
@@ -69,10 +69,9 @@ public class CSPHandlerTest extends WebTestBase {
 
 
     router.route().handler(context -> context.response().end());
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      String h = resp.getHeader("Content-Security-Policy-Report-Only");
-      assertEquals("default-src 'self'; report-uri http://reportcollector.example.com/collector.cgi", h);
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+    String h = resp.getHeader("Content-Security-Policy-Report-Only");
+    assertEquals("default-src 'self'; report-uri http://reportcollector.example.com/collector.cgi", h);
   }
 
   @Test

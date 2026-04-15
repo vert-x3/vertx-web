@@ -19,6 +19,10 @@ open module io.vertx.web.graphql.tests {
   requires io.vertx.web.graphql;
   requires com.graphqljava;
   requires io.vertx.web.tests;
+  requires io.vertx.web.client;
+  requires io.vertx.core.tests;
+  requires io.vertx.testing.junit5;
+  requires org.junit.jupiter.api;
   requires junit;
   requires org.reactivestreams;
   requires org.assertj.core;

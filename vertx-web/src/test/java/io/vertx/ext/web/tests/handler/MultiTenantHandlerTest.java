@@ -19,7 +19,8 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.MultiTenantHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -40,45 +41,15 @@ public class MultiTenantHandlerTest extends WebTestBase {
         .addTenantHandler("tenant-3", ctx -> ctx.end("Hello from tenant-3"))
     );
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      req -> req.putHeader("X-Tenant", "tenant-1"),
-      null,
-      200,
-      "OK", "Hello from tenant-1");
+    testRequest(webClient.get("/").putHeader("X-Tenant", "tenant-1").send(), 200, "OK", "Hello from tenant-1");
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      req -> req.putHeader("X-Tenant", "tenant-2"),
-      null,
-      200,
-      "OK", "Hello from tenant-2");
+    testRequest(webClient.get("/").putHeader("X-Tenant", "tenant-2").send(), 200, "OK", "Hello from tenant-2");
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      req -> req.putHeader("X-Tenant", "tenant-3"),
-      null,
-      200,
-      "OK", "Hello from tenant-3");
+    testRequest(webClient.get("/").putHeader("X-Tenant", "tenant-3").send(), 200, "OK", "Hello from tenant-3");
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      req -> req.putHeader("X-Tenant", "tenant-4"),
-      null,
-      404,
-      "Not Found", "<html><body><h1>Resource not found</h1></body></html>");
+    testRequest(webClient.get("/").putHeader("X-Tenant", "tenant-4").send(), 404, "Not Found", "<html><body><h1>Resource not found</h1></body></html>");
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      null,
-      null,
-      404,
-      "Not Found", "<html><body><h1>Resource not found</h1></body></html>");
+    testRequest(webClient.get("/").send(), 404, "Not Found", "<html><body><h1>Resource not found</h1></body></html>");
   }
 
   @Test
@@ -94,45 +65,15 @@ public class MultiTenantHandlerTest extends WebTestBase {
         .addDefaultHandler(ctx -> ctx.end("No valid tenant supplied"))
     );
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      req -> req.putHeader("X-Tenant", "tenant-1"),
-      null,
-      200,
-      "OK", "Hello from tenant-1");
+    testRequest(webClient.get("/").putHeader("X-Tenant", "tenant-1").send(), 200, "OK", "Hello from tenant-1");
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      req -> req.putHeader("X-Tenant", "tenant-2"),
-      null,
-      200,
-      "OK", "Hello from tenant-2");
+    testRequest(webClient.get("/").putHeader("X-Tenant", "tenant-2").send(), 200, "OK", "Hello from tenant-2");
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      req -> req.putHeader("X-Tenant", "tenant-3"),
-      null,
-      200,
-      "OK", "Hello from tenant-3");
+    testRequest(webClient.get("/").putHeader("X-Tenant", "tenant-3").send(), 200, "OK", "Hello from tenant-3");
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      req -> req.putHeader("X-Tenant", "tenant-4"),
-      null,
-      200,
-      "OK", "No valid tenant supplied");
+    testRequest(webClient.get("/").putHeader("X-Tenant", "tenant-4").send(), 200, "OK", "No valid tenant supplied");
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      null,
-      null,
-      200,
-      "OK", "No valid tenant supplied");
+    testRequest(webClient.get("/").send(), 200, "OK", "No valid tenant supplied");
   }
 
   @Test
@@ -163,26 +104,10 @@ public class MultiTenantHandlerTest extends WebTestBase {
         })
     );
 
-    testRequest(
-      HttpMethod.GET,
-      "/?tenant=t1",
-      200,
-      "OK", "Hello from tenant-1");
+    testRequest(HttpMethod.GET, "/?tenant=t1", 200, "OK", "Hello from tenant-1");
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      req -> req.putHeader("X-Tenant", "tenant-4"),
-      null,
-      200,
-      "OK", "No valid tenant supplied");
+    testRequest(webClient.get("/").putHeader("X-Tenant", "tenant-4").send(), 200, "OK", "No valid tenant supplied");
 
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      null,
-      null,
-      200,
-      "OK", "No valid tenant supplied");
+    testRequest(webClient.get("/").send(), 200, "OK", "No valid tenant supplied");
   }
 }

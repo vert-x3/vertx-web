@@ -16,11 +16,17 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
@@ -30,8 +36,9 @@ import java.util.*;
 public class CookieHandlerTest extends WebTestBase {
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
   }
 
   @Test
@@ -60,13 +67,12 @@ public class CookieHandlerTest extends WebTestBase {
       assertNotNull(rc.request().getCookie("plop"));
       rc.response().end();
     });
-    testRequest(HttpMethod.GET, "/", req -> req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop"), resp -> {
-      List<String> cookies = resp.headers().getAll("set-cookie");
-      // the expired cookie must be sent back
-      assertEquals(1, cookies.size());
-      assertTrue(cookies.get(0).contains("Max-Age=0"));
-      assertTrue(cookies.get(0).contains("Expires="));
-    }, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("Cookie", "foo=bar; wibble=blibble; plop=flop").send(), 200, "OK");
+    List<String> cookies = resp.headers().getAll("set-cookie");
+    // the expired cookie must be sent back
+    assertEquals(1, cookies.size());
+    assertTrue(cookies.get(0).contains("Max-Age=0"));
+    assertTrue(cookies.get(0).contains("Expires="));
   }
 
   @Test
@@ -93,22 +99,21 @@ public class CookieHandlerTest extends WebTestBase {
       foo.setValue("blah");
       rc.response().end();
     });
-    testRequest(HttpMethod.GET, "/", req -> req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop"), resp -> {
-      List<String> cookies = resp.headers().getAll("set-cookie");
-      assertEquals(3, cookies.size());
-      assertTrue(cookies.contains("foo=blah"));
-      assertTrue(cookies.contains("fleeb=floob"));
-      boolean found = false;
-      for (String s : cookies) {
-        if (s.startsWith("plop")) {
-          found = true;
-          assertTrue(s.contains("Max-Age=0"));
-          assertTrue(s.contains("Expires="));
-          break;
-        }
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("Cookie", "foo=bar; wibble=blibble; plop=flop").send(), 200, "OK");
+    List<String> cookies = resp.headers().getAll("set-cookie");
+    assertEquals(3, cookies.size());
+    assertTrue(cookies.contains("foo=blah"));
+    assertTrue(cookies.contains("fleeb=floob"));
+    boolean found = false;
+    for (String s : cookies) {
+      if (s.startsWith("plop")) {
+        found = true;
+        assertTrue(s.contains("Max-Age=0"));
+        assertTrue(s.contains("Expires="));
+        break;
       }
-      assertTrue(found);
-    }, 200, "OK", null);
+    }
+    assertTrue(found);
   }
 
   @Test

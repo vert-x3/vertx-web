@@ -18,8 +18,12 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.WebSocketBase;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -27,235 +31,222 @@ import org.junit.Test;
 public class SockJSWriteTest extends SockJSTestBase {
 
   @Test
-  public void testRaw() throws Exception {
-    waitFor(2);
+  public void testRaw(VertxTestContext testContext) throws Exception {
+    Checkpoint cp = testContext.checkpoint(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onSuccess(v -> {
-        complete();
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
+        cp.flag();
       }));
     };
     startServers();
     vertx.runOnContext(v -> {
-      wsClient.connect("/test/websocket").onComplete(onSuccess(ws -> {
+      wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(ws -> {
         ws.handler(buffer -> {
           if (buffer.toString().equals(expected)) {
-            complete();
+            cp.flag();
           }
         });
       }));
     });
-    await();
   }
 
   @Test
-  public void testRawFailure() throws Exception {
+  public void testRawFailure(VertxTestContext testContext) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
-          testComplete();
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
+          testContext.completeNow();
         }));
       });
     };
     startServers();
     vertx.runOnContext(v -> {
-      wsClient.connect("/test/websocket").onComplete(onSuccess(WebSocketBase::close));
+      wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(WebSocketBase::close));
     });
-    await();
   }
 
   @Test
-  public void testWebSocket() throws Exception {
-    waitFor(2);
+  public void testWebSocket(VertxTestContext testContext) throws Exception {
+    Checkpoint cp = testContext.checkpoint(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onSuccess(v -> {
-        complete();
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
+        cp.flag();
       }));
     };
     startServers();
     vertx.runOnContext(v -> {
-      wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
+      wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(TestUtils.onSuccess(ws -> {
         ws.handler(buffer -> {
           if (buffer.toString().equals("a[\"" + expected + "\"]")) {
-            complete();
+            cp.flag();
           }
         });
       }));
     });
-    await();
   }
 
   @Test
-  public void testWebSocketFailure() throws Exception {
+  public void testWebSocketFailure(VertxTestContext testContext) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
-          testComplete();
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
+          testContext.completeNow();
         }));
       });
     };
     startServers();
     vertx.runOnContext(v -> {
-      wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(WebSocketBase::close));
+      wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(TestUtils.onSuccess(WebSocketBase::close));
     });
-    await();
   }
 
   @Test
-  public void testEventSource() throws Exception {
-    waitFor(2);
+  public void testEventSource(VertxTestContext testContext) throws Exception {
+    Checkpoint cp = testContext.checkpoint(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onSuccess(v -> {
-        complete();
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
+        cp.flag();
       }));
     };
     startServers();
     client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource")
-      .onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
+      .onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
         resp.handler(buffer -> {
           if (buffer.toString().equals("data: a[\"" + expected + "\"]\r\n\r\n")) {
-            complete();
+            cp.flag();
           }
         });
       }))));
-    await();
   }
 
   @Test
-  public void testEventSourceFailure() throws Exception {
+  public void testEventSourceFailure(VertxTestContext testContext) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
-          testComplete();
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
+          testContext.completeNow();
         }));
       });
     };
     startServers();
     client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource")
-      .onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
+      .onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
         req.connection().close();
       }))));
-    await();
   }
 
   @Test
-  public void testXHRStreaming() throws Exception {
-    waitFor(2);
+  public void testXHRStreaming(VertxTestContext testContext) throws Exception {
+    Checkpoint cp = testContext.checkpoint(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onSuccess(v -> {
-        complete();
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
+        cp.flag();
       }));
     };
     startServers();
     client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_streaming")
-      .onComplete(onSuccess(req -> req.send(Buffer.buffer()).onComplete(onSuccess(resp -> {
+      .onComplete(TestUtils.onSuccess(req -> req.send(Buffer.buffer()).onComplete(TestUtils.onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         resp.handler(buffer -> {
           if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
-            complete();
+            cp.flag();
           }
         });
       }))));
-    await();
   }
 
   @Test
-  public void testXHRStreamingFailure() throws Exception {
+  public void testXHRStreamingFailure(VertxTestContext testContext) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
-          testComplete();
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
+          testContext.completeNow();
         }));
       });
     };
     startServers();
     client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_streaming")
-      .onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
+      .onComplete(TestUtils.onSuccess(req -> req.send().onComplete(TestUtils.onSuccess(resp -> {
         req.connection().close();
       }))));
-    await();
   }
 
   @Test
-  public void testXHRPolling() throws Exception {
-    waitFor(2);
+  public void testXHRPolling(VertxTestContext testContext) throws Exception {
+    Checkpoint cp = testContext.checkpoint(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onSuccess(v -> {
-        complete();
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
+        cp.flag();
       }));
     };
     startServers();
     Runnable[] task = new Runnable[1];
     task[0] = () ->
       client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
-        .onComplete(onSuccess(req -> req.send(Buffer.buffer()).onComplete(onSuccess(resp -> {
+        .onComplete(TestUtils.onSuccess(req -> req.send(Buffer.buffer()).onComplete(TestUtils.onSuccess(resp -> {
           assertEquals(200, resp.statusCode());
           resp.handler(buffer -> {
             if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
-              complete();
+              cp.flag();
             } else {
               task[0].run();
             }
           });
         }))));
     task[0].run();
-    await();
   }
 
   @Test
-  public void testXHRPollingClose() throws Exception {
+  public void testXHRPollingClose(VertxTestContext testContext) throws Exception {
     // Take 5 seconds which is the hearbeat timeout
-    waitFor(3);
+    Checkpoint cp = testContext.checkpoint(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
-        complete();
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
+        cp.flag();
       }));
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
-          complete();
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
+          cp.flag();
         }));
       });
       socket.close();
     };
     startServers();
-    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
-      .onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
-        complete();
-      }))));
-    await();
+    webClient.post("/test/400/8ne8e94a/xhr")
+      .send()
+      .expecting(io.vertx.core.http.HttpResponseExpectation.SC_OK)
+      .await();
   }
 
   @Test
-  public void testXHRPollingShutdown() throws Exception {
+  public void testXHRPollingShutdown(VertxTestContext testContext) throws Exception {
     // Take 5 seconds which is the hearbeat timeout
-    waitFor(3);
+    Checkpoint cp = testContext.checkpoint(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
-        complete();
+      socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
+        cp.flag();
       }));
       socket.endHandler(v -> {
-        socket.write(Buffer.buffer(expected)).onComplete(onFailure(err -> {
-          complete();
+        socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
+          cp.flag();
         }));
       });
     };
     startServers();
-    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
-      .onComplete(onSuccess(req -> req.send().onComplete(onSuccess(resp -> {
-        assertEquals(200, resp.statusCode());
-        complete();
-      }))));
-    await();
+    webClient.post("/test/400/8ne8e94a/xhr")
+      .send()
+      .expecting(io.vertx.core.http.HttpResponseExpectation.SC_OK)
+      .await();
   }
 }

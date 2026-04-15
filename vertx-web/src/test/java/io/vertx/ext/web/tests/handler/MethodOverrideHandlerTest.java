@@ -18,7 +18,8 @@ package io.vertx.ext.web.tests.handler;
 
 import io.vertx.ext.web.handler.MethodOverrideHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import io.vertx.core.http.HttpMethod;
 
 /**
@@ -31,7 +32,7 @@ public class MethodOverrideHandlerTest extends WebTestBase {
 
   @Test
   public void testFoo() {
-    assertTrue("It is true", true);
+    assertTrue(true, "It is true");
   }
 
   @Test
@@ -75,6 +76,6 @@ public class MethodOverrideHandlerTest extends WebTestBase {
   }
 
   private void testRequestWithMethodOverride(HttpMethod overridedMethod, HttpMethod overridingMethod) throws Exception {
-    testRequest(overridedMethod, "/", req -> req.putHeader("x-http-method-override", overridingMethod.toString()), 200, "OK", null);
+    testRequest(webClient.request(overridedMethod, "/").putHeader("x-http-method-override", overridingMethod.toString()), 200, "OK");
   }
 }

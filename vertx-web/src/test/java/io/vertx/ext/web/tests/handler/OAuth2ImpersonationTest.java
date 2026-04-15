@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
@@ -25,15 +26,20 @@ import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.authorization.ScopeAuthorization;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -70,22 +76,23 @@ public class OAuth2ImpersonationTest extends WebTestBase {
   private HttpServer server;
 
   @Override
-  public void tearDown() throws Exception {
+  @AfterEach
+  public void tearDown(VertxTestContext testContext) throws Exception {
     server.close();
 
-    super.tearDown();
+    super.tearDown(testContext);
   }
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
 
     oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")
       .setClientSecret("client-secret")
       .setSite("http://localhost:10000"));
 
-    final CountDownLatch latch = new CountDownLatch(1);
     final AtomicBoolean base = new AtomicBoolean(true);
 
     server = vertx.createHttpServer();
@@ -107,15 +114,7 @@ public class OAuth2ImpersonationTest extends WebTestBase {
         }
       })
       .listen(10000)
-      .onComplete(ready -> {
-        if (ready.failed()) {
-          throw new RuntimeException(ready.cause());
-        }
-        // ready
-        latch.countDown();
-      });
-
-    latch.await();
+      .await();
   }
 
   @Test
@@ -225,23 +224,22 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     //   * A redirect to the IdP, as we're mocking, we need to extract the state of the redirect URL so we can fake the
     //     callback to the app
     //   * We also need to have a session cookie otherwise we lose all the context and cannot have multiple identities
-    testRequest(HttpMethod.GET, "/protected/base", null, resp -> {
-      // in this case we should get a redirect
-      String redirectURL = resp.getHeader("Location");
-      assertNotNull(redirectURL);
-      String[] parts = redirectURL.substring(redirectURL.indexOf('?') + 1).split("&");
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/base").followRedirects(false).send(), 302, "Found");
+    // in this case we should get a redirect
+    String redirectURL = resp.getHeader("Location");
+    assertNotNull(redirectURL);
+    String[] parts = redirectURL.substring(redirectURL.indexOf('?') + 1).split("&");
 
-      for (String part : parts) {
-        if (part.startsWith("state=")) {
-          stateRef.set(part.substring(6));
-        }
+    for (String part : parts) {
+      if (part.startsWith("state=")) {
+        stateRef.set(part.substring(6));
       }
+    }
 
-      String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
+    String setCookie = resp.headers().get("set-cookie");
+    assertNotNull(setCookie);
 
-      sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
-    }, 302, "Found", null);
+    sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
 
     // 3. fake the redirect from the IdP. This happens with a success authn validation, we need to pass the right state
     // Expectations:
@@ -249,54 +247,37 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     //     escalation bugs. Old session assumed an un authenticated user, this one is for the authenticated one
     //   * A final redirect happens to avoid caching the callback URL at the user-agent, so the browser will show
     //     the desired original URL
-    testRequest(
-      HttpMethod.GET,
-      "/callback?state=" + stateRef.get() + "&code=1",
-      req -> {
-        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
-      }, resp -> {
-        // session upgrade (secure against replay attacks)
-        String setCookie = resp.headers().get("set-cookie");
-        assertNotNull(setCookie);
-
-        sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
-
-        String destination = resp.getHeader(HttpHeaders.LOCATION);
-        stateRef.set(destination);
-      }, 302, "Found", null);
+    resp = testRequest(webClient.get("/callback?state=" + stateRef.get() + "&code=1")
+      .putHeader(HttpHeaders.COOKIE.toString(), sessionRef.get())
+      .followRedirects(false)
+      .send(), 302, "Found");
+    // session upgrade (secure against replay attacks)
+    setCookie = resp.headers().get("set-cookie");
+    assertNotNull(setCookie);
+    sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
+    String destination = resp.getHeader(HttpHeaders.LOCATION.toString());
+    stateRef.set(destination);
 
     // 4. Confirm that we can get the secured resource
-    testRequest(
-      HttpMethod.GET,
-      stateRef.get(),
-      req -> {
-        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
-      }, resp -> {
-      }, 200, "OK", "OK");
+    testRequest(webClient.get(stateRef.get())
+      .putHeader(HttpHeaders.COOKIE.toString(), sessionRef.get())
+      .send(), 200, "OK", "OK");
 
     //////////////////////////////
     // TEST SWITCHING IDENTITIES
     /////////////////////////////
 
     // test we can't get the admin resource (we're still base user)
-    testRequest(
-      HttpMethod.GET,
-      "/protected/admin",
-      req -> {
-        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
-      }, resp -> {
-      }, 403, "Forbidden", null);
+    testRequest(webClient.get("/protected/admin")
+      .putHeader(HttpHeaders.COOKIE.toString(), sessionRef.get())
+      .send(), 403, "Forbidden");
 
     // verify that the switch isn't possible for non authn requests
     // Expectations:
     //   * Given that there is no cookie and no authorization header, no user will be present in the request, forcing
     //     an Unauthorized response
-    testRequest(
-      HttpMethod.GET,
-      "/user-switch/impersonate?redirect_uri=/protected/admin&login_hint=admin",
-      req -> {
-      }, resp -> {
-      }, 401, "Unauthorized", null);
+    testRequest(webClient.get("/user-switch/impersonate?redirect_uri=/protected/admin&login_hint=admin")
+      .send(), 401, "Unauthorized");
 
     // start the switch
 
@@ -308,151 +289,116 @@ public class OAuth2ImpersonationTest extends WebTestBase {
     // User is authenticated (there is a session and a User) and a redirect to the IdP should happen
     // Expectations:
     //   * A redirect to the IdP should happen. (maybe there's a way to hint the desired user? This doesn't do it)
-    testRequest(
-      HttpMethod.GET,
-      "/user-switch/impersonate?redirect_uri=/protected/admin&login_hint=admin",
-      req -> {
-        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
-      }, resp -> {
-        // in this case we should get a redirect, and the session id must change
-        // session upgrade (secure against replay attacks)
-        String setCookie = resp.headers().get("set-cookie");
-        assertNotNull(setCookie);
-        // the session must change
-        assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
-
-        sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
-
-        String destination = resp.getHeader(HttpHeaders.LOCATION);
-        stateRef.set(destination);
-      }, 302, "Found", null);
+    resp = testRequest(webClient.get("/user-switch/impersonate?redirect_uri=/protected/admin&login_hint=admin")
+      .putHeader(HttpHeaders.COOKIE.toString(), sessionRef.get())
+      .followRedirects(false)
+      .send(), 302, "Found");
+    // in this case we should get a redirect, and the session id must change
+    // session upgrade (secure against replay attacks)
+    setCookie = resp.headers().get("set-cookie");
+    assertNotNull(setCookie);
+    // the session must change
+    assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+    sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
+    destination = resp.getHeader(HttpHeaders.LOCATION.toString());
+    stateRef.set(destination);
 
     // verify that the switch isn't possible for non authn requests
     // Expectations:
     //   * Given that there is no cookie and no authorization header, no user will be present in the request, forcing
     //     a redirect to the IdP response
-    testRequest(
-      HttpMethod.GET,
-      stateRef.get(),
-      req -> {
-      }, resp -> {
-        // in this case we should get a redirect
-        String redirectURL = resp.getHeader("Location");
-        assertNotNull(redirectURL);
-
-        String setCookie = resp.headers().get("set-cookie");
-        assertNotNull(setCookie);
-
-        // the session must be different
-        assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
-      }, 302, "Found", null);
+    resp = testRequest(webClient.get(stateRef.get())
+      .followRedirects(false)
+      .send(), 302, "Found");
+    // in this case we should get a redirect
+    redirectURL = resp.getHeader("Location");
+    assertNotNull(redirectURL);
+    setCookie = resp.headers().get("set-cookie");
+    assertNotNull(setCookie);
+    // the session must be different
+    assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
 
     // verify that the switch is possible for authn requests
     // Expectations:
     //   * Given that there is no cookie and no authorization header, no user will be present in the request, forcing
     //     a redirect to the IdP response
-    testRequest(
-      HttpMethod.GET,
-      stateRef.get(),
-      req -> {
-        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
-      }, resp -> {
-        // in this case we should get a redirect
-        String redirectURL = resp.getHeader("Location");
-        assertNotNull(redirectURL);
-        String[] parts = redirectURL.substring(redirectURL.indexOf('?') + 1).split("&");
-        boolean hintSeen = false;
+    resp = testRequest(webClient.get(stateRef.get())
+      .putHeader(HttpHeaders.COOKIE.toString(), sessionRef.get())
+      .followRedirects(false)
+      .send(), 302, "Found");
+    // in this case we should get a redirect
+    redirectURL = resp.getHeader("Location");
+    assertNotNull(redirectURL);
+    parts = redirectURL.substring(redirectURL.indexOf('?') + 1).split("&");
+    boolean hintSeen = false;
 
-        for (String part : parts) {
-          if (part.startsWith("state=")) {
-            stateRef.set(part.substring(6));
-          }
-          if (part.startsWith("login_hint=")) {
-            hintSeen = true;
-          }
-        }
+    for (String part : parts) {
+      if (part.startsWith("state=")) {
+        stateRef.set(part.substring(6));
+      }
+      if (part.startsWith("login_hint=")) {
+        hintSeen = true;
+      }
+    }
 
-        // we should respect the hint
-        assertTrue(hintSeen);
+    // we should respect the hint
+    assertTrue(hintSeen);
 
-        // we're on the right session
-        String setCookie = resp.headers().get("set-cookie");
-        assertNull(setCookie);
-      }, 302, "Found", null);
+    // we're on the right session
+    setCookie = resp.headers().get("set-cookie");
+    assertNull(setCookie);
 
     // user is authenticated, it now escalates the permissions by re-doing the auth flow to upgrade the user
     // Expectations:
     //   * fake the IdP callback with the right state
     //   * like before ensure that the session id changes (base user -> admin user)
     //   * final redirect to the desired target resource, to avoid user-agents to cache the callback url
-    testRequest(
-      HttpMethod.GET,
-      "/callback?state=" + stateRef.get() + "&code=1",
-      req -> {
-        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
-      }, resp -> {
-        // session upgrade (secure against replay attacks)
-        String setCookie = resp.headers().get("set-cookie");
-        assertNotNull(setCookie);
-
-        sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
-
-        String destination = resp.getHeader(HttpHeaders.LOCATION);
-        stateRef.set(destination);
-      }, 302, "Found", null);
+    resp = testRequest(webClient.get("/callback?state=" + stateRef.get() + "&code=1")
+      .putHeader(HttpHeaders.COOKIE.toString(), sessionRef.get())
+      .followRedirects(false)
+      .send(), 302, "Found");
+    // session upgrade (secure against replay attacks)
+    setCookie = resp.headers().get("set-cookie");
+    assertNotNull(setCookie);
+    sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
+    destination = resp.getHeader(HttpHeaders.LOCATION.toString());
+    stateRef.set(destination);
 
     ////////////////////////////////////////
     // TEST GET RESOURCE WITH NEW IDENTITY
     ////////////////////////////////////////
 
     // final call to verify that the desired escalated user can get the final resource
-    testRequest(
-      HttpMethod.GET,
-      stateRef.get(),
-      req -> {
-        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
-      }, resp -> {
-      }, 200, "OK", "Welcome to the 2nd protected resource!");
+    testRequest(webClient.get(stateRef.get())
+      .putHeader(HttpHeaders.COOKIE.toString(), sessionRef.get())
+      .send(), 200, "OK", "Welcome to the 2nd protected resource!");
 
     ////////////////////////////////////////
     // UNDO IMPERSONATION
     ////////////////////////////////////////
 
-    testRequest(
-      HttpMethod.GET,
-      "/user-switch/undo?redirect_uri=/protected/base",
-      req -> {
-        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
-      }, resp -> {
-        // in this case we should get a redirect, and the session id must change
-        // session upgrade (secure against replay attacks)
-        String setCookie = resp.headers().get("set-cookie");
-        assertNotNull(setCookie);
-        // the session must change
-        assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
-
-        sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
-
-        String destination = resp.getHeader(HttpHeaders.LOCATION);
-        stateRef.set(destination);
-      }, 302, "Found", null);
+    resp = testRequest(webClient.get("/user-switch/undo?redirect_uri=/protected/base")
+      .putHeader(HttpHeaders.COOKIE.toString(), sessionRef.get())
+      .followRedirects(false)
+      .send(), 302, "Found");
+    // in this case we should get a redirect, and the session id must change
+    // session upgrade (secure against replay attacks)
+    setCookie = resp.headers().get("set-cookie");
+    assertNotNull(setCookie);
+    // the session must change
+    assertFalse(setCookie.substring(0, setCookie.indexOf(';')).equals(sessionRef.get()));
+    sessionRef.set(setCookie.substring(0, setCookie.indexOf(';')));
+    destination = resp.getHeader(HttpHeaders.LOCATION.toString());
+    stateRef.set(destination);
 
     // final call to verify that the desired de-escalated user can get the final resource
-    testRequest(
-      HttpMethod.GET,
-      stateRef.get(),
-      req -> {
-        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
-      }, resp -> {
-      }, 200, "OK", "OK");
+    testRequest(webClient.get(stateRef.get())
+      .putHeader(HttpHeaders.COOKIE.toString(), sessionRef.get())
+      .send(), 200, "OK", "OK");
 
     // final call to verify that the desired de-escalated user cannot get the admin resource
-    testRequest(
-      HttpMethod.GET,
-      "/protected/admin",
-      req -> {
-        req.putHeader(HttpHeaders.COOKIE, sessionRef.get());
-      }, resp -> {
-      }, 403, "Forbidden", null);
+    testRequest(webClient.get("/protected/admin")
+      .putHeader(HttpHeaders.COOKIE.toString(), sessionRef.get())
+      .send(), 403, "Forbidden");
   }
 }

@@ -12,7 +12,8 @@ import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.impl.SimpleAuthenticationHandlerImpl;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class ChainAuthMixHandlerTest extends WebTestBase {
 
@@ -92,14 +93,14 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
       .put("sub", "Paulo")
       .put("iss", "me");
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + me.generateToken(payloadA)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + me.generateToken(payloadA)), 200, "OK");
 
     // Payload with right issuer
     final JsonObject payloadB = new JsonObject()
       .put("sub", "Paulo")
       .put("iss", "you");
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + you.generateToken(payloadB)), 200, "OK", null);
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + you.generateToken(payloadB)), 200, "OK");
   }
 
   @Test
@@ -109,11 +110,13 @@ public class ChainAuthMixHandlerTest extends WebTestBase {
         .add(BasicAuthHandler.create(null));
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testRedirectAndHandlerFail() {
-    ChainAuthHandler.all()
-      .add(OAuth2AuthHandler.create(vertx, null, "http://server.com/callback"))
-      .add(BasicAuthHandler.create(null));
+    assertThrows(IllegalStateException.class, () -> {
+      ChainAuthHandler.all()
+        .add(OAuth2AuthHandler.create(vertx, null, "http://server.com/callback"))
+        .add(BasicAuthHandler.create(null));
+    });
   }
 
   @Test

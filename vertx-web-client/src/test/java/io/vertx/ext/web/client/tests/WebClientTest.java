@@ -43,7 +43,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -965,7 +964,7 @@ public class WebClientTest extends WebClientTestBase {
     AtomicReference<Handler<Buffer>> dataHandler = new AtomicReference<>();
     AtomicReference<Handler<Void>> endHandler = new AtomicReference<>();
     AtomicBoolean paused = new AtomicBoolean();
-    CountDownLatch latch = new CountDownLatch(1);
+    Promise<Void> requestReceived = Promise.promise();
 
     @Override
     void init() throws Exception {
@@ -1005,7 +1004,7 @@ public class WebClientTest extends WebClientTestBase {
     void handleRequest(HttpServerRequest req) {
       conn.set(req.connection());
       req.pause();
-      latch.countDown();
+      requestReceived.complete();
     }
 
     @Override
@@ -1014,9 +1013,8 @@ public class WebClientTest extends WebClientTestBase {
       assertWaitUntil(() -> dataHandler.get() != null);
       dataHandler.get().handle(TestUtils.randomBuffer(1024));
       try {
-        TestUtils.awaitLatch(latch);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
+        requestReceived.future().await();
+      } catch (Exception e) {
         fail(e);
       }
       while (!paused.get()) {

@@ -32,8 +32,11 @@ import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.SecurityAuditLoggerHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -45,7 +48,7 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
 
   JWTAuth authProvider;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     authProvider = JWTAuth.create(vertx, new JWTAuthOptions()
       .setKeyStore(new KeyStoreOptions()
@@ -55,8 +58,9 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
   }
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
   }
 
   @Test
@@ -96,7 +100,7 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
       .handler(JWTAuthHandler.create(authProvider))
       .handler(ctx -> ctx.end("OK"));
 
-    testRequest(HttpMethod.GET, "/protected/foo", req -> req.putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())), 200, "OK", "OK");
+    testRequest(webClient.get("/protected/foo").putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())), 200, "OK", "OK");
     // [AUTHENTICATION epoch="1674825292685" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/foo" token="********************************..."] OK
     // [REQUEST epoch="1674825292688" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/foo" status=200] OK
   }
@@ -108,7 +112,7 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
       .handler(JWTAuthHandler.create(authProvider))
       .handler(ctx -> ctx.end("OK"));
 
-    testRequest(HttpMethod.GET, "/protected/foo", req -> req.putHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"), 401, "Unauthorized", null);
+    testRequest(webClient.get("/protected/foo").putHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"), 401, "Unauthorized");
     // [AUTHENTICATION epoch="1674825394738" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/foo" token="********************************..."] FAIL
     // [REQUEST epoch="1674825292688" source="127.0.0.1" destination="127.0.0.1" resource="HTTP/1.1 GET /protected/foo" status=200] OK
   }
@@ -139,8 +143,8 @@ public class SecurityAuditLoggerHandlerTest extends WebTestBase {
     });
 
     // login with correct credentials
-    testRequest(HttpMethod.GET, "/protected/page1",
-      req -> req.putHeader("Authorization",
+    testRequest(webClient.get("/protected/page1")
+      .putHeader("Authorization",
         "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions())),
       200, "OK", "Welcome");
 

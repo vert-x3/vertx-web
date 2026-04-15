@@ -25,7 +25,7 @@ import io.vertx.ext.auth.authorization.WildcardPermissionBasedAuthorization;
 import io.vertx.ext.web.handler.AuthorizationHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ABACHandlerTest extends WebTestBase {
 

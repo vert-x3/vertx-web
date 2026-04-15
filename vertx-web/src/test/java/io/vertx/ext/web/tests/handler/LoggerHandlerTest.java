@@ -20,9 +20,9 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.LoggerFormat;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
-
-import java.util.concurrent.CountDownLatch;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -31,12 +31,6 @@ import java.util.concurrent.CountDownLatch;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class LoggerHandlerTest extends WebTestBase {
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-
-  }
 
   @Test
   public void testLogger1() throws Exception {
@@ -63,25 +57,23 @@ public class LoggerHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testLogger4() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
+  public void testLogger4(VertxTestContext testContext) throws Exception {
+    Checkpoint done = testContext.checkpoint();
     LoggerHandler logger = LoggerHandler.create(true, LoggerFormat.CUSTOM).customFormatter((req, ms) -> {
-      latch.countDown();
+      done.flag();
       return "custom log message";
     });
     testLogger(logger);
-    latch.await();
   }
 
   @Test
-  public void testLogger5() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
+  public void testLogger5(VertxTestContext testContext) throws Exception {
+    Checkpoint done = testContext.checkpoint();
     LoggerHandler logger = LoggerHandler.create(true, LoggerFormat.CUSTOM).customFormatter((ctx, ms) -> {
-      latch.countDown();
+      done.flag();
       return "custom log message";
     });
     testLogger(logger);
-    latch.await();
   }
 
   private void testLogger(LoggerHandler logger) throws Exception {

@@ -16,20 +16,27 @@
 
 package io.vertx.ext.web.it.sstore;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
-import org.junit.Test;
+import io.vertx.junit5.VertxTestContext;
+import io.vertx.test.core.TestUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class LocalSessionHandlerTest extends SessionHandlerTestBase {
 
+  @BeforeEach
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     store = LocalSessionStore.create(vertx);
   }
 
@@ -50,11 +57,9 @@ public class LocalSessionHandlerTest extends SessionHandlerTestBase {
     router.route().handler(ctx -> {
       ctx.session();
       ctx.response().setStatusCode(500);
-      sessionHandler.flush(ctx).onComplete(asyncResult -> {
-        // store was skipped, so we signed with a success
-        assertTrue(asyncResult.succeeded());
+      sessionHandler.flush(ctx).onComplete(TestUtils.onSuccess(v -> {
         ctx.end();
-      });
+      }));
     });
 
     testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");

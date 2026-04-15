@@ -1,6 +1,7 @@
 package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.WebSocketClient;
@@ -8,27 +9,29 @@ import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.bridge.PermittedOptions;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.handler.sockjs.BridgeEvent;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
-import io.vertx.test.core.VertxTestBase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.vertx.junit5.VertxTest;
+import io.vertx.junit5.VertxTestContext;
+import io.vertx.test.core.TestUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.CountDownLatch;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * @author Szymon Glombiowski
  */
 
-@RunWith(VertxUnitRunner.class)
-public class SockJSErrorTest extends VertxTestBase {
+@VertxTest
+public class SockJSErrorTest {
+
+  protected Vertx vertx;
+
   public static final String EVENTBUS_ADDRESS = "addr1";
   public static final String EVENTBUS_REGISTER_MESSAGE = "{\"type\":\"register\",\"address\":\"" + EVENTBUS_ADDRESS + "\",\"headers\":{\"Accept\":\"application/json\"}}";
   public static final String EVENTBUS_UNREGISTER_MESSAGE = "{\"type\":\"unregister\",\"address\":\"" + EVENTBUS_ADDRESS + "\",\"headers\":{\"Accept\":\"application/json\"}}";
@@ -38,16 +41,12 @@ public class SockJSErrorTest extends VertxTestBase {
   public static final int PORT = 8080;
   public static final String LOCALHOST = "localhost";
   private static int counter = 0;
-  Vertx vertx;
   HttpServer server;
-  private CountDownLatch countDownLatch;
 
-  @Before
-  public void before(TestContext context) {
-    countDownLatch = new CountDownLatch(1);
-    vertx = Vertx.vertx();
+  @BeforeEach
+  public void setUp(Vertx vertx) throws Exception {
+    this.vertx = vertx;
 
-    vertx.exceptionHandler(context.exceptionHandler());
     server = vertx.createHttpServer();
 
     Router router = Router.router(vertx);
@@ -58,7 +57,7 @@ public class SockJSErrorTest extends VertxTestBase {
     router.route(WSS_PATH + "*").subRouter(sockJSRouter);
 
     server.requestHandler(router);
-    server.listen(PORT).onComplete(context.asyncAssertSuccess());
+    server.listen(PORT).await();
 
     vertx.setPeriodic(100, id -> {
       log.info("server sending number: " + ++counter);
@@ -66,16 +65,12 @@ public class SockJSErrorTest extends VertxTestBase {
     });
   }
 
-  @After
-  public void after(TestContext context) {
-    vertx.close().onComplete(context.asyncAssertSuccess());
-  }
-
   @Test
-  public void testEventBusBridgeLeakingConsumers(TestContext context) throws InterruptedException {
+  public void testEventBusBridgeLeakingConsumers(VertxTestContext testContext) throws InterruptedException {
+    Promise<Void> firstClientDone = Promise.promise();
     // initial connection - double registration and unregistration
     WebSocketClient client = vertx.createWebSocketClient();
-    client.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    client.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(TestUtils.onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // those actions will cause leak - a consumer still registered
@@ -84,17 +79,17 @@ public class SockJSErrorTest extends VertxTestBase {
         ws.writeTextMessage(EVENTBUS_UNREGISTER_MESSAGE);
         ws.writeTextMessage(EVENTBUS_UNREGISTER_MESSAGE); // this does not do anything actually, just to match 2 registrations
         ws.close();
-        countDownLatch.countDown();
+        firstClientDone.complete();
       });
 
     }));
 
     //make sure 1st client has completed
-    countDownLatch.await();
+    firstClientDone.future().await();
 
     final int[] counter = {-1};
     WebSocketClient client2 = vertx.createWebSocketClient();
-    client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(TestUtils.onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // this client will only receive every other message
       ws.handler(buff -> {
@@ -109,39 +104,38 @@ public class SockJSErrorTest extends VertxTestBase {
           ++counter[0];
         }
         // new number in message should be always be increased by 1
-        assertEquals("Message was lost, next id not matching.", counter[0], number);
+        assertEquals(counter[0], number, "Message was lost, next id not matching.");
 
         if (number % 20 == 0) {
-          testComplete();
+          testContext.completeNow();
         }
       });
 
     }));
-
-    await();
   }
 
   @Test
-  public void testEventBusBridgeLeakingConsumersClean(TestContext context) throws InterruptedException {
+  public void testEventBusBridgeLeakingConsumersClean(VertxTestContext testContext) throws InterruptedException {
+    Promise<Void> firstClientDone = Promise.promise();
     // initial connection - single registration and unregistration
     WebSocketClient client = vertx.createWebSocketClient();
-    client.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    client.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(TestUtils.onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // those actions will cause leak - a consumer still registered
       ws.handler(buff -> {
         log.info("websocket client 1 received raw message: " + buff.toString("UTF-8"));
         ws.writeTextMessage(EVENTBUS_UNREGISTER_MESSAGE);
         ws.close();
-        countDownLatch.countDown();
+        firstClientDone.complete();
       });
     }));
 
     //make sure 1st client has completed
-    countDownLatch.await();
+    firstClientDone.future().await();
 
     final int[] counter = {-1};
     WebSocketClient client2 = vertx.createWebSocketClient();
-    client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(onSuccess(ws -> {
+    client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(TestUtils.onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
       // this client will only receive every other message
       ws.handler(buff -> {
@@ -156,16 +150,14 @@ public class SockJSErrorTest extends VertxTestBase {
           ++counter[0];
         }
         // new number in message should be always be increased by 1
-        assertEquals("Message was lost, next id not matching.", counter[0], number);
+        assertEquals(counter[0], number, "Message was lost, next id not matching.");
 
         if (number % 20 == 0) {
-          testComplete();
+          testContext.completeNow();
         }
       });
 
     }));
-
-    await();
   }
 
   private Router createEventBusRouter() {

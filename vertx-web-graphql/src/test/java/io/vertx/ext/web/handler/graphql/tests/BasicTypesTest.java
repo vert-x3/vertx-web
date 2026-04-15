@@ -9,10 +9,9 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,12 +20,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.POST;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BasicTypesTest extends GraphQLTestBase {
 
@@ -77,85 +76,67 @@ public class BasicTypesTest extends GraphQLTestBase {
   }
 
   @Test
-  public void helloWorld() throws Exception {
+  public void helloWorld() {
     JsonObject result = new JsonObject().put("data", new JsonObject().put("hello", "Hello World!"));
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { hello }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void integerNumber() throws Exception {
+  public void integerNumber() {
     JsonObject result = new JsonObject().put("data", new JsonObject().put("number", 130));
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void floatingPointNumber() throws Exception {
+  public void floatingPointNumber() {
     JsonObject result = new JsonObject().put("data", new JsonObject().put("floating", 3.14));
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { floating }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void bool() throws Exception {
+  public void bool() {
     JsonObject result = new JsonObject().put("data", new JsonObject().put("bool", true));
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { bool }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void id() throws Exception {
+  public void id() {
     JsonObject result = new JsonObject().put("data", new JsonObject().put("id", "1001"));
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { id }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void enumeration() throws Exception {
+  public void enumeration() {
     JsonObject result = new JsonObject().put("data", new JsonObject().put("enum", Musketeer.ATHOS.toString()));
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { enum }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void list() throws Exception {
+  public void list() {
     JsonObject result = new JsonObject().put("data", new JsonObject()
       .put("list", new JsonArray()
         .add("apples")
@@ -164,15 +145,12 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void alias() throws Exception {
+  public void alias() {
     JsonObject result = new JsonObject().put("data", new JsonObject()
       .put("arr", new JsonArray()
         .add("apples")
@@ -181,92 +159,71 @@ public class BasicTypesTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { arr: array }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void userDefined() throws Exception {
+  public void userDefined() {
     LocalDateTime ldt = LocalDateTime.of(LocalDate.of(1991, 8, 25), LocalTime.of(22, 57, 8));
     String when = new DatetimeCoercion().serialize(ldt, null, null);
     JsonObject result = new JsonObject().put("data", new JsonObject().put("when", when));
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { when }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void functionDefault() throws Exception {
+  public void functionDefault() {
     JsonObject result = new JsonObject().put("data", new JsonObject().put("answer", "Hello, someone!"));
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { answer }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void function() throws Exception {
+  public void function() {
     JsonObject result = new JsonObject().put("data", new JsonObject().put("answer", "Hello, world!"));
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { answer(name: \"world\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      assertEquals(result, body);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertEquals(result, body);
   }
 
   @Test
-  public void cached() throws Exception {
+  public void cached() {
     GraphQLRequest request1 = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { changing }");
-    Future<JsonObject> future1 = request1.send(client);
+    JsonObject body1 = request1.send(webClient);
 
     GraphQLRequest request2 = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { changing }");
-    Future<JsonObject> future2 = request2.send(client);
+    JsonObject body2 = request2.send(webClient);
 
-    Future.all(future1, future2).onComplete(onSuccess(compositeFuture -> {
-      List<JsonObject> values = compositeFuture.list();
-      Integer value1 = values.get(0).getJsonObject("data").getInteger("changing");
-      Integer value2 = values.get(1).getJsonObject("data").getInteger("changing");
-      assertFalse(value1.equals(value2));
-      testComplete();
-    }));
-
-    await();
+    Integer value1 = body1.getJsonObject("data").getInteger("changing");
+    Integer value2 = body2.getJsonObject("data").getInteger("changing");
+    assertNotEquals(value1, value2);
   }
 
   @Test
-  public void recursive() throws Exception {
+  public void recursive() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { persons { name , friend { name, friend { name } } } }");
-    request.send(client).onComplete(onSuccess(body -> {
-      JsonObject person = body.getJsonObject("data").getJsonArray("persons").getJsonObject(0);
-      assertEquals("Plato", person.getString("name"));
-      JsonObject friend = person.getJsonObject("friend");
-      assertEquals("Aristotle", friend.getString("name"));
-      JsonObject friendOfFriend = friend.getJsonObject("friend");
-      assertEquals("Plato", friendOfFriend.getString("name"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    JsonObject person = body.getJsonObject("data").getJsonArray("persons").getJsonObject(0);
+    assertEquals("Plato", person.getString("name"));
+    JsonObject friend = person.getJsonObject("friend");
+    assertEquals("Aristotle", friend.getString("name"));
+    JsonObject friendOfFriend = friend.getJsonObject("friend");
+    assertEquals("Plato", friendOfFriend.getString("name"));
   }
 
   private enum Musketeer {

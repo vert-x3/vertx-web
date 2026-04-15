@@ -24,8 +24,9 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Paulo Lopes
@@ -34,7 +35,7 @@ public class APIKeyHandlerTest extends WebTestBase {
 
   AuthenticationProvider authProvider;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     authProvider = credentials -> {
       TokenCredentials tokenCredentials = (TokenCredentials) credentials;
@@ -56,11 +57,11 @@ public class APIKeyHandlerTest extends WebTestBase {
       rc.response().end("Welcome to the protected resource!");
     });
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, null, 401, "Unauthorized", null);
+    testRequest(HttpMethod.GET, "/protected/somepage", 401, "Unauthorized", null);
     // Now try again with API Key
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("x-api-key", "APIKEY"), 200, "OK", "Welcome to the protected resource!");
+    testRequest(webClient.get("/protected/somepage").putHeader("x-api-key", "APIKEY"), 200, "OK", "Welcome to the protected resource!");
     // Now try again with wrong API Key
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("x-api-key", "APIKEY2"), 401, "Unauthorized", null);
+    testRequest(webClient.get("/protected/somepage").putHeader("x-api-key", "APIKEY2"), 401, "Unauthorized");
   }
 
   @Test
@@ -73,11 +74,11 @@ public class APIKeyHandlerTest extends WebTestBase {
       rc.response().end("Welcome to the protected resource!");
     });
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, null, 401, "Unauthorized", null);
+    testRequest(HttpMethod.GET, "/protected/somepage", 401, "Unauthorized", null);
     // Now try again with API Key
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("xyz-api-key", "APIKEY"), 200, "OK", "Welcome to the protected resource!");
+    testRequest(webClient.get("/protected/somepage").putHeader("xyz-api-key", "APIKEY"), 200, "OK", "Welcome to the protected resource!");
     // Now try again with wrong API Key
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("xyz-api-key", "APIKEY2"), 401, "Unauthorized", null);
+    testRequest(webClient.get("/protected/somepage").putHeader("xyz-api-key", "APIKEY2"), 401, "Unauthorized");
   }
 
   @Test
@@ -90,11 +91,11 @@ public class APIKeyHandlerTest extends WebTestBase {
       rc.response().end("Welcome to the protected resource!");
     });
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, null, 401, "Unauthorized", null);
+    testRequest(HttpMethod.GET, "/protected/somepage", 401, "Unauthorized", null);
     // Now try again with API Key
-    testRequest(HttpMethod.GET, "/protected/somepage?api_key=APIKEY", null, 200, "OK", "Welcome to the protected resource!");
+    testRequest(HttpMethod.GET, "/protected/somepage?api_key=APIKEY", 200, "OK", "Welcome to the protected resource!");
     // Now try again with wrong API Key
-    testRequest(HttpMethod.GET, "/protected/somepage?api_key=APIKEY2", null, 401, "Unauthorized", null);
+    testRequest(HttpMethod.GET, "/protected/somepage?api_key=APIKEY2", 401, "Unauthorized", null);
   }
 
   @Test
@@ -107,11 +108,11 @@ public class APIKeyHandlerTest extends WebTestBase {
       rc.response().end("Welcome to the protected resource!");
     });
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, null, 401, "Unauthorized", null);
+    testRequest(HttpMethod.GET, "/protected/somepage", 401, "Unauthorized", null);
     // Now try again with API Key
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Cookie", "api-key=APIKEY"), 200, "OK", "Welcome to the protected resource!");
+    testRequest(webClient.get("/protected/somepage").putHeader("Cookie", "api-key=APIKEY"), 200, "OK", "Welcome to the protected resource!");
     // Now try again with wrong API Key
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Cookie", "api-key=APIKEY2"), 401, "Unauthorized", null);
+    testRequest(webClient.get("/protected/somepage").putHeader("Cookie", "api-key=APIKEY2"), 401, "Unauthorized");
   }
 
   @Test
@@ -124,11 +125,11 @@ public class APIKeyHandlerTest extends WebTestBase {
       rc.response().end("Welcome to the protected resource!");
     });
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, null, 401, "Unauthorized", null);
+    testRequest(HttpMethod.GET, "/protected/somepage", 401, "Unauthorized", null);
     // Now try again with API Key
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("x-api-key", "Foo APIKEY"), 200, "OK", "Welcome to the protected resource!");
+    testRequest(webClient.get("/protected/somepage").putHeader("x-api-key", "Foo APIKEY"), 200, "OK", "Welcome to the protected resource!");
     // Now try again with wrong API Key
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("x-api-key", "Foo APIKEY2"), 401, "Unauthorized", null);
+    testRequest(webClient.get("/protected/somepage").putHeader("x-api-key", "Foo APIKEY2"), 401, "Unauthorized");
   }
 
 }

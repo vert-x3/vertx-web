@@ -24,11 +24,13 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.instrumentation.VertxFutureAdapter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static graphql.schema.idl.RuntimeWiring.*;
 import static io.vertx.core.http.HttpMethod.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class VertxFutureInstrumentationTest extends GraphQLTestBase {
 
@@ -55,31 +57,19 @@ public class VertxFutureInstrumentationTest extends GraphQLTestBase {
   }
 
   @Test
-  public void testSimpleGet() throws Exception {
+  public void testSimpleGet() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client).onComplete(onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.urls(), body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertTrue(testData.checkLinkUrls(testData.urls(), body), body.toString());
   }
 
   @Test
-  public void testSimplePost() throws Exception {
+  public void testSimplePost() {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client).onComplete(onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.urls(), body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    assertTrue(testData.checkLinkUrls(testData.urls(), body), body.toString());
   }
 }

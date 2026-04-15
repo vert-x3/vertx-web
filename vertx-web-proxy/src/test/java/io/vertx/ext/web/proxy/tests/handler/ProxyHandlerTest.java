@@ -8,16 +8,17 @@ import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.proxy.handler.ProxyHandler;
 import io.vertx.ext.web.proxy.tests.WebProxyTestBase;
 import io.vertx.httpproxy.HttpProxy;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author <a href="mailto:emad.albloushi@gmail.com">Emad Alblueshi</a>
  */
-
 public class ProxyHandlerTest extends WebProxyTestBase {
 
   @Test
-  public void shouldFailWithBodyHandlerOnPreviousMatchingRoute() throws Exception {
+  public void shouldFailWithBodyHandlerOnPreviousMatchingRoute() {
     HttpProxy proxy = HttpProxy.reverseProxy(proxyClient);
     proxy.origin(1234, "localhost");
     router.route().handler(BodyHandler.create());
@@ -25,17 +26,19 @@ public class ProxyHandlerTest extends WebProxyTestBase {
     testRequest(HttpMethod.GET, "/path", 500, "Internal Server Error");
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void shouldFailWithBodyHandlerOnSameRoute() throws Exception {
+  @Test
+  public void shouldFailWithBodyHandlerOnSameRoute() {
     HttpProxy proxy = HttpProxy.reverseProxy(proxyClient);
     proxy.origin(1234, "localhost");
-    router.get("/path")
-      .handler(BodyHandler.create())
-      .handler(ProxyHandler.create(proxy));
+    assertThrows(IllegalStateException.class, () -> {
+      router.get("/path")
+        .handler(BodyHandler.create())
+        .handler(ProxyHandler.create(proxy));
+    });
   }
 
   @Test
-  public void shouldPassAuthHandlerOnSameRoute() throws Exception {
+  public void shouldPassAuthHandlerOnSameRoute() {
     HttpProxy proxy = HttpProxy.reverseProxy(proxyClient);
     proxy.origin(1234, "localhost");
     router.get("/path")
@@ -50,7 +53,7 @@ public class ProxyHandlerTest extends WebProxyTestBase {
   }
 
   @Test
-  public void testProxyHandler() throws Exception {
+  public void testProxyHandler() {
     HttpProxy proxy = HttpProxy.reverseProxy(proxyClient);
     proxy.origin(1234, "localhost");
     router.route(HttpMethod.GET, "/path").handler(ProxyHandler.create(proxy));
@@ -63,7 +66,7 @@ public class ProxyHandlerTest extends WebProxyTestBase {
   }
 
   @Test
-  public void testProxyHandlerWithPortHost() throws Exception {
+  public void testProxyHandlerWithPortHost() {
     HttpProxy proxy1 = HttpProxy.reverseProxy(proxyClient);
     router.route(HttpMethod.GET, "/path").handler(ProxyHandler.create(proxy1, 1234, "localhost"));
     backendRouter.route(HttpMethod.GET, "/path").handler(rc -> {

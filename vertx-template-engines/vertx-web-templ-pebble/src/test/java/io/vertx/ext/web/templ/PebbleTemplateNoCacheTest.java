@@ -18,36 +18,35 @@ package io.vertx.ext.web.templ;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import io.vertx.ext.web.templ.pebble.PebbleTemplateEngine;
-import org.junit.runner.RunWith;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Dan Kristensen
  */
-@RunWith(VertxUnitRunner.class)
 public class PebbleTemplateNoCacheTest {
 
   private static Vertx vertx;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(false)));
   }
 
   @Test
-  public void testCachingDisabled(TestContext should) throws IOException {
+  public void testCachingDisabled() throws IOException {
     System.setProperty("vertxweb.environment", "development");
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
@@ -59,20 +58,16 @@ public class PebbleTemplateNoCacheTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("before", PebbleTemplateTest.normalizeCRLF(render.toString()));
-      // cache is enabled so if we change the content that should not affect the result
+    Buffer render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("before", PebbleTemplateTest.normalizeCRLF(render.toString()));
+    // cache is enabled so if we change the content that should not affect the result
 
-      try (PrintWriter out2 = new PrintWriter(temp)) {
-        out2.print("after");
-        out2.flush();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    try (PrintWriter out2 = new PrintWriter(temp)) {
+      out2.print("after");
+      out2.flush();
+    }
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
-        should.assertEquals("after", PebbleTemplateTest.normalizeCRLF(render2.toString()));
-      }));
-    }));
+    render = engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName()).await();
+    assertEquals("after", PebbleTemplateTest.normalizeCRLF(render.toString()));
   }
 }

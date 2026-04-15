@@ -18,16 +18,20 @@ package io.vertx.ext.web.it;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 public class RoutingContextDatabindTest extends WebTestBase {
 
-  @AfterClass
+  @AfterAll
   public static void oneTimeTearDown() {
     Vertx vertx = Vertx.vertx();
     if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
@@ -36,8 +40,9 @@ public class RoutingContextDatabindTest extends WebTestBase {
   }
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     router.route().handler(BodyHandler.create());
   }
 
@@ -68,10 +73,10 @@ public class RoutingContextDatabindTest extends WebTestBase {
       p.setX(10);
       p.setY(20);
       ctx.json(p);
-    }).failureHandler(ctx -> {ctx.failure().printStackTrace(); });
+    }).failureHandler(ctx -> {
+    });
 
-    testRequest(HttpMethod.GET, "/", null, res -> {
-      assertEquals("application/json", res.getHeader("Content-Type"));
-    }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "{\"x\":10,\"y\":20}");
+    HttpResponse<Buffer> res = testRequest(webClient.get("/").send(), HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), "{\"x\":10,\"y\":20}");
+    assertEquals("application/json", res.getHeader("Content-Type"));
   }
 }

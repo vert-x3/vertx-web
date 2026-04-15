@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.otp.Authenticator;
 import io.vertx.ext.auth.otp.hotp.HotpAuth;
@@ -14,7 +15,11 @@ import io.vertx.ext.web.handler.OtpAuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,8 +55,9 @@ public class OtpHandlerTest  extends WebTestBase {
   }
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
 
     router.post()
       .handler(BodyHandler.create());
@@ -94,7 +100,7 @@ public class OtpHandlerTest  extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected", 401, "Unauthorized");
 
     // Trigger 401 by OTP Auth
-    testRequest(HttpMethod.GET, "/protected", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), 401, "Unauthorized", "Unauthorized");
+    testRequest(webClient.get("/protected").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), 401, "Unauthorized", "Unauthorized");
   }
 
   @Test
@@ -128,7 +134,7 @@ public class OtpHandlerTest  extends WebTestBase {
     testRequest(HttpMethod.GET, "/protected", 401, "Unauthorized");
 
     // Trigger 302 by OTP Auth
-    testRequest(HttpMethod.GET, "/protected", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), 302, "Found", "Redirecting to /otp/verify.html.");
+    testRequest(webClient.get("/protected").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), 302, "Found", "Redirecting to /otp/verify.html.");
   }
 
 
@@ -160,31 +166,17 @@ public class OtpHandlerTest  extends WebTestBase {
     });
 
     // Trigger 200 by OTP Auth
-    testRequest(
-      HttpMethod.POST,
-      "/otp/register",
-      req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="),
-      res -> {
-        res.body()
-          .onFailure(this::fail)
-          .onSuccess(body -> {
-            try {
-              JsonObject json = new JsonObject(body);
-              assertEquals("Vert.x Demo", json.getString("issuer"));
-              assertNotNull(json.getString("url"));
-              assertTrue(json.getString("url").startsWith("otpauth://hotp/Vert.x+Demo:tim?secret="));
-              assertTrue(json.getString("url").endsWith("&counter=0"));
-              testComplete();
-            } catch (Exception e) {
-              fail(e);
-            }
-          });
-      },
+    HttpResponse<Buffer> res = testRequest(
+      webClient.post("/otp/register")
+        .putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==")
+        .send(),
       200,
-      "OK",
-      null);
-
-    await();
+      "OK");
+    JsonObject json = new JsonObject(res.body());
+    assertEquals("Vert.x Demo", json.getString("issuer"));
+    assertNotNull(json.getString("url"));
+    assertTrue(json.getString("url").startsWith("otpauth://hotp/Vert.x+Demo:tim?secret="));
+    assertTrue(json.getString("url").endsWith("&counter=0"));
   }
 
   @Test
@@ -221,26 +213,18 @@ public class OtpHandlerTest  extends WebTestBase {
     });
 
     // Trigger 401 by OTP Auth
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer(
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"code\"\r\n\r\n000000\r\n" +
+        "--" + boundary + "--\r\n");
     testRequest(
-      HttpMethod.POST,
-      "/otp/verify",
-      req -> {
-        req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
-
-        String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-        Buffer buffer = Buffer.buffer();
-        String str =
-          "--" + boundary + "\r\n" +
-            "Content-Disposition: form-data; name=\"code\"\r\n\r\n000000\r\n" +
-            "--" + boundary + "--\r\n";
-        buffer.appendString(str);
-        req.putHeader("content-length", String.valueOf(buffer.length()));
-        req.putHeader("content-type", "multipart/form-data; boundary=" + boundary);
-        req.write(buffer);
-      },
+      webClient.post("/otp/verify")
+        .putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==")
+        .putHeader("content-type", "multipart/form-data; boundary=" + boundary)
+        .sendBuffer(buffer),
       401,
-      "Unauthorized",
-      null);
+      "Unauthorized");
   }
 
   @Test
@@ -279,42 +263,30 @@ public class OtpHandlerTest  extends WebTestBase {
     AtomicReference<String> rSetCookie = new AtomicReference<>();
 
     // Trigger 302 by OTP Auth
-    testRequest(
-      HttpMethod.POST,
-      "/otp/verify",
-      req -> {
-        req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
+    String str =
+      "--" + boundary + "\r\n" +
 
-        String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-        Buffer buffer = Buffer.buffer();
-        String str =
-          "--" + boundary + "\r\n" +
+        // oathtool --hotp -c 1 --base32 FNQTLXVB74MKCGYYHXBKEKCGAHPXK7ED
 
-            // oathtool --hotp -c 1 --base32 FNQTLXVB74MKCGYYHXBKEKCGAHPXK7ED
-
-            "Content-Disposition: form-data; name=\"code\"\r\n\r\n793127\r\n" +
-            "--" + boundary + "--\r\n";
-        buffer.appendString(str);
-        req.putHeader("content-length", String.valueOf(buffer.length()));
-        req.putHeader("content-type", "multipart/form-data; boundary=" + boundary);
-        req.write(buffer);
-      },
-      res -> {
-        String setCookie = res.headers().get("set-cookie");
-        rSetCookie.set(setCookie);
-      },
+        "Content-Disposition: form-data; name=\"code\"\r\n\r\n793127\r\n" +
+        "--" + boundary + "--\r\n";
+    buffer.appendString(str);
+    HttpResponse<Buffer> res = testRequest(
+      webClient.post("/otp/verify")
+        .putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==")
+        .putHeader("content-type", "multipart/form-data; boundary=" + boundary)
+        .followRedirects(false)
+        .sendBuffer(buffer),
       302,
       "Found",
       "Redirecting to /.");
+    String setCookie = res.headers().get("set-cookie");
+    rSetCookie.set(setCookie);
 
     // try to go to the end of the chain
-    testRequest(
-      HttpMethod.GET,
-      "/",
-      req -> req.putHeader("cookie", rSetCookie.get()),
-      200,
-      "OK",
-      "OTP OK");
+    testRequest(webClient.get("/").putHeader("cookie", rSetCookie.get()), 200, "OK", "OTP OK");
 
   }
 }

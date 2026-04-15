@@ -19,32 +19,37 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import io.vertx.test.core.VertxTestBase;
+import io.vertx.junit5.VertxTest;
+import org.junit.jupiter.api.BeforeEach;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
  * @author Ben Ripkens
  */
-abstract class SockJSTestBase extends VertxTestBase {
+@VertxTest
+abstract class SockJSTestBase {
 
+  protected Vertx vertx;
   int numServers = 1;
   HttpClient client;
+  WebClient webClient;
   WebSocketClient wsClient;
   Consumer<Router> preSockJSHandlerSetup;
   Supplier<Handler<SockJSSocket>> socketHandler;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx) throws Exception {
+    this.vertx = vertx;
     client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setKeepAlive(false));
+    webClient = WebClient.wrap(client);
     wsClient = vertx.createWebSocketClient(new WebSocketClientOptions().setDefaultPort(8080));
   }
 
@@ -53,7 +58,6 @@ abstract class SockJSTestBase extends VertxTestBase {
   }
 
   void startServers(SockJSHandlerOptions options) throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
     vertx.deployVerticle(() -> new VerticleBase() {
       @Override
       public Future<?> start() throws Exception {
@@ -77,7 +81,6 @@ abstract class SockJSTestBase extends VertxTestBase {
           .requestHandler(router)
           .listen();
       }
-    }, new DeploymentOptions().setInstances(numServers)).onComplete(onSuccess(id -> latch.countDown()));
-    awaitLatch(latch);
+    }, new DeploymentOptions().setInstances(numServers)).await();
   }
 }

@@ -84,14 +84,8 @@
 
     <!-- Testing -->
     <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <version>3.27.7</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-unit</artifactId>
+      <artifactId>vertx-web-client</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -115,17 +109,17 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>com.webauthn4j</groupId>
-        <artifactId>webauthn4j-test</artifactId>
-        <scope>test</scope>
-        <version>${webauthn4j.version}</version>
-        <exclusions>
-            <!--Causes double module import by different paths otherwise-->
-            <exclusion>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-jcl</artifactId>
-            </exclusion>
-        </exclusions>
+      <groupId>com.webauthn4j</groupId>
+      <artifactId>webauthn4j-test</artifactId>
+      <scope>test</scope>
+      <version>${webauthn4j.version}</version>
+      <exclusions>
+        <!--Causes double module import by different paths otherwise-->
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-jcl</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 

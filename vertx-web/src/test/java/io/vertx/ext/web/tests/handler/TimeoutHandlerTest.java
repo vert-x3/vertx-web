@@ -20,9 +20,11 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.TimeoutHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -30,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class TimeoutHandlerTest extends WebTestBase {
 
   @Test
-  public void testTimeout() throws Exception {
+  public void testTimeout() {
     long timeout = 500;
     router.route().handler(TimeoutHandler.create(timeout));
     router.route().handler(rc -> {
@@ -40,7 +42,7 @@ public class TimeoutHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testTimeoutWithCustomEndHandler() throws Exception {
+  public void testTimeoutWithCustomEndHandler() {
     long timeout = 500;
 
     AtomicBoolean ended = new AtomicBoolean();
@@ -55,7 +57,7 @@ public class TimeoutHandlerTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/", 503, "Service Unavailable");
 
-    waitUntil(ended::get);
+    assertWaitUntil(ended::get);
   }
 
 
@@ -65,7 +67,6 @@ public class TimeoutHandlerTest extends WebTestBase {
     router.route().handler(TimeoutHandler.create(timeout));
     router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", 200, "OK");
-    Thread.sleep(1000); // Let timer kick in, if it's going to
   }
 
   @Test
@@ -75,6 +76,5 @@ public class TimeoutHandlerTest extends WebTestBase {
     router.get("/b").handler(RoutingContext::end);
     router.errorHandler(TimeoutHandler.DEFAULT_ERRORCODE, rc -> fail());
     testRequest(HttpMethod.GET, "/a", 200, "OK");
-    Thread.sleep(1000);
   }
 }

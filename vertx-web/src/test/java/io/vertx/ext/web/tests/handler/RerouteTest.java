@@ -15,12 +15,15 @@
  */
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -29,7 +32,7 @@ import java.io.IOException;
  */
 public class RerouteTest extends WebTestBase {
 
-  @AfterClass
+  @AfterAll
   public static void oneTimeTearDown() throws IOException {
     cleanupFileUploadDir();
   }
@@ -64,10 +67,7 @@ public class RerouteTest extends WebTestBase {
     router.route("/test/v1").handler(ctx -> ctx.reroute("/test/v2"));
     router.route("/test/v2").handler(ctx -> ctx.response().end());
 
-    testRequest(HttpMethod.POST, "/test/v1", req -> {
-      req.setChunked(true);
-      req.write("Test HTTP Body");
-    }, 200, "OK", null);
+    testRequest(webClient.post("/test/v1").sendBuffer(Buffer.buffer("Test HTTP Body")), 200, "OK");
   }
 
   @Test
@@ -95,7 +95,8 @@ public class RerouteTest extends WebTestBase {
       ctx.reroute("/users/paulo");
     });
 
-    testRequest(HttpMethod.GET, "/me", null, res -> assertNull(res.getHeader("X-woop")), 200, "OK", "/users/:name");
+    HttpResponse<Buffer> res = testRequest(webClient.get("/me").send(), 200, "OK", "/users/:name");
+    assertNull(res.getHeader("X-woop"));
   }
 
   @Test
@@ -109,7 +110,8 @@ public class RerouteTest extends WebTestBase {
       ctx.reroute("/users/paulo");
     });
 
-    testRequest(HttpMethod.GET, "/me", null, res -> assertEquals("durp2", res.getHeader("X-woop")), 200, "OK", "/users/:name");
+    HttpResponse<Buffer> res = testRequest(webClient.get("/me").send(), 200, "OK", "/users/:name");
+    assertEquals("durp2", res.getHeader("X-woop"));
   }
 
   @Test
@@ -123,10 +125,9 @@ public class RerouteTest extends WebTestBase {
       ctx.reroute("/users/paulo");
     });
 
-    testRequest(HttpMethod.GET, "/me", null, res -> {
-      assertEquals("durp2", res.getHeader("X-woop"));
-      assertNull(res.getHeader("Cookie"));
-    }, 200, "OK", "/users/:name");
+    HttpResponse<Buffer> res = testRequest(webClient.get("/me").send(), 200, "OK", "/users/:name");
+    assertEquals("durp2", res.getHeader("X-woop"));
+    assertNull(res.getHeader("Cookie"));
   }
 
   @Test

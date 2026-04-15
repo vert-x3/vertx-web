@@ -16,30 +16,28 @@
 
 package io.vertx.ext.web.sstore.cookie.tests;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.junit.RunTestOnContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.cookie.CookieSessionStore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-@RunWith(VertxUnitRunner.class)
 public class CookieSessionCreateTest {
-
-  @Rule
-  public RunTestOnContext rule = new RunTestOnContext();
 
   @Test
   public void testCreateStore() throws Exception {
-    SessionStore store = SessionStore.create(rule.vertx(), new JsonObject().put("secret", "KeyboardCat!"));
-    assertNotNull(store);
-    assertTrue(store instanceof CookieSessionStore);
+    Vertx vertx = Vertx.vertx();
+    try {
+      SessionStore store = SessionStore.create(vertx, new JsonObject().put("secret", "KeyboardCat!"));
+      assertNotNull(store);
+      assertInstanceOf(CookieSessionStore.class, store);
+    } finally {
+      vertx.close().await();
+    }
   }
 }

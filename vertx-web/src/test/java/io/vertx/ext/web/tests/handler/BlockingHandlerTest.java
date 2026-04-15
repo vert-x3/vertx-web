@@ -17,13 +17,18 @@
 package io.vertx.ext.web.tests.handler;
 
 import io.vertx.core.Context;
+import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author <a href="mailto:stephane.bastian.dev@gmail.com">Stéphane Bastian</a>
@@ -31,8 +36,9 @@ import java.util.concurrent.CountDownLatch;
 public class BlockingHandlerTest extends WebTestBase {
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
   }
 
   @Test
@@ -146,18 +152,15 @@ public class BlockingHandlerTest extends WebTestBase {
       rc.response().end();
     }, false);
 
-    CountDownLatch latch = new CountDownLatch(numExecBlocking);
+    List<Future<Void>> futures = new ArrayList<>();
     for (int i = 0; i < numExecBlocking; i++) {
-      client.request(HttpMethod.GET, "/").onComplete(onSuccess(req -> {
-        req.send().onComplete(onSuccess(resp -> {
-          assertEquals(200, resp.statusCode());
-          assertEquals("OK", resp.statusMessage());
-          latch.countDown();
-        }));
-      }));
+      futures.add(webClient.get("/").send()
+        .expecting(HttpResponseExpectation.SC_OK)
+        .mapEmpty());
     }
-
-    awaitLatch(latch);
+    for (Future<Void> future : futures) {
+      future.await();
+    }
 
     long now = System.currentTimeMillis();
     // we sleep for 5 seconds and we expect to be done within 2 + 1 seconds

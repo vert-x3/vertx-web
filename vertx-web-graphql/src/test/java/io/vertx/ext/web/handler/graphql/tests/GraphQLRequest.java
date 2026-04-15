@@ -16,11 +16,14 @@
 
 package io.vertx.ext.web.handler.graphql.tests;
 
-import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClient;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -31,6 +34,7 @@ import java.util.Map;
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
 import static java.util.stream.Collectors.joining;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Thomas Segismont
@@ -126,46 +130,37 @@ public class GraphQLRequest {
     return this;
   }
 
-  Future<JsonObject> send(HttpClient client) throws Exception {
+  JsonObject send(WebClient client) {
     return send(client, 200);
   }
 
-  Future<JsonObject> send(HttpClient client, int expectedStatus) throws Exception {
-    return client
-      .request(method, 8080, "localhost", getUri())
-      .compose(request -> {
-      if (locale != null) {
-        request.putHeader("Accept-Language", locale);
-      }
-      if (contentType != null) {
-        request.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
-      }
-      Buffer buffer;
-      if (requestBody != null) {
-        buffer = requestBody;
-      } else if (GRAPHQL.equalsIgnoreCase(contentType)) {
-        buffer = graphQLQuery != null ? Buffer.buffer(graphQLQuery) : null;
-      } else {
-        buffer = getJsonBody();
-      }
-      Future<HttpClientResponse> fut2;
-      if (buffer != null) {
-        fut2 = request.send(buffer);
-      } else {
-        fut2 = request.send();
-      }
-      return fut2.compose(response -> {
-        if (expectedStatus != response.statusCode()) {
-          return Future.failedFuture(response.statusCode() + " " + response.statusMessage());
-        } else if (response.statusCode() == 200) {
-          return response
-            .body()
-            .map(JsonObject::new);
-        } else {
-          return Future.succeededFuture();
-        }
-      });
-    });
+  JsonObject send(WebClient client, int expectedStatus) {
+    HttpRequest<Buffer> request = client.request(method, 8080, "localhost", getUri());
+    if (locale != null) {
+      request.putHeader("Accept-Language", locale);
+    }
+    if (contentType != null) {
+      request.putHeader(HttpHeaders.CONTENT_TYPE.toString(), contentType);
+    }
+    Buffer buffer;
+    if (requestBody != null) {
+      buffer = requestBody;
+    } else if (GRAPHQL.equalsIgnoreCase(contentType)) {
+      buffer = graphQLQuery != null ? Buffer.buffer(graphQLQuery) : null;
+    } else {
+      buffer = getJsonBody();
+    }
+    HttpResponse<Buffer> response;
+    if (buffer != null) {
+      response = request.sendBuffer(buffer).await();
+    } else {
+      response = request.send().await();
+    }
+    assertEquals(expectedStatus, response.statusCode());
+    if (response.statusCode() == 200) {
+      return response.bodyAsJsonObject();
+    }
+    return null;
   }
 
   private String getUri() {

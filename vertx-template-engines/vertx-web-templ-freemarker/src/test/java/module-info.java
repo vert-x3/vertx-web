@@ -17,7 +17,6 @@
 open module io.vertx.web.template.freemarker.tests {
   requires io.vertx.core;
   requires io.vertx.web.common;
-  requires io.vertx.testing.unit;
   requires io.vertx.web.template.freemarker;
-  requires junit;
+  requires org.junit.jupiter.api;
 }

@@ -5,284 +5,199 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.SseEvent;
 import io.vertx.ext.web.codec.spi.BodyStream;
-import io.vertx.test.core.VertxTestBase;
-import org.junit.Test;
+import io.vertx.junit5.VertxTest;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class SseBodyCodecTest extends VertxTestBase {
+import static org.junit.jupiter.api.Assertions.*;
+
+@VertxTest
+public class SseBodyCodecTest {
 
   @Test
-  public void testBasicEventParsing() {
+  public void testBasicEventParsing() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("event: test\ndata: hello world\nid: 1\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
+    Buffer data = Buffer.buffer("event: test\ndata: hello world\nid: 1\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
 
-        SseEvent event = events.get(0);
-        assertEquals("test", event.event());
-        assertEquals("hello world", event.data());
-        assertEquals("1", event.id());
-        assertEquals(0, event.retry());
-
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    SseEvent event = events.get(0);
+    assertEquals("test", event.event());
+    assertEquals("hello world", event.data());
+    assertEquals("1", event.id());
+    assertEquals(0, event.retry());
   }
 
   @Test
-  public void testMultipleEvents() {
+  public void testMultipleEvents() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("event: first\ndata: data1\n\nevent: second\ndata: data2\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(2, events.size());
+    Buffer data = Buffer.buffer("event: first\ndata: data1\n\nevent: second\ndata: data2\n\n");
+    stream.write(data).await();
+    assertEquals(2, events.size());
 
-        assertEquals("first", events.get(0).event());
-        assertEquals("data1", events.get(0).data());
-        assertEquals("second", events.get(1).event());
-        assertEquals("data2", events.get(1).data());
-
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    assertEquals("first", events.get(0).event());
+    assertEquals("data1", events.get(0).data());
+    assertEquals("second", events.get(1).event());
+    assertEquals("data2", events.get(1).data());
   }
 
   @Test
-  public void testRetryField() {
+  public void testRetryField() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("retry: 5000\ndata: test\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals(5000, events.get(0).retry());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    Buffer data = Buffer.buffer("retry: 5000\ndata: test\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    assertEquals(5000, events.get(0).retry());
   }
 
   @Test
-  public void testInvalidRetryField() {
+  public void testInvalidRetryField(VertxTestContext testContext) throws Exception {
     AtomicReference<Throwable> caught = new AtomicReference<>();
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(evt -> fail("Should not receive event"));
       stream.exceptionHandler(err -> {
         caught.set(err);
-        testComplete();
+        assertNotNull(caught.get());
+        assertTrue(caught.get().getMessage().contains("Invalid \"retry\" value"));
+        testContext.completeNow();
       });
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
-      Buffer data = Buffer.buffer("retry: invalid\ndata: test\n\n");
-      stream.write(data);
-    } catch (Exception e) {
-      fail(e);
-    }
-
-    await();
-    assertNotNull(caught.get());
-    assertTrue(caught.get().getMessage().contains("Invalid \"retry\" value"));
+    BodyStream<Void> stream = codec.stream();
+    Buffer data = Buffer.buffer("retry: invalid\ndata: test\n\n");
+    stream.write(data);
   }
 
   @Test
-  public void testCommentLines() {
+  public void testCommentLines() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer(": this is a comment\ndata: actual data\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("actual data", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    Buffer data = Buffer.buffer(": this is a comment\ndata: actual data\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    assertEquals("actual data", events.get(0).data());
   }
 
   @Test
-  public void testFieldWithoutColon() {
+  public void testFieldWithoutColon() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("data\nevent: test\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("test", events.get(0).event());
-        assertEquals("", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    Buffer data = Buffer.buffer("data\nevent: test\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    assertEquals("test", events.get(0).event());
+    assertEquals("", events.get(0).data());
   }
 
   @Test
-  public void testFieldWithLeadingSpace() {
+  public void testFieldWithLeadingSpace() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("data: value with space\nevent: test\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("value with space", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    Buffer data = Buffer.buffer("data: value with space\nevent: test\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    assertEquals("value with space", events.get(0).data());
   }
 
   @Test
-  public void testMultipleDataFields() {
+  public void testMultipleDataFields() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("data: line1\ndata: line2\ndata: line3\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        // Per SSE spec: multiple data fields should be concatenated with newlines
-        assertEquals("line1\nline2\nline3", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    Buffer data = Buffer.buffer("data: line1\ndata: line2\ndata: line3\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    // Per SSE spec: multiple data fields should be concatenated with newlines
+    assertEquals("line1\nline2\nline3", events.get(0).data());
   }
 
   @Test
-  public void testUnknownFieldsIgnored() {
+  public void testUnknownFieldsIgnored() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("unknown: value\ndata: test\ncustom: ignored\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("test", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    Buffer data = Buffer.buffer("unknown: value\ndata: test\ncustom: ignored\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    assertEquals("test", events.get(0).data());
   }
 
   @Test
-  public void testBackpressure() {
+  public void testBackpressure() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      // Write enough data to trigger backpressure (HIGH_WATERMARK = 4096)
-      StringBuilder largeData = new StringBuilder();
-      for (int i = 0; i < 5000; i++) {
-        largeData.append('x');
-      }
-
-      Buffer data = Buffer.buffer("data: " + largeData);
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertTrue(stream.writeQueueFull());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
+    // Write enough data to trigger backpressure (HIGH_WATERMARK = 4096)
+    StringBuilder largeData = new StringBuilder();
+    for (int i = 0; i < 5000; i++) {
+      largeData.append('x');
     }
 
-    await();
+    Buffer data = Buffer.buffer("data: " + largeData);
+    stream.write(data).await();
+    assertTrue(stream.writeQueueFull());
   }
 
   @Test
-  public void testStreamEnded() {
+  public void testStreamEnded() throws Exception {
     List<SseEvent> events = new ArrayList<>();
     AtomicReference<Boolean> endCalled = new AtomicReference<>(false);
 
@@ -291,155 +206,102 @@ public class SseBodyCodecTest extends VertxTestBase {
       stream.endHandler(v -> endCalled.set(true));
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("data: test\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
+    Buffer data = Buffer.buffer("data: test\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
 
-        stream.end().onComplete(endAr -> {
-          assertTrue(endAr.succeeded());
-          assertTrue(endCalled.get());
-          testComplete();
-        });
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    stream.end().await();
+    assertTrue(endCalled.get());
   }
 
   @Test
-  public void testEndWithPendingData() {
+  public void testEndWithPendingData() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("data: incomplete");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(0, events.size()); // No complete event yet
+    Buffer data = Buffer.buffer("data: incomplete");
+    stream.write(data).await();
+    assertEquals(0, events.size()); // No complete event yet
 
-        stream.end().onComplete(endAr -> {
-          assertTrue(endAr.succeeded());
-          // Incomplete data should not be dispatched
-          assertEquals(0, events.size());
-          testComplete();
-        });
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    stream.end().await();
+    // Incomplete data should not be dispatched
+    assertEquals(0, events.size());
   }
 
   @Test
-  public void testCarriageReturnLineSeparator() {
+  public void testCarriageReturnLineSeparator() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("data: test\r\r");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("test", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    Buffer data = Buffer.buffer("data: test\r\r");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    assertEquals("test", events.get(0).data());
   }
 
   @Test
-  public void testWriteQueueMethods() {
+  public void testWriteQueueMethods() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      stream.setWriteQueueMaxSize(100);
-      assertFalse(stream.writeQueueFull());
+    stream.setWriteQueueMaxSize(100);
+    assertFalse(stream.writeQueueFull());
 
-      AtomicReference<Void> drainCalled = new AtomicReference<>();
-      stream.drainHandler(v -> drainCalled.set(v));
-
-      testComplete();
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    AtomicReference<Void> drainCalled = new AtomicReference<>();
+    stream.drainHandler(v -> drainCalled.set(v));
   }
 
   @Test
-  public void testExceptionHandler() {
+  public void testExceptionHandler() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      AtomicReference<Throwable> exception = new AtomicReference<>();
-      stream.exceptionHandler(exception::set);
+    AtomicReference<Throwable> exception = new AtomicReference<>();
+    stream.exceptionHandler(exception::set);
 
-      // The exceptionHandler returns null in the current implementation
-      // This test just verifies it doesn't crash
-      testComplete();
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    // The exceptionHandler returns null in the current implementation
+    // This test just verifies it doesn't crash
   }
 
   @Test
-  public void testResultFuture() {
+  public void testResultFuture() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Future<Void> result = stream.result();
-      assertTrue(result.isComplete()); // Returns succeeded future immediately
-      assertTrue(result.succeeded());
-      testComplete();
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    Future<Void> result = stream.result();
+    assertTrue(result.isComplete()); // Returns succeeded future immediately
+    assertTrue(result.succeeded());
   }
 
   @Test
-  public void testPauseResume() {
+  public void testPauseResume() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
@@ -447,25 +309,16 @@ public class SseBodyCodecTest extends VertxTestBase {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("data: test1\n\ndata: test2\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        // Events should not be delivered while paused
-        assertEquals(0, events.size());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    Buffer data = Buffer.buffer("data: test1\n\ndata: test2\n\n");
+    stream.write(data).await();
+    // Events should not be delivered while paused
+    assertEquals(0, events.size());
   }
 
   @Test
-  public void testFetch() {
+  public void testFetch() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
@@ -474,129 +327,84 @@ public class SseBodyCodecTest extends VertxTestBase {
       stream.fetch(1);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      Buffer data = Buffer.buffer("data: test1\n\ndata: test2\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        // Only one event should be delivered
-        assertEquals(1, events.size());
-        assertEquals("test1", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    Buffer data = Buffer.buffer("data: test1\n\ndata: test2\n\n");
+    stream.write(data).await();
+    // Only one event should be delivered
+    assertEquals(1, events.size());
+    assertEquals("test1", events.get(0).data());
   }
 
   @Test
-  public void testMultipleDataFieldsWithTrailingNewline() {
+  public void testMultipleDataFieldsWithTrailingNewline() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      // According to SSE spec, when concatenating multiple data fields:
-      // 1. Append each field value with a newline
-      // 2. Remove the final trailing newline before dispatching
-      Buffer data = Buffer.buffer("data: first\ndata: second\ndata: third\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        // The trailing newline after "third" should be stripped
-        assertEquals("first\nsecond\nthird", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    // According to SSE spec, when concatenating multiple data fields:
+    // 1. Append each field value with a newline
+    // 2. Remove the final trailing newline before dispatching
+    Buffer data = Buffer.buffer("data: first\ndata: second\ndata: third\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    // The trailing newline after "third" should be stripped
+    assertEquals("first\nsecond\nthird", events.get(0).data());
   }
 
   @Test
-  public void testSingleDataFieldNoTrailingNewline() {
+  public void testSingleDataFieldNoTrailingNewline() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      // Single data field - no trailing newline to strip
-      Buffer data = Buffer.buffer("data: single line\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("single line", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    // Single data field - no trailing newline to strip
+    Buffer data = Buffer.buffer("data: single line\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    assertEquals("single line", events.get(0).data());
   }
 
   @Test
-  public void testMultipleDataFieldsWithEmptyLines() {
+  public void testMultipleDataFieldsWithEmptyLines() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      // Test with empty data fields (should still add newlines)
-      Buffer data = Buffer.buffer("data: line1\ndata:\ndata: line3\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        // Empty data field still contributes a newline
-        assertEquals("line1\n\nline3", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    // Test with empty data fields (should still add newlines)
+    Buffer data = Buffer.buffer("data: line1\ndata:\ndata: line3\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    // Empty data field still contributes a newline
+    assertEquals("line1\n\nline3", events.get(0).data());
   }
 
   @Test
-  public void testDataFieldWithActualNewlines() {
+  public void testDataFieldWithActualNewlines() throws Exception {
     List<SseEvent> events = new ArrayList<>();
 
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
     });
 
-    try {
-      BodyStream<Void> stream = codec.stream();
+    BodyStream<Void> stream = codec.stream();
 
-      // SSE spec allows multiline data by using multiple data: fields
-      Buffer data = Buffer.buffer("data: This is\ndata: a multiline\ndata: message\n\n");
-      stream.write(data).onComplete(writeAr -> {
-        assertTrue(writeAr.succeeded());
-        assertEquals(1, events.size());
-        assertEquals("This is\na multiline\nmessage", events.get(0).data());
-        testComplete();
-      });
-    } catch (Exception e) {
-      fail(e.getMessage());
-    }
-
-    await();
+    // SSE spec allows multiline data by using multiple data: fields
+    Buffer data = Buffer.buffer("data: This is\ndata: a multiline\ndata: message\n\n");
+    stream.write(data).await();
+    assertEquals(1, events.size());
+    assertEquals("This is\na multiline\nmessage", events.get(0).data());
   }
 }

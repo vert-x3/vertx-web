@@ -33,11 +33,6 @@
       <artifactId>vertx-web-common</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-unit</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>

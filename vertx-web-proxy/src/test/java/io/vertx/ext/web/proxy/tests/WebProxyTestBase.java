@@ -1,19 +1,19 @@
 package io.vertx.ext.web.proxy.tests;
 
-
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.tests.WebTestBase;
-
-import java.util.concurrent.CountDownLatch;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author <a href="mailto:emad.albloushi@gmail.com">Emad Alblueshi</a>
  */
-
 public class WebProxyTestBase extends WebTestBase {
 
   protected HttpServer backendServer;
@@ -21,14 +21,13 @@ public class WebProxyTestBase extends WebTestBase {
   protected Router backendRouter;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     backendRouter = Router.router(vertx);
     backendServer = vertx.createHttpServer(getBackendServerOptions());
     proxyClient = vertx.createHttpClient(getProxyClientOptions());
-    CountDownLatch latch = new CountDownLatch(1);
-    backendServer.requestHandler(backendRouter).listen().onComplete(onSuccess(res -> latch.countDown()));
-    awaitLatch(latch);
+    backendServer.requestHandler(backendRouter).listen().await();
   }
 
   protected HttpServerOptions getBackendServerOptions() {
@@ -40,40 +39,14 @@ public class WebProxyTestBase extends WebTestBase {
   }
 
   @Override
-  public void tearDown() throws Exception {
+  @AfterEach
+  public void tearDown(VertxTestContext testContext) throws Exception {
     if (proxyClient != null) {
-      CountDownLatch latch = new CountDownLatch(1);
-      proxyClient.close().onComplete((asyncResult) -> {
-        assertTrue(asyncResult.succeeded());
-        latch.countDown();
-      });
-      awaitLatch(latch);
-    }
-    if (client != null) {
-      CountDownLatch latch = new CountDownLatch(1);
-      client.close().onComplete((asyncResult) -> {
-        assertTrue(asyncResult.succeeded());
-        latch.countDown();
-      });
-      awaitLatch(latch);
-    }
-    if (server != null) {
-      CountDownLatch latch = new CountDownLatch(1);
-      server.close().onComplete((asyncResult) -> {
-        assertTrue(asyncResult.succeeded());
-        latch.countDown();
-      });
-      awaitLatch(latch);
+      proxyClient.close().await();
     }
     if (backendServer != null) {
-      CountDownLatch latch = new CountDownLatch(1);
-      backendServer.close().onComplete((asyncResult) -> {
-        assertTrue(asyncResult.succeeded());
-        latch.countDown();
-      });
-      awaitLatch(latch);
+      backendServer.close().await();
     }
-    super.tearDown();
+    super.tearDown(testContext);
   }
-
 }

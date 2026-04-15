@@ -16,11 +16,17 @@
 
 package io.vertx.ext.web.tests.handler.sockjs;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonArray;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
-import org.junit.Test;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 /**
@@ -28,10 +34,11 @@ import org.junit.Test;
  */
 public class SockJSSessionContextTest extends SockJSTestBase {
 
+  @BeforeEach
   @Override
-  public void setUp() throws Exception {
+  public void setUp(Vertx vertx) throws Exception {
     numServers = 2;
-    super.setUp();
+    super.setUp(vertx);
     // add a body handler to the setup
     preSockJSHandlerSetup = router -> router.route().handler(BodyHandler.create());
   }
@@ -50,35 +57,30 @@ public class SockJSSessionContextTest extends SockJSTestBase {
 
     startServers();
 
-    client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(onSuccess(req1 -> {
-      req1.send(Buffer.buffer()).onComplete(onSuccess(resp1 -> {
-        assertEquals(200, resp1.statusCode());
-        client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(onSuccess(req2 -> {
-          req2.send(Buffer.buffer()).onComplete(onSuccess(resp2 -> {
-            assertEquals(200, resp2.statusCode());
-            client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr_send").onComplete(onSuccess(req3 -> {
-              req3.send(Buffer.buffer('"' + msg + '"')).onComplete(onSuccess(resp3 -> {
-                assertEquals(204, resp3.statusCode());
-                client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr").onComplete(onSuccess(req4 -> {
-                  req4.send(Buffer.buffer()).onComplete(onSuccess(resp4 -> {
-                    assertEquals(200, resp4.statusCode());
-                    resp4.body().onComplete(onSuccess(buffer -> {
-                      String body = buffer.toString();
-                      assertThatString(body, a -> a.startsWith("a"));
-                      JsonArray content = new JsonArray(body.substring(1));
-                      assertEquals(1, content.size());
-                      assertEquals(msg, content.getValue(0));
-                      complete();
-                    }));
-                  }));
-                }));
-              }));
-            }));
-          }));
-        }));
-      }));
-    }));
+    webClient.post("/test/400/8ne8e94a/xhr")
+      .sendBuffer(Buffer.buffer())
+      .expecting(HttpResponseExpectation.SC_OK)
+      .await();
 
-    await();
+    webClient.post("/test/400/8ne8e94a/xhr")
+      .sendBuffer(Buffer.buffer())
+      .expecting(HttpResponseExpectation.SC_OK)
+      .await();
+
+    webClient.post("/test/400/8ne8e94a/xhr_send")
+      .sendBuffer(Buffer.buffer('"' + msg + '"'))
+      .expecting(HttpResponseExpectation.status(204))
+      .await();
+
+    HttpResponse<Buffer> resp = webClient.post("/test/400/8ne8e94a/xhr")
+      .sendBuffer(Buffer.buffer())
+      .expecting(HttpResponseExpectation.SC_OK)
+      .await();
+
+    String body = resp.bodyAsString();
+    Assertions.assertThat(body).startsWith("a");
+    JsonArray content = new JsonArray(body.substring(1));
+    assertEquals(1, content.size());
+    assertEquals(msg, content.getValue(0));
   }
 }

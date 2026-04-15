@@ -10,13 +10,14 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.Arrays;
 
 import static graphql.schema.idl.RuntimeWiring.*;
 import static io.vertx.core.http.HttpMethod.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ValidationTest extends GraphQLTestBase {
 
@@ -184,520 +185,415 @@ public class ValidationTest extends GraphQLTestBase {
   }
 
   @Test
-  public void validString() throws Exception {
+  public void validString() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"valid\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertEquals("hello", result.data().getString("text"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertEquals("hello", result.data().getString("text"));
   }
 
   @Test
-  public void nullString() throws Exception {
+  public void nullString() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"null\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasError());
-      assertFalse(result.hasData());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasError());
+    assertFalse(result.hasData());
   }
 
   @Test
-  public void eolString() throws Exception {
+  public void eolString() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"eol\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      String text = result.data().getString("text");
-      assertEquals(12, text.length());
-      assertEquals("a\nb\r\nc\0d e\tf", text);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    String text = result.data().getString("text");
+    assertEquals(12, text.length());
+    assertEquals("a\nb\r\nc\0d e\tf", text);
   }
 
   @Test
-  public void emptyString() throws Exception {
+  public void emptyString() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"empty\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertFalse(result.hasError());
-      assertTrue(result.hasData());
-      assertTrue(result.data().getString("text").isEmpty());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertFalse(result.hasError());
+    assertTrue(result.hasData());
+    assertTrue(result.data().getString("text").isEmpty());
   }
 
   @Test
-  public void jsonString() throws Exception {
+  public void jsonString() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"brokenjson\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertEquals("}", result.data().getString("text"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertEquals("}", result.data().getString("text"));
   }
 
   @Test
-  public void i18nString() throws Exception {
+  public void i18nString() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"non-ascii\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertEquals("今日は přítel, как дела?", result.data().getString("text"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertEquals("今日は přítel, как дела?", result.data().getString("text"));
   }
 
   @Test
-  public void longString() throws Exception {
+  public void longString() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { text(type: \"long\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertEquals(VERY_LONG, result.data().getString("text"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertEquals(VERY_LONG, result.data().getString("text"));
   }
 
   @Test
-  public void number() throws Exception {
+  public void number() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"positive\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertEquals(Integer.valueOf(10), result.data().getInteger("number"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertEquals(Integer.valueOf(10), result.data().getInteger("number"));
   }
 
   @Test
-  public void negativeNumber() throws Exception {
+  public void negativeNumber() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"negative\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertEquals(Integer.valueOf(-10), result.data().getInteger("number"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertEquals(Integer.valueOf(-10), result.data().getInteger("number"));
   }
 
   @Test
-  public void maxNumber() throws Exception {
+  public void maxNumber() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"max\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertEquals(Integer.valueOf(Integer.MAX_VALUE), result.data().getInteger("number"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertEquals(Integer.valueOf(Integer.MAX_VALUE), result.data().getInteger("number"));
   }
 
   @Test
-  public void minNumber() throws Exception {
+  public void minNumber() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"min\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertEquals(Integer.valueOf(Integer.MIN_VALUE), result.data().getInteger("number"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertEquals(Integer.valueOf(Integer.MIN_VALUE), result.data().getInteger("number"));
   }
 
   @Test
-  public void zero() throws Exception {
+  public void zero() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"zero\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertEquals(Integer.valueOf(0), result.data().getInteger("number"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertEquals(Integer.valueOf(0), result.data().getInteger("number"));
   }
 
   @Test
-  public void tooBigNumber() throws Exception {
+  public void tooBigNumber() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"huge\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertFalse(result.hasData());
-      assertTrue(result.hasError());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertFalse(result.hasData());
+    assertTrue(result.hasError());
   }
 
   @Test
-  public void tooSmallNumber() throws Exception {
+  public void tooSmallNumber() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"tiny\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertFalse(result.hasData());
-      assertTrue(result.hasError());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertFalse(result.hasData());
+    assertTrue(result.hasError());
   }
 
   @Test
-  public void wayTooBigNumber() throws Exception {
+  public void wayTooBigNumber() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"overwhelming\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertFalse(result.hasData());
-      assertTrue(result.hasError());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertFalse(result.hasData());
+    assertTrue(result.hasError());
   }
 
   @Test
-  public void nullNumber() throws Exception {
+  public void nullNumber() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"null\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertFalse(result.hasData());
-      assertTrue(result.hasError());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertFalse(result.hasData());
+    assertTrue(result.hasError());
   }
 
   @Test
-  public void notInteger() throws Exception {
+  public void notInteger() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"float\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertFalse(result.hasData());
-      assertTrue(result.hasError());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertFalse(result.hasData());
+    assertTrue(result.hasError());
   }
 
   @Test
-  public void notNumber() throws Exception {
+  public void notNumber() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { number(type: \"string\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertFalse(result.hasData());
-      assertTrue(result.hasError());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertFalse(result.hasData());
+    assertTrue(result.hasError());
   }
 
   @Test
-  public void floating() throws Exception {
+  public void floating() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { floating(type: \"valid\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertEquals(Float.valueOf(3.14F), result.data().getFloat("floating"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertEquals(Float.valueOf(3.14F), result.data().getFloat("floating"));
   }
 
   @Test
-  public void nullFloat() throws Exception {
+  public void nullFloat() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { floating(type: \"null\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertFalse(result.hasData());
-      assertTrue(result.hasError());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertFalse(result.hasData());
+    assertTrue(result.hasError());
   }
 
   @Test
-  public void boolTrue() throws Exception {
+  public void boolTrue() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { bool(type: \"yes\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertTrue(result.data().getBoolean("bool"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertTrue(result.data().getBoolean("bool"));
   }
 
   @Test
-  public void boolFalse() throws Exception {
+  public void boolFalse() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { bool(type: \"no\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertFalse(result.data().getBoolean("bool"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertFalse(result.data().getBoolean("bool"));
   }
 
   @Test
-  public void boolNull() throws Exception {
+  public void boolNull() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { bool(type: \"null\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertFalse(result.hasData());
-      assertTrue(result.hasError());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertFalse(result.hasData());
+    assertTrue(result.hasError());
   }
 
   @Test
-  public void listValid() throws Exception {
+  public void listValid() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"valid\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      JsonArray list = result.data().getJsonArray("list");
-      assertEquals(JsonArray.of("one", "two"), list);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    JsonArray list = result.data().getJsonArray("list");
+    assertEquals(JsonArray.of("one", "two"), list);
   }
 
   @Test
-  public void arrayValid() throws Exception {
+  public void arrayValid() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"valid\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      JsonArray list = result.data().getJsonArray("array");
-      assertEquals(JsonArray.of("one", "two"), list);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    JsonArray list = result.data().getJsonArray("array");
+    assertEquals(JsonArray.of("one", "two"), list);
   }
 
   @Test
-  public void listJava() throws Exception {
+  public void listJava() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"object\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      JsonArray list = result.data().getJsonArray("list");
-      assertEquals(JsonArray.of("one", "two"), list);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    JsonArray list = result.data().getJsonArray("list");
+    assertEquals(JsonArray.of("one", "two"), list);
   }
 
   @Test
-  public void arrayJava() throws Exception {
+  public void arrayJava() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"object\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      JsonArray list = result.data().getJsonArray("array");
-      assertEquals(JsonArray.of("one", "two"), list);
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    JsonArray list = result.data().getJsonArray("array");
+    assertEquals(JsonArray.of("one", "two"), list);
   }
 
   @Test
-  public void listEmpty() throws Exception {
+  public void listEmpty() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"empty\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      JsonArray list = result.data().getJsonArray("list");
-      assertTrue(list.isEmpty());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    JsonArray list = result.data().getJsonArray("list");
+    assertTrue(list.isEmpty());
   }
 
   @Test
-  public void arrayEmpty() throws Exception {
+  public void arrayEmpty() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"empty\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      JsonArray list = result.data().getJsonArray("array");
-      assertTrue(list.isEmpty());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    JsonArray list = result.data().getJsonArray("array");
+    assertTrue(list.isEmpty());
   }
 
   @Test
-  public void listNull() throws Exception {
+  public void listNull() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"null\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasError());
-      assertFalse(result.hasData());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasError());
+    assertFalse(result.hasData());
   }
 
   @Test
-  public void arrayNull() throws Exception {
+  public void arrayNull() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"null\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      assertNull(result.data().getValue("array"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    assertNull(result.data().getValue("array"));
   }
 
   @Test
-  public void listWithNulls() throws Exception {
+  public void listWithNulls() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"nullvalues\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasData());
-      assertFalse(result.hasError());
-      JsonArray list = result.data().getJsonArray("list");
-      assertNotNull(list);
-      assertEquals(2, list.size());
-      assertNull(list.getValue(0));
-      assertNull(list.getValue(1));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasData());
+    assertFalse(result.hasError());
+    JsonArray list = result.data().getJsonArray("list");
+    assertNotNull(list);
+    assertEquals(2, list.size());
+    assertNull(list.getValue(0));
+    assertNull(list.getValue(1));
   }
 
   @Test
-  public void arrayWithNulls() throws Exception {
+  public void arrayWithNulls() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"nullvalues\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasError());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasError());
   }
 
   @Test
-  public void listScalar() throws Exception {
+  public void listScalar() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { list(type: \"scalar\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasError());
-      assertFalse(result.hasData());
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasError());
+    assertFalse(result.hasData());
   }
 
   @Test
-  public void arrayScalar() throws Exception {
+  public void arrayScalar() {
     GraphQLRequest request = new GraphQLRequest()
       .setMethod(POST)
       .setGraphQLQuery("query { array(type: \"scalar\") }");
-    request.send(client).onComplete(onSuccess(body -> {
-      ValidationResult result = new ValidationResult(body);
-      assertTrue(result.hasError());
-      assertNull(result.data().getValue("array"));
-      testComplete();
-    }));
-    await();
+    JsonObject body = request.send(webClient);
+    ValidationResult result = new ValidationResult(body);
+    assertTrue(result.hasError());
+    assertNull(result.data().getValue("array"));
   }
 
   private static class ValidationResult {

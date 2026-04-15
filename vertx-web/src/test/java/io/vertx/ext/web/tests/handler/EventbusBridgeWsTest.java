@@ -13,14 +13,10 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-open module io.vertx.web.sstore.cookie.tests {
-  requires io.vertx.core;
-  requires io.vertx.web;
-  requires io.vertx.web.client;
-  requires io.vertx.web.sstore.cookie;
-  requires io.vertx.web.tests;
-  requires io.vertx.auth.common;
-  requires io.netty.codec.http;
-  requires io.vertx.core.tests;
-  requires io.vertx.testing.junit5;
+package io.vertx.ext.web.tests.handler;
+
+public class EventbusBridgeWsTest extends EventbusBridgeTest {
+  public EventbusBridgeWsTest() {
+    super(Transport.WS);
+  }
 }

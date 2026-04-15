@@ -17,11 +17,14 @@ package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.netty.util.internal.PlatformDependent;
 import io.vertx.core.Context;
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,6 +33,8 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.BooleanSupplier;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -37,13 +42,13 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
-  public void testNoDeadlockWhenWritingFromAnotherThreadWithSseTransport() throws Exception {
+  public void testNoDeadlockWhenWritingFromAnotherThreadWithSseTransport(VertxTestContext testContext) throws Exception {
     socketHandler = () -> {
       return socket -> {
         AtomicBoolean closed = new AtomicBoolean();
         socket.endHandler(v -> {
           closed.set(true);
-          testComplete();
+          testContext.completeNow();
         });
         new Thread(() -> {
           while (!closed.get()) {
@@ -54,8 +59,8 @@ public class SockJSSessionTest extends SockJSTestBase {
       };
     };
     startServers();
-    client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource").onComplete(onSuccess(req -> {
-      req.send().onComplete(onSuccess(resp -> {
+    client.request(HttpMethod.GET, "/test/400/8ne8e94a/eventsource").onComplete(TestUtils.onSuccess(req -> {
+      req.send().onComplete(TestUtils.onSuccess(resp -> {
         AtomicInteger count = new AtomicInteger();
         resp.handler(msg -> {
           if (count.incrementAndGet() == 400) {
@@ -64,15 +69,14 @@ public class SockJSSessionTest extends SockJSTestBase {
         });
       }));
     }));
-    await();
   }
 
   @Test
-  public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport() throws Exception {
-    Assume.assumeFalse(PlatformDependent.isWindows());
+  public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport(VertxTestContext testContext) throws Exception {
+    Assumptions.assumeFalse(PlatformDependent.isWindows());
     final Buffer random = Buffer.buffer(TestUtils.randomAlphaString(256));
     int numMsg = 1000;
-    waitFor(1);
+    Checkpoint cp = testContext.checkpoint(1);
     AtomicInteger clientReceived = new AtomicInteger();
     AtomicInteger serverReceived = new AtomicInteger();
     BooleanSupplier shallStop = () -> clientReceived.get() > numMsg * 256 && serverReceived.get() > numMsg * 256;
@@ -85,8 +89,9 @@ public class SockJSSessionTest extends SockJSTestBase {
           while (!shallStop.getAsBoolean()) {
             LockSupport.parkNanos(50);
             try {
-              socket.write(random)
-                .onFailure(this::fail);
+              socket
+                .write(random)
+                .onFailure(err -> fail(err.getMessage()));
             } catch (IllegalStateException e) {
               // Websocket has been closed
             }
@@ -95,48 +100,42 @@ public class SockJSSessionTest extends SockJSTestBase {
       };
     };
     startServers();
-    wsClient.connect("/test/400/8ne8e94a/websocket")
-      .onFailure(this::fail)
-      .onSuccess(ws -> ws.handler(msg -> {
+    AtomicBoolean stopped = new AtomicBoolean();
+    wsClient
+      .connect("/test/400/8ne8e94a/websocket")
+      .onComplete(TestUtils.onSuccess(ws -> {
+      ws.handler(msg -> {
         clientReceived.addAndGet(msg.length());
         ws.writeTextMessage("\"hello\"")
           .compose(v -> ws.write(random))
-          .onFailure(this::fail)
-          .onSuccess(v -> {
-            if (shallStop.getAsBoolean()) {
+          .onComplete(TestUtils.onSuccess(v -> {
+            if (shallStop.getAsBoolean() && stopped.compareAndSet(false, true)) {
               ws.handler(null);
-              complete();
+              cp.flag();
             }
-          });
-      }));
-    try {
-      await();
-    } catch (Throwable e) {
-      System.out.println(clientReceived.get());
-      System.out.println(serverReceived.get());
-      throw e;
-    }
+          }));
+      });
+    }));
   }
 
   @Test
-  public void testCombineMultipleFramesIntoASingleMessage() throws Exception {
+  public void testCombineMultipleFramesIntoASingleMessage(VertxTestContext testContext) throws Exception {
     socketHandler = () -> {
       return socket -> socket.handler(buf -> {
         assertEquals("Hello World", buf.toString());
-        testComplete();
+        testContext.completeNow();
       });
     };
     startServers();
-    wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(TestUtils.onSuccess(ws -> {
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame("[\"Hello", false));
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(" World\"]"), true));
       ws.close();
     }));
-    await();
   }
 
   @Test
-  public void doesNotSendEmptyAnswerForWriteSentInEarlierBatch() throws Exception {
+  public void doesNotSendEmptyAnswerForWriteSentInEarlierBatch(VertxTestContext testContext) throws Exception {
     AtomicInteger answerCount = new AtomicInteger();
     socketHandler = () -> {
       return socket -> socket.handler(buf -> {
@@ -156,7 +155,7 @@ public class SockJSSessionTest extends SockJSTestBase {
       });
     };
     startServers();
-    wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(onSuccess(ws -> {
+    wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(TestUtils.onSuccess(ws -> {
       ws.frameHandler(wsf -> {
         switch (wsf.type()) {
           case TEXT:
@@ -167,13 +166,12 @@ public class SockJSSessionTest extends SockJSTestBase {
             break;
           case CLOSE:
             assertEquals(1, answerCount.get());
-            testComplete();
+            testContext.completeNow();
             break;
         }
       });
       ws.writeFinalTextFrame("\"\"");
     }));
-    await();
   }
 
   private CountDownLatch blockTransportContext(Context context) {

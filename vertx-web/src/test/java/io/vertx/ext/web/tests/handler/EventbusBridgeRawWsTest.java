@@ -15,20 +15,8 @@
  */
 package io.vertx.ext.web.tests.handler;
 
-import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
-
-/**
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
-public class AuthWithSessionsTest extends WebTestBase {
-
-  @Test
-  public void testAuthWithSessions() throws Exception {
-
-
-
+public class EventbusBridgeRawWsTest extends EventbusBridgeTest {
+  public EventbusBridgeRawWsTest() {
+    super(Transport.RAW_WS);
   }
-
-
 }

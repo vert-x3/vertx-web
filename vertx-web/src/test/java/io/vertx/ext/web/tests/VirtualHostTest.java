@@ -15,11 +15,9 @@
  */
 package io.vertx.ext.web.tests;
 
-import io.vertx.core.http.RequestOptions;
-import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Paulo Lopes
@@ -27,103 +25,81 @@ import org.junit.Test;
 public class VirtualHostTest extends WebTestBase {
 
   @Test
-  public void testVHost() throws Exception {
+  public void testVHost() {
     router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.com")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "www.mysite.com").send(), 200, "OK");
   }
 
   @Test
-  public void testVHostPort() throws Exception {
+  public void testVHostPort() {
     router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.com:8080")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "www.mysite.com:8080").send(), 200, "OK");
   }
 
   @Test
-  public void testVHostIPv6Any() throws Exception {
+  public void testVHostIPv6Any() {
     router.route().virtualHost("::").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("[::]")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "[::]").send(), 200, "OK");
   }
 
   @Test
-  public void testVHostIPv6AnyPort() throws Exception {
+  public void testVHostIPv6AnyPort() {
     router.route().virtualHost("::").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("[::]:8080")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "[::]:8080").send(), 200, "OK");
   }
 
   @Test
-  public void testVHostIPv6Home() throws Exception {
+  public void testVHostIPv6Home() {
     router.route().virtualHost("::1").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("[::1]")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "[::1]").send(), 200, "OK");
   }
 
   @Test
-  public void testVHostIPv6HomePort() throws Exception {
+  public void testVHostIPv6HomePort() {
     router.route().virtualHost("::1").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("[::1]:8080")
-      .setPort(80), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "[::1]:8080").send(), 200, "OK");
   }
 
   @Test
-  public void testVHostShouldFail() throws Exception {
+  public void testVHostShouldFail() {
     router.route().virtualHost("*.com").handler(ctx -> ctx.response().end());
 
     router.route().handler(ctx -> ctx.fail(500));
 
-    testRequest(new RequestOptions().setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.net")
-      .setPort(80), req -> {}, 500, "Internal Server Error", null);
+    testRequest(webClient.get(8080, "localhost", "/").putHeader("Host", "www.mysite.net").send(), 500, "Internal Server Error");
   }
 
   @Test
-  public void testVHostSubRouter() throws Exception {
+  public void testVHostSubRouter() {
 
     Router a = Router.router(vertx);
     a.get("/somepath").handler(RoutingContext::end);
 
     router.route("/*").virtualHost("*.com").subRouter(a);
-    testRequest(new RequestOptions()
-      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.com")
-      .setPort(80)
-      .setURI("/somepath"), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/somepath").putHeader("Host", "www.mysite.com").send(), 200, "OK");
 
     // Or
 
     router.route().virtualHost("*.com").subRouter(a);
-    testRequest(new RequestOptions()
-      .setServer(SocketAddress.inetSocketAddress(8080, "localhost"))
-      .setHost("www.mysite.com")
-      .setPort(80)
-      .setURI("/somepath"), req -> {}, 200, "OK", null);
+    testRequest(webClient.get(8080, "localhost", "/somepath").putHeader("Host", "www.mysite.com").send(), 200, "OK");
   }
 
 }

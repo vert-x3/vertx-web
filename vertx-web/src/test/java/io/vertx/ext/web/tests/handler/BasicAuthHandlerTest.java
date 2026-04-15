@@ -27,13 +27,15 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,17 +70,15 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     router.route("/protected/somepage").handler(handler);
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
-    }, 401, "Unauthorized", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").send(), 401, "Unauthorized");
+    String wwwAuth = resp.headers().get("WWW-Authenticate");
+    assertNotNull(wwwAuth);
+    assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
 
     // Now try again with credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNull(wwwAuth);
-    }, 200, "OK", "Welcome to the protected resource!");
+    resp = testRequest(webClient.get("/protected/somepage").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==").send(), 200, "OK", "Welcome to the protected resource!");
+    wwwAuth = resp.headers().get("WWW-Authenticate");
+    assertNull(wwwAuth);
 
   }
 
@@ -113,46 +113,41 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     AtomicReference<String> sessionCookie = new AtomicReference<>();
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
-      String setCookie = resp.headers().get("set-cookie");
-      // auth failed you should not get a session cookie!!!
-      assertNull(setCookie);
-    }, 401, "Unauthorized", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").send(), 401, "Unauthorized");
+    String wwwAuth = resp.headers().get("WWW-Authenticate");
+    assertNotNull(wwwAuth);
+    assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
+    String setCookie = resp.headers().get("set-cookie");
+    // auth failed you should not get a session cookie!!!
+    assertNull(setCookie);
 
     // Now try again with credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNull(wwwAuth);
-      // auth is success, we should get a cookie!!!
-      String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
-      sessionCookie.set(setCookie);
-    }, 200, "OK", "Welcome to the protected resource!");
+    resp = testRequest(webClient.get("/protected/somepage").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==").send(), 200, "OK", "Welcome to the protected resource!");
+    wwwAuth = resp.headers().get("WWW-Authenticate");
+    assertNull(wwwAuth);
+    // auth is success, we should get a cookie!!!
+    setCookie = resp.headers().get("set-cookie");
+    assertNotNull(setCookie);
+    sessionCookie.set(setCookie);
 
     // And try again a few times we should be logged in with user stored in the session
     for (int i = 0; i < 5; i++) {
-      testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
-        String wwwAuth = resp.headers().get("WWW-Authenticate");
-        assertNull(wwwAuth);
-      }, 200, "OK", "Welcome to the protected resource!");
+      resp = testRequest(webClient.get("/protected/somepage").putHeader("cookie", sessionCookie.get()).send(), 200, "OK", "Welcome to the protected resource!");
+      wwwAuth = resp.headers().get("WWW-Authenticate");
+      assertNull(wwwAuth);
     }
 
     // Now set the user to null, this effectively logs him out
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
-    }, 401, "Unauthorized", null);
+    resp = testRequest(webClient.get("/protected/somepage").send(), 401, "Unauthorized");
+    wwwAuth = resp.headers().get("WWW-Authenticate");
+    assertNotNull(wwwAuth);
+    assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
 
     // And login again
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNull(wwwAuth);
-    }, 200, "OK", "Welcome to the protected resource!");
+    resp = testRequest(webClient.get("/protected/somepage").putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==").send(), 200, "OK", "Welcome to the protected resource!");
+    wwwAuth = resp.headers().get("WWW-Authenticate");
+    assertNull(wwwAuth);
 
 
   }
@@ -172,19 +167,16 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     router.route("/protected/somepage").handler(handler);
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
-    }, 401, "Unauthorized", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").send(), 401, "Unauthorized");
+    String wwwAuth = resp.headers().get("WWW-Authenticate");
+    assertNotNull(wwwAuth);
+    assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
 
     // Now try again with bad credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz"), resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
-
-    }, 401, "Unauthorized", null);
+    resp = testRequest(webClient.get("/protected/somepage").putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz").send(), 401, "Unauthorized");
+    wwwAuth = resp.headers().get("WWW-Authenticate");
+    assertNotNull(wwwAuth);
+    assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
 
   }
 
@@ -203,16 +195,13 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     router.route("/protected/somepage").handler(handler);
 
-    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-      String wwwAuth = resp.headers().get("WWW-Authenticate");
-      assertNotNull(wwwAuth);
-      assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
-    }, 401, "Unauthorized", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").send(), 401, "Unauthorized");
+    String wwwAuth = resp.headers().get("WWW-Authenticate");
+    assertNotNull(wwwAuth);
+    assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
 
     // Now try again with bad credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz="), resp -> {
-
-    }, 400, "Bad Request", null);
+    testRequest(webClient.get("/protected/somepage").putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz=").send(), 400, "Bad Request");
 
   }
 

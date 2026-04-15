@@ -1,19 +1,25 @@
 package io.vertx.ext.web.sstore.caffeine.tests;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.caffeine.CaffeineSessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
-import org.junit.Test;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author <a href="mailto:lazarbulic@gmail.com">Lazar Bulic</a>
  */
 public class CaffeineSessionHandlerTest extends SessionHandlerTestBase {
 
+  @BeforeEach
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     store = CaffeineSessionStore.create(vertx);
   }
 

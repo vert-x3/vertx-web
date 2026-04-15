@@ -18,35 +18,34 @@ package io.vertx.ext.web.templ;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-@RunWith(VertxUnitRunner.class)
 public class FreeMarkerTemplateTest {
 
   private static Vertx vertx;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspath(TestContext should) {
+  public void testTemplateHandlerOnClasspath() throws Exception {
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -55,13 +54,12 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/test-freemarker-template2.ftl").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "somedir/test-freemarker-template2.ftl").await();
+    assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testCachingEnabled(TestContext should) throws IOException {
+  public void testCachingEnabled() throws Exception {
     System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
@@ -73,25 +71,21 @@ public class FreeMarkerTemplateTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("before", normalizeCRLF(render.toString()));
-      // cache is enabled so if we change the content that should not affect the result
+    Buffer render = engine.render(new JsonObject(), temp.getName()).await();
+    assertEquals("before", normalizeCRLF(render.toString()));
+    // cache is enabled so if we change the content that should not affect the result
 
-      try (PrintWriter out2 = new PrintWriter(temp)) {
-        out2.print("after");
-        out2.flush();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    try (PrintWriter out2 = new PrintWriter(temp)) {
+      out2.print("after");
+      out2.flush();
+    }
 
-      engine.render(new JsonObject(), temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
-        should.assertEquals("before", normalizeCRLF(render2.toString()));
-      }));
-    }));
+    render = engine.render(new JsonObject(), temp.getName()).await();
+    assertEquals("before", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerOnFileSystem(TestContext should) {
+  public void testTemplateHandlerOnFileSystem() throws Exception {
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -100,19 +94,18 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template3.ftl"));
 
-    engine.render(context, "src/test/filesystemtemplates/test-freemarker-template3.ftl").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template3.ftl\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "src/test/filesystemtemplates/test-freemarker-template3.ftl").await();
+    assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template3.ftl\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspathDisableCaching(TestContext context) {
+  public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
     System.setProperty("vertxweb.environment", "development");
-    testTemplateHandlerOnClasspath(context);
+    testTemplateHandlerOnClasspath();
   }
 
   @Test
-  public void testTemplateHandlerNoExtension(TestContext should) {
+  public void testTemplateHandlerNoExtension() throws Exception {
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -121,13 +114,12 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/test-freemarker-template2").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "somedir/test-freemarker-template2").await();
+    assertEquals("Hello badger and fox\nRequest path is /test-freemarker-template2.ftl\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerChangeExtension(TestContext should) {
+  public void testTemplateHandlerChangeExtension() throws Exception {
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx, "mvl");
 
     final JsonObject context = new JsonObject()
@@ -136,13 +128,12 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/test-freemarker-template2").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Cheerio badger and fox\nRequest path is /test-freemarker-template2.ftl\n",  normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "somedir/test-freemarker-template2").await();
+    assertEquals("Cheerio badger and fox\nRequest path is /test-freemarker-template2.ftl\n",  normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerIncludes(TestContext should) {
+  public void testTemplateHandlerIncludes() throws Exception {
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
@@ -151,28 +142,25 @@ public class FreeMarkerTemplateTest {
 
     context.put("context", new JsonObject().put("path", "/test-freemarker-template2.ftl"));
 
-    engine.render(context, "somedir/base").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Vert.x rules", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "somedir/base").await();
+    assertEquals("Vert.x rules", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testNoSuchTemplate(TestContext should) {
+  public void testNoSuchTemplate() {
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject(), "not-found").onComplete(should.asyncAssertFailure());
+    assertThrows(Exception.class, () -> engine.render(new JsonObject(), "not-found").await());
   }
 
   @Test
-  public void testLang(TestContext should) {
+  public void testLang() throws Exception {
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
-    engine.render(new JsonObject(), "somedir/lang.ftl").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Hello world\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(new JsonObject(), "somedir/lang.ftl").await();
+    assertEquals("Hello world\n", normalizeCRLF(render.toString()));
 
-    engine.render(new JsonObject().put("lang", "el"), "somedir/lang.ftl").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("Γειά σου Κόσμε\n", normalizeCRLF(render.toString()));
-    }));
+    render = engine.render(new JsonObject().put("lang", "el"), "somedir/lang.ftl").await();
+    assertEquals("Γειά σου Κόσμε\n", normalizeCRLF(render.toString()));
   }
 
   // For windows testing

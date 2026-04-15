@@ -16,10 +16,16 @@
 
 package io.vertx.ext.web.tests.handler;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -29,8 +35,9 @@ public class StaticHandler2Test extends WebTestBase {
   protected StaticHandler stat;
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
     stat = StaticHandler.create();
     router.route("/static/*").handler(stat);
   }
@@ -38,13 +45,15 @@ public class StaticHandler2Test extends WebTestBase {
   @Test
   public void testGetDefaultIndex() throws Exception {
     // without slash... forwards to slash
-    testRequest(HttpMethod.GET, "/static/swaggerui", null, res-> {
-      assertEquals("/static/swaggerui/", res.getHeader("Location"));
-    }, 301, "Moved Permanently", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/static/swaggerui").followRedirects(false).send(), 301, "Moved Permanently");
+    assertEquals("/static/swaggerui/", resp.getHeader("Location"));
 
-    testRequest(HttpMethod.GET, "/static/swaggerui/", 200, "OK", "<html><body>Fake swagger UI</body></html>\n");
+    String expected = "<html><body>Fake swagger UI</body></html>\n";
+    Buffer response = testRequest(HttpMethod.GET, "/static/swaggerui/", 200, "OK").body();
+    assertEquals(expected, normalizeLineEndingsFor(response).toString());
 
     // also index.html retreives the final file
-    testRequest(HttpMethod.GET, "/static/swaggerui/index.html", 200, "OK", "<html><body>Fake swagger UI</body></html>\n");
+    response = testRequest(HttpMethod.GET, "/static/swaggerui/index.html", 200, "OK").body();
+    assertEquals(expected, normalizeLineEndingsFor(response).toString());
   }
 }

@@ -19,10 +19,13 @@ package io.vertx.ext.web.tests;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import org.junit.Test;
+import io.vertx.ext.web.client.HttpResponse;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.util.function.Consumer;
 
@@ -34,18 +37,16 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
  */
 public class SubRouterTest extends WebTestBase {
 
-  @Test(expected = IllegalStateException.class)
-  public void testInvalidMountPoint1() throws Exception {
+  @Test
+  public void testInvalidMountPoint1() {
     Router subRouter = Router.router(vertx);
-
-    router.route("/subpath").subRouter(subRouter);
+    assertThrows(IllegalStateException.class, () -> router.route("/subpath").subRouter(subRouter));
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testInvalidMountPoint2() throws Exception {
+  @Test
+  public void testInvalidMountPoint2() {
     Router subRouter = Router.router(vertx);
-
-    router.route("/subpath/").subRouter(subRouter);
+    assertThrows(IllegalStateException.class, () -> router.route("/subpath/").subRouter(subRouter));
   }
 
   @Test
@@ -472,22 +473,22 @@ public class SubRouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/v/1/files/2/info", 200, "OK");
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testSubRouterExclusive() throws Exception {
+  @Test
+  public void testSubRouterExclusive() {
     Router subRouter = Router.router(vertx);
 
     subRouter.get("/files/:id/info").handler(ctx -> {
-      // version is extracted from the root router
       assertEquals("1", ctx.pathParam("version"));
-      // version is extracted from this router
       assertEquals("2", ctx.pathParam("id"));
       ctx.response().end();
     });
 
-    router.route("/v/:version/*")
-      .subRouter(subRouter)
-      .handler(ctx -> {
-      });
+    assertThrows(IllegalStateException.class, () -> {
+      router.route("/v/:version/*")
+        .subRouter(subRouter)
+        .handler(ctx -> {
+        });
+    });
   }
 
   @Test
@@ -508,24 +509,18 @@ public class SubRouterTest extends WebTestBase {
       .subRouter(subRouter);
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testSubRouterDuplicateVariable() throws Exception {
+  @Test
+  public void testSubRouterDuplicateVariable() {
     Router subRouter = Router.router(vertx);
-
     subRouter.get("/:id").handler(null);
-
-    router.route("/v/:id*")
-      .subRouter(subRouter);
+    assertThrows(IllegalStateException.class, () -> router.route("/v/:id*").subRouter(subRouter));
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testSubRouterDuplicateVariableLaterStage() throws Exception {
+  @Test
+  public void testSubRouterDuplicateVariableLaterStage() {
     Router subRouter = Router.router(vertx);
-
-    router.route("/v/:id*")
-      .subRouter(subRouter);
-
-    subRouter.get("/:id").handler(null);
+    router.route("/v/:id*").subRouter(subRouter);
+    assertThrows(IllegalStateException.class, () -> subRouter.get("/:id").handler(null));
   }
 
   @Test
@@ -797,8 +792,8 @@ public class SubRouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.POST, "/api/resource", "application/json", 200, "OK");
 
     // Test 415 response - Accept header should contain allowed content type from sub-router
-    testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type",
-      res -> assertEquals("application/json", res.getHeader("Accept")));
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type");
+    assertEquals("application/json", res.getHeader("Accept"));
   }
 
   @Test
@@ -817,13 +812,11 @@ public class SubRouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/html; charset=utf-8", 200, "OK");
 
     // Test 415 response - Accept header should contain both allowed content types from sub-router
-    testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type",
-      res -> {
-        String acceptHeader = res.getHeader("Accept");
-        assertNotNull(acceptHeader);
-        assertTrue(acceptHeader.contains("application/json"));
-        assertTrue(acceptHeader.contains("text/html; charset=utf-8"));
-      });
+    HttpResponse<Buffer> res = testRequestWithContentType(HttpMethod.POST, "/api/resource", "text/xml", 415, "Unsupported Media Type");
+    String acceptHeader = res.getHeader("Accept");
+    assertNotNull(acceptHeader);
+    assertTrue(acceptHeader.contains("application/json"));
+    assertTrue(acceptHeader.contains("text/html; charset=utf-8"));
   }
 
   @Test
@@ -840,11 +833,10 @@ public class SubRouterTest extends WebTestBase {
     testRequest(HttpMethod.PUT, "/api/resource", 200, "OK");
 
     // Test 405 response - Allow header should contain allowed methods from sub-router
-    testRequest(HttpMethod.GET, "/api/resource", null, res -> {
-      String allowHeader = res.getHeader("Allow");
-      assertNotNull(allowHeader);
-      assertTrue(allowHeader.contains("POST"));
-      assertTrue(allowHeader.contains("PUT"));
-    }, 405, "Method Not Allowed", null);
+    HttpResponse<Buffer> res = testRequest(webClient.get("/api/resource").send(), 405, "Method Not Allowed");
+    String allowHeader = res.getHeader("Allow");
+    assertNotNull(allowHeader);
+    assertTrue(allowHeader.contains("POST"));
+    assertTrue(allowHeader.contains("PUT"));
   }
 }

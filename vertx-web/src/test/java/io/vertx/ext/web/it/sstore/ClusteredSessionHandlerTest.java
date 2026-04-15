@@ -16,10 +16,11 @@
 
 package io.vertx.ext.web.it.sstore;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.ProtocolUpgradeHandler;
@@ -28,12 +29,16 @@ import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -44,12 +49,18 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   byte[] bytes = TestUtils.randomByteArray(100);
   Buffer buffer = TestUtils.randomBuffer(100);
 
-  HttpServer[] servers = new HttpServer[3];
+  FakeClusterManager clusterManager;
+  Vertx[] vertices = new Vertx[numNodes];
+  HttpServer[] servers = new HttpServer[numNodes];
 
+  @BeforeEach
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    startNodes(numNodes);
+  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+    super.setUp(vertx, testContext);
+    clusterManager = new FakeClusterManager();
+    for (int i = 0;i < numNodes;i++) {
+      vertices[i] = Vertx.builder().withClusterManager(clusterManager).buildClustered().await();
+    }
     store = ClusteredSessionStore.create(vertices[0], 3000);
     servers[0] = null;
     servers[1] = null;
@@ -57,36 +68,27 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   }
 
   @Override
-  public void tearDown() throws Exception {
+  public void tearDown(VertxTestContext testContext) throws Exception {
     for (HttpServer server : servers) {
       if (server != null) {
-        CountDownLatch latch = new CountDownLatch(1);
-        server.close().onComplete((asyncResult) -> {
-          assertTrue(asyncResult.succeeded());
-          latch.countDown();
-        });
-        awaitLatch(latch);
+        server.close().await();
       }
     }
-    super.tearDown();
-  }
-
-  @Override
-  protected ClusterManager getClusterManager() {
-    return new FakeClusterManager();
+    for (int i = 0;i < numNodes;i++) {
+      vertices[i].close().await();
+    }
+    super.tearDown(testContext);
   }
 
   @Test
   public void testClusteredSession() throws Exception {
-    CountDownLatch serversReady = new CountDownLatch(3);
-
     Router router1 = Router.router(vertices[0]);
     SessionStore store1 = ClusteredSessionStore.create(vertices[0]);
     SessionHandler sessionHandler1 = SessionHandler.create(store1);
     router1.route().handler(sessionHandler1);
     servers[0] = vertices[0].createHttpServer(new HttpServerOptions().setPort(8081).setHost("localhost"));
     servers[0].requestHandler(router1);
-    servers[0].listen().onComplete(onSuccess(s -> serversReady.countDown()));
+    servers[0].listen().await();
 
     Router router2 = Router.router(vertices[1]);
     SessionStore store2 = ClusteredSessionStore.create(vertices[1]);
@@ -94,7 +96,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     router2.route().handler(sessionHandler2);
     servers[1] = vertices[1].createHttpServer(new HttpServerOptions().setPort(8082).setHost("localhost"));
     servers[1].requestHandler(router2);
-    servers[1].listen().onComplete(onSuccess(s -> serversReady.countDown()));
+    servers[1].listen().await();
 
     Router router3 = Router.router(vertices[2]);
     SessionStore store3 = ClusteredSessionStore.create(vertices[2]);
@@ -102,9 +104,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     router3.route().handler(sessionHandler3);
     servers[2] = vertices[2].createHttpServer(new HttpServerOptions().setPort(8083).setHost("localhost"));
     servers[2].requestHandler(router3);
-    servers[2].listen().onComplete(onSuccess(s -> serversReady.countDown()));
-
-    awaitLatch(serversReady);
+    servers[2].listen().await();
 
     router1.route().handler(rc -> {
       Session sess = rc.session();
@@ -157,12 +157,11 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     });
 
     AtomicReference<String> rSetCookie = new AtomicReference<>();
-    testRequestBuffer(client, HttpMethod.GET, 8081, "/", null, resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      rSetCookie.set(setCookie);
-    }, 200, "OK", null);
-    testRequestBuffer(client, HttpMethod.GET, 8082, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
-    testRequestBuffer(client, HttpMethod.GET, 8083, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+    HttpResponse<Buffer> resp = testRequest(webClient.get(8081, "localhost", "/").send(), 200, "OK");
+    String setCookie = resp.headers().get("set-cookie");
+    rSetCookie.set(setCookie);
+    testRequest(webClient.get(8082, "localhost", "/").putHeader("cookie", rSetCookie.get()).send(), 200, "OK");
+    testRequest(webClient.get(8083, "localhost", "/").putHeader("cookie", rSetCookie.get()).send(), 200, "OK");
   }
 
   @Test
@@ -207,8 +206,8 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     assertEquals(123.456d, (double) session.get("somedouble"), 0);
     assertEquals(123.456f, (float) session.get("somefloat"), 0);
     assertEquals('X', (char) session.get("somechar"));
-    assertTrue(session.get("somebooleantrue"));
-    assertFalse(session.get("somebooleanfalse"));
+    assertTrue((Boolean)session.get("somebooleantrue"));
+    assertFalse((Boolean)session.get("somebooleanfalse"));
     assertEquals("wibble", session.get("somestring"));
     assertTrue(TestUtils.byteArraysEqual(bytes, session.get("somebytes")));
     assertEquals(buffer, session.get("somebuffer"));
@@ -220,25 +219,22 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   @Test
   public void testRetryTimeout() throws Exception {
     long val = doTestSessionRetryTimeout();
-    assertTrue(String.valueOf(val), val >= 2500 && val < 5000);
+    assertTrue(val >= 2500 && val < 5000, String.valueOf(val));
   }
 
   @Test
-  public void testDelayedLookupWithRequestUpgrade() throws InterruptedException {
+  public void testDelayedLookupWithRequestUpgrade(VertxTestContext testContext) {
     String sessionCookieName = "session";
-    CountDownLatch serversReady = new CountDownLatch(3);
-    CountDownLatch testsComplete = new CountDownLatch(3);
+    Checkpoint testsComplete = testContext.checkpoint(3);
 
     ProtocolUpgradeHandler upgradeHandler = ctx ->
       ctx.request()
         .toWebSocket()
-        .onFailure(this::fail)
+        .onFailure(err -> fail(err.getMessage()))
         .onSuccess(serverWebSocket -> {
-          System.out.println("Upgrade successful");
           serverWebSocket.textMessageHandler(msg -> {
-            System.out.println("WS txt message receive successful");
             assertEquals("foo", msg);
-            testsComplete.countDown();
+            testsComplete.flag();
           });
         });
 
@@ -250,7 +246,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       .handler(upgradeHandler);
     servers[0] = vertices[0].createHttpServer(new HttpServerOptions().setPort(8081).setHost("localhost"));
     servers[0].requestHandler(router1);
-    servers[0].listen().onComplete(onSuccess(s -> serversReady.countDown()));
+    servers[0].listen().await();
 
     Router router2 = Router.router(vertices[1]);
     SessionStore store2 = ClusteredSessionStore.create(vertices[1]);
@@ -260,7 +256,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       .handler(upgradeHandler);
     servers[1] = vertices[1].createHttpServer(new HttpServerOptions().setPort(8082).setHost("localhost"));
     servers[1].requestHandler(router2);
-    servers[1].listen().onComplete(onSuccess(s -> serversReady.countDown()));
+    servers[1].listen().await();
 
     Router router3 = Router.router(vertices[2]);
     SessionStore store3 = ClusteredSessionStore.create(vertices[2]);
@@ -270,9 +266,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       .handler(upgradeHandler);
     servers[2] = vertices[2].createHttpServer(new HttpServerOptions().setPort(8083).setHost("localhost"));
     servers[2].requestHandler(router3);
-    servers[2].listen().onComplete(onSuccess(s -> serversReady.countDown()));
-
-    awaitLatch(serversReady);
+    servers[2].listen().await();
 
 
     WebSocketConnectOptions options1 = new WebSocketConnectOptions()
@@ -281,12 +275,8 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       .setHost("localhost")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
 
-    wsClient.connect(options1).onComplete(onSuccess(ws -> {
-      System.out.println("WS connection successful");
-      ws.writeTextMessage("foo").onComplete(onSuccess(v -> {
-        System.out.println("WS txt message write successful");
-      }));
-    }));
+    WebSocket clientWS1 = wsClient.connect(options1).await();
+    clientWS1.writeTextMessage("foo").await();
 
     WebSocketConnectOptions options2 = new WebSocketConnectOptions()
       .setURI("/")
@@ -294,12 +284,8 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       .setHost("localhost")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
 
-    wsClient.connect(options2).onComplete(onSuccess(ws -> {
-      System.out.println("WS connection successful");
-      ws.writeTextMessage("foo").onComplete(onSuccess(v -> {
-        System.out.println("WS txt message write successful");
-      }));
-    }));
+    WebSocket clientWS2 = wsClient.connect(options2).await();
+    clientWS2.writeTextMessage("foo").await();
 
     WebSocketConnectOptions options3 = new WebSocketConnectOptions()
       .setURI("/")
@@ -307,13 +293,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       .setHost("localhost")
       .addHeader("cookie", sessionCookieName + "=" + TestUtils.randomAlphaString(32));
 
-    wsClient.connect(options3).onComplete(onSuccess(ws -> {
-      System.out.println("WS connection successful");
-      ws.writeTextMessage("foo").onComplete(onSuccess(v -> {
-        System.out.println("WS txt message write successful");
-      }));
-    }));
-
-    awaitLatch(testsComplete);
+    WebSocket clientWS3 = wsClient.connect(options3).await();
+    clientWS3.writeTextMessage("foo").await();
   }
 }

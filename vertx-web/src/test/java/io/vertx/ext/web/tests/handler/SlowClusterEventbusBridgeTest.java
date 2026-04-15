@@ -17,74 +17,83 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.core.spi.cluster.RegistrationInfo;
-import io.vertx.tests.eventbus.WrappedClusterManager;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.tests.handler.EventbusBridgeTest.BridgeClient;
-import io.vertx.ext.web.tests.handler.EventbusBridgeTest.Transport;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
-import io.vertx.test.core.VertxTestBase;
+import io.vertx.ext.web.tests.handler.EventbusBridgeTest.BridgeClient;
+import io.vertx.ext.web.tests.handler.EventbusBridgeTest.Transport;
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTest;
+import io.vertx.junit5.VertxTestContext;
+import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import io.vertx.tests.eventbus.WrappedClusterManager;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@RunWith(Parameterized.class)
-public class SlowClusterEventbusBridgeTest extends VertxTestBase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-  @Parameterized.Parameters(name = "{index}: transport = {0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][]{
-      {Transport.RAW_WS}, {Transport.WS}
-    });
-  }
+@VertxTest
+public abstract class SlowClusterEventbusBridgeTest {
 
-  private final Transport transport;
+  protected final Transport transport;
 
-  private VertxInternal node1;
-  private VertxInternal node2;
-  private Router router;
-  private HttpServer server;
-  private WebSocketClient wsClient;
+  protected Vertx vertx;
+  protected VertxInternal node1;
+  protected VertxInternal node2;
+  protected Router router;
+  protected HttpServer server;
+  protected WebSocketClient wsClient;
   protected SockJSHandler sockJS;
 
   public SlowClusterEventbusBridgeTest(Transport transport) {
     this.transport = transport;
   }
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    startNodes(2);
-    node1 = (VertxInternal) vertices[0];
-    node2 = (VertxInternal) vertices[1];
+  @BeforeEach
+  public void setUp(Vertx vertx) throws Exception {
+    this.vertx = vertx;
+    SlowClusterManager clusterManager = new SlowClusterManager(vertx);
+    node1 = (VertxInternal) Vertx.builder().withClusterManager(clusterManager).buildClustered().await();
+    node2 = (VertxInternal) Vertx.builder().withClusterManager(clusterManager).buildClustered().await();
     router = Router.router(node1);
     server = node1.createHttpServer();
-    CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router).listen(0).onComplete(onSuccess(res -> latch.countDown()));
-    awaitLatch(latch);
+    server.requestHandler(router).listen(0).await();
     wsClient = node1.createWebSocketClient(new WebSocketClientOptions().setDefaultPort(server.actualPort()));
     sockJS = SockJSHandler.create(node1);
   }
 
-
-  @Override
-  protected ClusterManager getClusterManager() {
-    return new SlowClusterManager(vertx);
+  @AfterEach
+  public void tearDown() {
+    try {
+      if (wsClient != null) {
+        wsClient.close().await();
+      }
+      if (server != null) {
+        server.close().await();
+      }
+    } catch (Exception e) {
+      // Ignore if already closed
+    }
+    if (node2 != null) {
+      node2.close().await();
+    }
+    if (node1 != null) {
+      node1.close().await();
+    }
   }
 
   @Test
-  public void testRegistration() throws Exception {
+  public void testRegistration(VertxTestContext testContext) throws Exception {
     String payload = "hello slinkydeveloper!";
     String addr = "someaddress";
     String websocketURI = "/eventbus/websocket";
@@ -120,25 +129,23 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
 
     BridgeClient bridgeClient = new BridgeClient(wsClient, transport);
 
+    Checkpoint checkpoint = testContext.checkpoint();
+
     bridgeClient.handler((address, received) -> {
       assertTrue(step.compareAndSet(2, 3));
       assertEquals(addr, address);
       assertEquals(payload, received.getString("body"));
-      bridgeClient.close().onComplete(onSuccess(v -> complete()));
+      bridgeClient.close().onComplete(TestUtils.onSuccess(v -> checkpoint.flag()));
     });
-
-    waitFor(2);
 
     bridgeClient
       .connect(websocketURI)
       .compose(v -> bridgeClient.register(addr))
-      .onComplete(onSuccess(v -> complete()));
-
-    await();
+      .await();
   }
 
   @Test
-  public void testNoOrphanClusteredSubscription() throws Exception {
+  public void testNoOrphanClusteredSubscription(VertxTestContext testContext) throws Exception {
     String addr = "someaddress";
     String websocketURI = "/eventbus/websocket";
 
@@ -154,18 +161,16 @@ public class SlowClusterEventbusBridgeTest extends VertxTestBase {
       .connect(websocketURI)
       .compose(v -> bridgeClient.register(addr))
       .compose(v -> bridgeClient.unregister(addr))
-      .onComplete(onSuccess(v -> {
+      .onComplete(TestUtils.onSuccess(v -> {
         Promise<List<RegistrationInfo>> promise = Promise.promise();
         node1.setTimer(1500, l -> {
           node1.clusterManager().getRegistrations(addr, promise);
-          promise.future().onComplete(onSuccess(registrationInfos -> {
+          promise.future().onComplete(TestUtils.onSuccess(registrationInfos -> {
             assertTrue(registrationInfos == null || registrationInfos.isEmpty());
-            testComplete();
+            testContext.completeNow();
           }));
         });
       }));
-
-    await();
   }
 
   private static class SlowClusterManager extends WrappedClusterManager {

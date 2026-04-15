@@ -6,14 +6,14 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.healthchecks.CheckResult;
 import io.vertx.ext.healthchecks.Status;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.healthchecks.HealthCheckHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.function.Function;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HealthCheckTest extends HealthCheckTestBase {
 
@@ -26,154 +26,143 @@ public class HealthCheckTest extends HealthCheckTestBase {
     return "/health";
   }
 
-  private Future<JsonObject> get(int status) {
+  private JsonObject get(int status) {
     return getCheckResult(prefix(), status);
   }
 
-  private Future<JsonObject> get(String path, int status) {
+  private JsonObject get(String path, int status) {
     return getCheckResult(prefix() + "/" + path, status);
   }
 
   @Test
-  public void testEmptyChecks(TestContext tc) {
-    get(204).onComplete(tc.asyncAssertSuccess());
+  public void testEmptyChecks() {
+    get(204);
   }
 
   @Test
-  public void testWithEmptySuccessfulCheck(TestContext tc) {
+  public void testWithEmptySuccessfulCheck() {
     healthCheckHandler.register("foo", Promise::complete);
 
-    get(200).onComplete(tc.asyncAssertSuccess(json -> {
-      tc.assertEquals(json.getString("outcome"), "UP");
-      JsonArray checks = json.getJsonArray("checks");
-      tc.assertNotNull(checks);
-      tc.assertEquals(1, checks.size());
-      JsonObject check = checks.getJsonObject(0);
-      tc.assertEquals("foo", check.getString("id"));
-      tc.assertEquals("UP", check.getString("status"));
-    }));
+    JsonObject json = get(200);
+    assertEquals("UP", json.getString("outcome"));
+    JsonArray checks = json.getJsonArray("checks");
+    assertNotNull(checks);
+    assertEquals(1, checks.size());
+    JsonObject check = checks.getJsonObject(0);
+    assertEquals("foo", check.getString("id"));
+    assertEquals("UP", check.getString("status"));
   }
 
   @Test
-  public void testWithEmptyFailedCheck(TestContext tc) {
+  public void testWithEmptyFailedCheck() {
     healthCheckHandler.register("foo", promise -> promise.fail("BOOM"));
 
-    get(503).onComplete(tc.asyncAssertSuccess(json -> {
-      tc.assertEquals(json.getString("outcome"), "DOWN");
-      JsonArray checks = json.getJsonArray("checks");
-      tc.assertNotNull(checks);
-      tc.assertEquals(1, checks.size());
-      JsonObject check = checks.getJsonObject(0);
-      tc.assertEquals("foo", check.getString("id"));
-      tc.assertEquals("DOWN", check.getString("status"));
-      JsonObject data = check.getJsonObject("data");
-      tc.assertNotNull("data");
-      tc.assertEquals("BOOM", data.getString("cause"));
-    }));
+    JsonObject json = get(503);
+    assertEquals("DOWN", json.getString("outcome"));
+    JsonArray checks = json.getJsonArray("checks");
+    assertNotNull(checks);
+    assertEquals(1, checks.size());
+    JsonObject check = checks.getJsonObject(0);
+    assertEquals("foo", check.getString("id"));
+    assertEquals("DOWN", check.getString("status"));
+    JsonObject data = check.getJsonObject("data");
+    assertNotNull(data);
+    assertEquals("BOOM", data.getString("cause"));
   }
 
   @Test
-  public void testWithExplicitSuccessfulCheck(TestContext tc) {
+  public void testWithExplicitSuccessfulCheck() {
     healthCheckHandler.register("bar", promise -> promise.complete(Status.OK()));
 
-    get(200).onComplete(tc.asyncAssertSuccess(json -> {
-      tc.assertEquals(json.getString("outcome"), "UP");
-      JsonArray checks = json.getJsonArray("checks");
-      tc.assertNotNull(checks);
-      tc.assertEquals(1, checks.size());
-      JsonObject check = checks.getJsonObject(0);
-      tc.assertEquals("bar", check.getString("id"));
-      tc.assertEquals("UP", check.getString("status"));
-    }));
+    JsonObject json = get(200);
+    assertEquals("UP", json.getString("outcome"));
+    JsonArray checks = json.getJsonArray("checks");
+    assertNotNull(checks);
+    assertEquals(1, checks.size());
+    JsonObject check = checks.getJsonObject(0);
+    assertEquals("bar", check.getString("id"));
+    assertEquals("UP", check.getString("status"));
   }
 
   @Test
-  public void testWithExplicitFailedCheck(TestContext tc) {
+  public void testWithExplicitFailedCheck() {
     healthCheckHandler.register("bar", promise -> promise.complete(Status.KO()));
 
-    get(503).onComplete(tc.asyncAssertSuccess(json -> {
-      tc.assertEquals(json.getString("outcome"), "DOWN");
-      JsonArray checks = json.getJsonArray("checks");
-      tc.assertNotNull(checks);
-      tc.assertEquals(1, checks.size());
-      JsonObject check = checks.getJsonObject(0);
-      tc.assertEquals("bar", check.getString("id"));
-      tc.assertEquals("DOWN", check.getString("status"));
-    }));
+    JsonObject json = get(503);
+    assertEquals("DOWN", json.getString("outcome"));
+    JsonArray checks = json.getJsonArray("checks");
+    assertNotNull(checks);
+    assertEquals(1, checks.size());
+    JsonObject check = checks.getJsonObject(0);
+    assertEquals("bar", check.getString("id"));
+    assertEquals("DOWN", check.getString("status"));
   }
 
   @Test
-  public void testWithExplicitSuccessfulCheckAndData(TestContext tc) {
+  public void testWithExplicitSuccessfulCheckAndData() {
     healthCheckHandler.register("bar", promise -> promise.complete(Status.OK(new JsonObject()
       .put("availableMemory", "2Mb"))));
 
-    get(200).onComplete(tc.asyncAssertSuccess(json -> {
-      tc.assertEquals(json.getString("outcome"), "UP");
-      JsonArray checks = json.getJsonArray("checks");
-      tc.assertNotNull(checks);
-      tc.assertEquals(1, checks.size());
-      JsonObject check = checks.getJsonObject(0);
-      tc.assertEquals("bar", check.getString("id"));
-      tc.assertEquals("UP", check.getString("status"));
-      JsonObject data = check.getJsonObject("data");
-      tc.assertNotNull("data");
-      tc.assertEquals("2Mb", data.getString("availableMemory"));
-    }));
+    JsonObject json = get(200);
+    assertEquals("UP", json.getString("outcome"));
+    JsonArray checks = json.getJsonArray("checks");
+    assertNotNull(checks);
+    assertEquals(1, checks.size());
+    JsonObject check = checks.getJsonObject(0);
+    assertEquals("bar", check.getString("id"));
+    assertEquals("UP", check.getString("status"));
+    JsonObject data = check.getJsonObject("data");
+    assertNotNull(data);
+    assertEquals("2Mb", data.getString("availableMemory"));
   }
 
   @Test
-  public void testRetrievingALeaf(TestContext tc) {
+  public void testRetrievingALeaf() {
     healthCheckHandler
       .register("sub/A", promise -> promise.complete(Status.OK()))
       .register("sub/B", promise -> promise.complete(Status.OK()))
       .register("sub2/c/C1", promise -> promise.complete(Status.OK()))
       .register("sub2/c/C2", promise -> promise.complete(Status.KO()));
 
-    Async async = tc.async(4);
+    JsonObject jsonA = get("sub/A", 200);
+    assertEquals("UP", jsonA.getString("status"));
+    assertEquals("UP", jsonA.getString("outcome"));
 
-    get("sub/A", 200).onComplete(tc.asyncAssertSuccess(jsonObject -> {
-      tc.assertEquals("UP", jsonObject.getString("status"));
-      tc.assertEquals("UP", jsonObject.getString("outcome"));
-      async.countDown();
-    }));
-
-    get("sub2/c/C2", 503).onComplete(tc.asyncAssertSuccess(jsonObject -> {
-      tc.assertEquals("DOWN", jsonObject.getString("status"));
-      tc.assertEquals("DOWN", jsonObject.getString("outcome"));
-      async.countDown();
-    }));
+    JsonObject jsonC2 = get("sub2/c/C2", 503);
+    assertEquals("DOWN", jsonC2.getString("status"));
+    assertEquals("DOWN", jsonC2.getString("outcome"));
 
     // Not found
-    get("missing", 404).onComplete(tc.asyncAssertSuccess(v -> async.countDown()));
+    get("missing", 404);
     // Illegal
-    get("sub2/c/C1/foo", 400).onComplete(tc.asyncAssertSuccess(v -> async.countDown()));
+    get("sub2/c/C1/foo", 400);
   }
 
   @Test
-  public void testWithResultHandler(TestContext tc) {
+  public void testWithResultHandler() {
     Function<CheckResult, Future<CheckResult>> resultMapper = cr -> {
-      tc.assertTrue(cr.getUp());
+      assertTrue(cr.getUp());
       List<CheckResult> checks = cr.getChecks();
-      tc.assertEquals(1, checks.size());
+      assertEquals(1, checks.size());
       CheckResult child = checks.get(0);
-      tc.assertEquals("bar", child.getId());
-      tc.assertTrue(child.getUp());
+      assertEquals("bar", child.getId());
+      assertTrue(child.getUp());
       checks.add(CheckResult.from("new-check", Status.OK()));
       return Future.succeededFuture(cr);
     };
     healthCheckHandler.register("bar", promise -> promise.complete(Status.OK()));
     healthCheckHandler.resultMapper(resultMapper);
-    get(200).onComplete(tc.asyncAssertSuccess(json -> {
-      tc.assertEquals(json.getString("outcome"), "UP");
-      JsonArray checks = json.getJsonArray("checks");
-      tc.assertNotNull(checks);
-      tc.assertEquals(2, checks.size());
-      JsonObject first = checks.getJsonObject(0);
-      tc.assertEquals("bar", first.getString("id"));
-      tc.assertEquals("UP", first.getString("status"));
-      JsonObject second = checks.getJsonObject(1);
-      tc.assertEquals("new-check", second.getString("id"));
-      tc.assertEquals("UP", second.getString("status"));
-    }));
+
+    JsonObject json = get(200);
+    assertEquals("UP", json.getString("outcome"));
+    JsonArray checks = json.getJsonArray("checks");
+    assertNotNull(checks);
+    assertEquals(2, checks.size());
+    JsonObject first = checks.getJsonObject(0);
+    assertEquals("bar", first.getString("id"));
+    assertEquals("UP", first.getString("status"));
+    JsonObject second = checks.getJsonObject(1);
+    assertEquals("new-check", second.getString("id"));
+    assertEquals("UP", second.getString("status"));
   }
 }

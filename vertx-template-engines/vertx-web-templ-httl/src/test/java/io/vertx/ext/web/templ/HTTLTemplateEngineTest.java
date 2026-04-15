@@ -18,47 +18,45 @@ package io.vertx.ext.web.templ;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.httl.HTTLTemplateEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * @author <a href="mailto:victorqrsilva@gmail.com">Victor Quezado</a>
  */
-@RunWith(VertxUnitRunner.class)
 public class HTTLTemplateEngineTest {
   private static Vertx vertx;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() {
     vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspath(TestContext should) {
+  public void testTemplateHandlerOnClasspath() throws Exception {
     TemplateEngine engine = HTTLTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-httl-template1.httl").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("<!--  -->\nHello badger and fox\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "somedir/test-httl-template1.httl").await();
+    assertEquals("<!--  -->\nHello badger and fox\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testCachingEnabled(TestContext should) throws IOException {
+  public void testCachingEnabled() throws Exception {
     System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = HTTLTemplateEngine.create(vertx);
 
@@ -70,60 +68,54 @@ public class HTTLTemplateEngineTest {
       out.flush();
     }
 
-    engine.render(new JsonObject(), temp.getName()).onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("before", normalizeCRLF(render.toString()));
-      // cache is enabled so if we change the content that should not affect the result
+    Buffer render = engine.render(new JsonObject(), temp.getName()).await();
+    assertEquals("before", normalizeCRLF(render.toString()));
+    // cache is enabled so if we change the content that should not affect the result
 
-      try (PrintWriter out2 = new PrintWriter(temp)) {
-        out2.print("after");
-        out2.flush();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    try (PrintWriter out2 = new PrintWriter(temp)) {
+      out2.print("after");
+      out2.flush();
+    }
 
-      engine.render(new JsonObject(), temp.getName()).onComplete(should.asyncAssertSuccess(render2 -> {
-        should.assertEquals("before", normalizeCRLF(render2.toString()));
-      }));
-    }));
+    render = engine.render(new JsonObject(), temp.getName()).await();
+    assertEquals("before", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspathDisableCaching(TestContext context) {
+  public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
     System.setProperty("vertxweb.environment", "development");
-    testTemplateHandlerOnClasspath(context);
+    testTemplateHandlerOnClasspath();
   }
 
   @Test
-  public void testTemplateHandlerNoExtension(TestContext should) {
+  public void testTemplateHandlerNoExtension() throws Exception {
     TemplateEngine engine = HTTLTemplateEngine.create(vertx);
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-httl-template1").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("<!--  -->\nHello badger and fox\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "somedir/test-httl-template1").await();
+    assertEquals("<!--  -->\nHello badger and fox\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testTemplateHandlerChangeExtension(TestContext should) {
+  public void testTemplateHandlerChangeExtension() throws Exception {
     TemplateEngine engine = HTTLTemplateEngine.create(vertx, "mvl");
 
     final JsonObject context = new JsonObject()
       .put("foo", "badger")
       .put("bar", "fox");
 
-    engine.render(context, "somedir/test-httl-template1").onComplete(should.asyncAssertSuccess(render -> {
-      should.assertEquals("<!--  -->\nCheerio badger and fox\n", normalizeCRLF(render.toString()));
-    }));
+    Buffer render = engine.render(context, "somedir/test-httl-template1").await();
+    assertEquals("<!--  -->\nCheerio badger and fox\n", normalizeCRLF(render.toString()));
   }
 
   @Test
-  public void testNoSuchTemplate(TestContext should) {
+  public void testNoSuchTemplate() {
     TemplateEngine engine = HTTLTemplateEngine.create(vertx);
 
-    engine.render(new JsonObject(), "not-found").onComplete(should.asyncAssertFailure());
+    assertThrows(Exception.class, () -> engine.render(new JsonObject(), "not-found").await());
   }
 
   // For windows testing

@@ -23,6 +23,7 @@ open module io.vertx.web.tests {
   requires io.vertx.core.logging;
   requires static io.vertx.auth.abac;
   requires static io.vertx.auth.oauth2;
+  requires static io.vertx.auth.common;
   requires static io.vertx.auth.jwt;
   requires static io.vertx.auth.webauthn4j;
   requires static io.vertx.auth.htdigest;
@@ -30,9 +31,12 @@ open module io.vertx.web.tests {
   requires static io.vertx.auth.otp;
   requires static io.vertx.healthcheck;
   requires io.vertx.core.tests;
-  requires static io.vertx.testing.unit;
+  requires transitive org.junit.jupiter.api;
+  requires org.junit.jupiter.params;
+  requires io.vertx.testing.junit5;
   requires io.vertx.eventbusbridge;
   requires io.vertx.web;
+  requires io.vertx.web.client;
   requires io.vertx.web.common;
   requires junit;
   requires static testcontainers;

@@ -32,8 +32,8 @@ import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -42,7 +42,7 @@ import java.io.IOException;
  */
 public abstract class AuthHandlerTestBase extends WebTestBase {
 
-  @AfterClass
+  @AfterAll
   public static void oneTimeTearDown() throws IOException {
     cleanupFileUploadDir();
   }
