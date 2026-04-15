@@ -7,6 +7,7 @@ import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.MalformedValueException;
+import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.tests.testutils.TestSchemas;
@@ -43,22 +44,18 @@ public class TextPlainBodyProcessorTest {
   }
 
   @Test
-  public void testString(VertxTestContext testContext) {
+  public void testString() {
     when(mockedContext.body()).thenReturn(mockedRequestBody);
     when(mockedRequestBody.asString()).thenReturn(TestSchemas.VALID_STRING);
 
     BodyProcessor processor = Bodies.textPlain(TestSchemas.SAMPLE_STRING_SCHEMA_BUILDER).create(repository);
 
-    processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
-      testContext.verify(() -> {
-        assertThat(rp.isString()).isTrue();
-        assertThat(rp.getString())
-          .isEqualTo(
-            TestSchemas.VALID_STRING
-          );
-      });
-      testContext.completeNow();
-    }));
+    RequestParameter rp = processor.process(mockedContext).await();
+    assertThat(rp.isString()).isTrue();
+    assertThat(rp.getString())
+      .isEqualTo(
+        TestSchemas.VALID_STRING
+      );
   }
 
   @Test

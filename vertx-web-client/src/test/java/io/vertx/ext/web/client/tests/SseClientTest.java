@@ -27,7 +27,7 @@ public class SseClientTest {
   private HttpServer server;
 
   @BeforeEach
-  public void setup(Vertx vertx, VertxTestContext testContext) {
+  public void setup(Vertx vertx) {
     this.vertx = vertx;
     client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
 
@@ -113,7 +113,9 @@ public class SseClientTest {
       }
     });
 
-    server.listen(8080).onComplete(testContext.succeedingThenComplete());
+    server
+      .listen(8080)
+      .await();
   }
 
   @Test

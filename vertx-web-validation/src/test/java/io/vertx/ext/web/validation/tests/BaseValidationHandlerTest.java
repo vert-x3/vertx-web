@@ -24,7 +24,7 @@ public abstract class BaseValidationHandlerTest {
   public WebClient client;
 
   @BeforeEach
-  public void setUp(Vertx vertx, VertxTestContext testContext) {
+  public void setUp(Vertx vertx) {
     router = Router.router(vertx);
     ValidationTestUtils.mountRouterFailureHandler(router);
 
@@ -36,13 +36,17 @@ public abstract class BaseValidationHandlerTest {
 
     server
       .requestHandler(router)
-      .listen(9000).onComplete(testContext.succeedingThenComplete());
+      .listen(9000)
+      .await();
   }
 
   @AfterEach
-  public void tearDown(VertxTestContext testContext) {
-    if (client != null) client.close();
-    if (server != null) server.close().onComplete(testContext.succeedingThenComplete());
-    else testContext.completeNow();
+  public void tearDown() {
+    if (client != null) {
+      client.close();
+    }
+    if (server != null) {
+      server.close().await();
+    }
   }
 }
