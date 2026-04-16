@@ -1,4 +1,4 @@
 @Source
-package examples;
+package examples.client;
 
 import io.vertx.docgen.Source;

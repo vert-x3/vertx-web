@@ -10,7 +10,7 @@
  *
  */
 
-package examples;
+package examples.api.service;
 
 import io.vertx.core.Vertx;
 import io.vertx.docgen.Source;

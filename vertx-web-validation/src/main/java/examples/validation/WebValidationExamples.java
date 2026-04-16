@@ -1,4 +1,4 @@
-package examples;
+package examples.validation;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

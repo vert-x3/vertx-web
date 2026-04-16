@@ -1,4 +1,4 @@
-package examples;
+package examples.client;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
@@ -10,10 +10,10 @@ public class WebClientSessionExamples {
     WebClient client = WebClient.create(vertx);
     WebClientSession session = WebClientSession.create(client);
   }
-  
+
   public void setHeaders(WebClient client, String jwtToken) {
     WebClientSession session = WebClientSession.create(client);
     session.addHeader("my-jwt-token", jwtToken);
   }
-  
+
 }

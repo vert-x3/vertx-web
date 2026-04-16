@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package examples;
+package examples.client;
 
 import io.vertx.core.Expectation;
 import io.vertx.core.Future;

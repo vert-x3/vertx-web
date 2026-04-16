@@ -2,5 +2,5 @@
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @Source
-package examples;
+package examples.proxy;
 import io.vertx.docgen.Source;

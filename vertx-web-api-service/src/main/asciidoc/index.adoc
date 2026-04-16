@@ -65,14 +65,14 @@ This handler sends some data extracted from {@link io.vertx.ext.web.RoutingConte
 
 [source,$lang]
 ----
-{@link examples.ApiCodegenExamples#mountHandler}
+{@link examples.api.service.ApiCodegenExamples#mountHandler}
 ----
 
 You can also define the {@link io.vertx.core.eventbus.DeliveryOptions} that will be used each time a message is sent through the event bus:
 
 [source,$lang]
 ----
-{@link examples.ApiCodegenExamples#mountHandlerWithTimeout}
+{@link examples.api.service.ApiCodegenExamples#mountHandlerWithTimeout}
 ----
 
 IMPORTANT: Before mounting the {@link io.vertx.ext.web.api.service.RouteToEBServiceHandler}, you *must* mount a
@@ -87,7 +87,7 @@ Let's assume we have defined two different routes in our {@link io.vertx.ext.web
 
 [source,$lang]
 ----
-{@link examples.ApiCodegenExamples#serviceMountExample}
+{@link examples.api.service.ApiCodegenExamples#serviceMountExample}
 ----
 
 `GET /api/transactions` receives two optional query parameters as input: `from` and `to`. `PUT /api/transactions` receives a {@link io.vertx.core.json.JsonObject} as request body
@@ -147,14 +147,14 @@ For example the implementation of `TransactionService#getTransactionsList` looks
 
 [source,$lang]
 ----
-{@link examples.ApiCodegenExamples#implGetTransactionsListSuccess}
+{@link examples.api.service.ApiCodegenExamples#implGetTransactionsListSuccess}
 ----
 
 Or when it fails:
 
 [source,$lang]
 ----
-{@link examples.ApiCodegenExamples#implGetTransactionsListFailure}
+{@link examples.api.service.ApiCodegenExamples#implGetTransactionsListFailure}
 ----
 
 === The `ServiceRequest` data object
@@ -184,7 +184,7 @@ Now you can register your service to event bus:
 
 [source,$lang]
 ----
-{@link examples.ApiCodegenExamples#serviceMount}
+{@link examples.api.service.ApiCodegenExamples#serviceMount}
 ----
 
 For more info on how to expose your service look at https://vertx.io/docs/vertx-service-proxy/java/#_exposing_your_service[Vert.x service proxy documentation]
@@ -196,7 +196,7 @@ The validation of this {@link io.vertx.ext.web.openapi.router.OpenAPIRoute} *MUS
 
 [source,$lang]
 ----
-{@link examples.OpenAPIExamples#addHandler}
+{@link examples.api.service.OpenAPIExamples#addHandler}
 ----
 
 === OpenAPI contract extension

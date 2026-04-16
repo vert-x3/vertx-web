@@ -1,4 +1,4 @@
-package examples;
+package examples.proxy;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;

@@ -34,7 +34,7 @@ Create a Vert.x Web {@link io.vertx.ext.web.Route} and a {@link io.vertx.ext.web
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#handlerSetup}
+{@link examples.graphql.GraphQLExamples#handlerSetup}
 ----
 
 [TIP]
@@ -43,7 +43,7 @@ The `GraphQLHandler` supports https://www.apollographql.com/docs/apollo-server/p
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#persistedQueries}
+{@link examples.graphql.GraphQLExamples#persistedQueries}
 ----
 ====
 
@@ -52,7 +52,7 @@ However, you can restrict the service to one type of HTTP method:
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#handlerSetupPost}
+{@link examples.graphql.GraphQLExamples#handlerSetupPost}
 ----
 
 IMPORTANT: The {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} requires a {@link io.vertx.ext.web.handler.BodyHandler} to read `POST` requests content.
@@ -66,7 +66,7 @@ To enable it, create the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler}
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#handlerSetupBatching}
+{@link examples.graphql.GraphQLExamples#handlerSetupBatching}
 ----
 
 === GraphQL over WebSocket
@@ -82,7 +82,7 @@ This check is important because WebSockets are not restrained by the same-origin
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#addGraphQLWSHandlerToRouter}
+{@link examples.graphql.GraphQLExamples#addGraphQLWSHandlerToRouter}
 ----
 
 [IMPORTANT]
@@ -92,7 +92,7 @@ Consequently, it has to be added to the list of supported subprotocols in the se
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#configureServerForGraphQLWS}
+{@link examples.graphql.GraphQLExamples#configureServerForGraphQLWS}
 ----
 ====
 
@@ -102,7 +102,7 @@ The `GraphQLWSHandler` supports https://www.apollographql.com/docs/apollo-server
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#persistedQueries}
+{@link examples.graphql.GraphQLExamples#persistedQueries}
 ----
 ====
 
@@ -110,7 +110,7 @@ To support both HTTP and Websockets on the same URI, the {@link io.vertx.ext.web
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#configureGraphQLWSAndHttpOnSamePath}
+{@link examples.graphql.GraphQLExamples#configureGraphQLWSAndHttpOnSamePath}
 ----
 
 IMPORTANT: A _subscription_ `DataFetcher` has to return a `org.reactivestreams.Publisher` instance.
@@ -123,7 +123,7 @@ To do so, create a route for GraphiQL resources and a {@link io.vertx.ext.web.ha
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#handlerSetupGraphiQL}
+{@link examples.graphql.GraphQLExamples#handlerSetupGraphiQL}
 ----
 
 Then browse to http://localhost:8080/graphiql/.
@@ -142,7 +142,7 @@ If your application is protected by authentication, you can customize the header
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#handlerSetupGraphiQLAuthn}
+{@link examples.graphql.GraphQLExamples#handlerSetupGraphiQLAuthn}
 ----
 
 Please refer to the {@link io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions} documentation for further details.
@@ -155,7 +155,7 @@ To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event l
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#completionStageDataFetcher}
+{@link examples.graphql.GraphQLExamples#completionStageDataFetcher}
 ----
 
 [TIP]
@@ -166,14 +166,14 @@ First, declare the instrumentation while configuring GraphQL-Java.
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#vertxFutureAdapter}
+{@link examples.graphql.GraphQLExamples#vertxFutureAdapter}
 ----
 
 Then you can return Vert.x futures directly.
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#futureDataFetcher}
+{@link examples.graphql.GraphQLExamples#futureDataFetcher}
 ----
 ====
 
@@ -188,7 +188,7 @@ For this, you may retrieve the {@link io.vertx.ext.web.RoutingContext} object by
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#routingContextInDataFetchingEnvironment}
+{@link examples.graphql.GraphQLExamples#routingContextInDataFetchingEnvironment}
 ----
 
 === JSON data results
@@ -209,7 +209,7 @@ Configure GraphQL-Java with the {@link io.vertx.ext.web.handler.graphql.instrume
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#jsonObjectAdapter}
+{@link examples.graphql.GraphQLExamples#jsonObjectAdapter}
 ----
 
 === Batch loading
@@ -220,14 +220,14 @@ First, create a batch loader:
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#createBatchLoader}
+{@link examples.graphql.GraphQLExamples#createBatchLoader}
 ----
 
 Then, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to create a `DataLoaderRegistry` for each request:
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#dataLoaderRegistry}
+{@link examples.graphql.GraphQLExamples#dataLoaderRegistry}
 ----
 
 === File uploads
@@ -240,7 +240,7 @@ To enable it, create a {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} w
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#setupGraphQLHandlerMultipart}
+{@link examples.graphql.GraphQLExamples#setupGraphQLHandlerMultipart}
 ----
 
 IMPORTANT: If the router does not have a {@link io.vertx.ext.web.handler.BodyHandler}, the multipart request parser will not be able to handle the GraphQL mutation call.
@@ -249,12 +249,12 @@ Finally, create the `Upload` scalar and set it to the `RuntimeWiring`:
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#setRuntimeScalar}
+{@link examples.graphql.GraphQLExamples#setRuntimeScalar}
 ----
 
 The `FileUpload` instance can be accessed using the `DataFetchingEnvironment::getArgument` method.
 
 [source,$lang]
 ----
-{@link examples.GraphQLExamples#getFileUpload}
+{@link examples.graphql.GraphQLExamples#getFileUpload}
 ----

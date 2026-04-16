@@ -57,14 +57,14 @@ You create an {@link io.vertx.ext.web.client.WebClient} instance with default op
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#create}
+{@link examples.client.WebClientExamples#create}
 ----
 
 If you want to configure options for the client, you create it as follows
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#createFromOptions}
+{@link examples.client.WebClientExamples#createFromOptions}
 ----
 
 Web Client options inherit Http Client options so you can set any one of them.
@@ -73,7 +73,7 @@ If your already have an HTTP Client in your application you can also reuse it
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#wrap(io.vertx.core.http.HttpClient)}
+{@link examples.client.WebClientExamples#wrap(io.vertx.core.http.HttpClient)}
 ----
 
 IMPORTANT: In most cases, a Web Client should be created once on application startup and then reused.
@@ -88,28 +88,28 @@ and HEAD requests
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#simpleGetAndHead}
+{@link examples.client.WebClientExamples#simpleGetAndHead}
 ----
 
 You can add query parameters to the request URI in a fluent fashion
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#simpleGetWithParams(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#simpleGetWithParams(io.vertx.ext.web.client.WebClient)}
 ----
 
 Any request URI parameter will pre-populate the request
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#simpleGetWithInitialParams(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#simpleGetWithInitialParams(io.vertx.ext.web.client.WebClient)}
 ----
 
 Setting a request URI discards existing query parameters
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#simpleGetOverwritePreviousParams(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#simpleGetOverwritePreviousParams(io.vertx.ext.web.client.WebClient)}
 ----
 
 === Writing request bodies
@@ -121,7 +121,7 @@ Use {@link io.vertx.ext.web.client.HttpRequest#sendBuffer} to send a buffer body
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#sendBuffer(io.vertx.ext.web.client.WebClient, io.vertx.core.buffer.Buffer)}
+{@link examples.client.WebClientExamples#sendBuffer(io.vertx.ext.web.client.WebClient, io.vertx.core.buffer.Buffer)}
 ----
 
 Sending a single buffer is useful but often you don't want to load fully the content in memory because
@@ -131,7 +131,7 @@ for each request. For this purpose the Web Client can send `ReadStream<Buffer>` 
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#sendStreamChunked(io.vertx.ext.web.client.WebClient, io.vertx.core.streams.ReadStream)}
+{@link examples.client.WebClientExamples#sendStreamChunked(io.vertx.ext.web.client.WebClient, io.vertx.core.streams.ReadStream)}
 ----
 
 The Web Client takes care of setting up the transfer pump for you. Since the length of the stream is not know
@@ -141,7 +141,7 @@ When you know the size of the stream, you shall specify before using the `conten
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#sendStream(io.vertx.ext.web.client.WebClient, io.vertx.core.file.FileSystem)}
+{@link examples.client.WebClientExamples#sendStream(io.vertx.ext.web.client.WebClient, io.vertx.core.file.FileSystem)}
 ----
 
 The POST will not be chunked.
@@ -153,7 +153,7 @@ use the {@link io.vertx.ext.web.client.HttpRequest#sendJsonObject(io.vertx.core.
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#sendJsonObject(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#sendJsonObject(io.vertx.ext.web.client.WebClient)}
 ----
 
 In Java, Groovy or Kotlin, you can use the {@link io.vertx.ext.web.client.HttpRequest#sendJson} method that maps
@@ -162,7 +162,7 @@ method
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#sendJsonPOJO(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#sendJsonPOJO(io.vertx.ext.web.client.WebClient)}
 ----
 
 NOTE: the {@link io.vertx.core.json.Json#encode(java.lang.Object)} uses the Jackson mapper to encode the object
@@ -175,7 +175,7 @@ variant.
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#sendForm(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#sendForm(io.vertx.ext.web.client.WebClient)}
 ----
 
 By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You can set
@@ -183,7 +183,7 @@ the `content-type` header to `multipart/form-data` instead
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#sendMultipart(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#sendMultipart(io.vertx.ext.web.client.WebClient)}
 ----
 
 If you want to upload files and send attributes, you can create a {@link io.vertx.ext.web.multipart.MultipartForm} and
@@ -191,7 +191,7 @@ If you want to upload files and send attributes, you can create a {@link io.vert
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#sendMultipartWithFileUpload(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#sendMultipartWithFileUpload(io.vertx.ext.web.client.WebClient)}
 ----
 
 === Writing request headers
@@ -200,7 +200,7 @@ You can write headers to a request using the headers multi-map as follows:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#sendHeaders1(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#sendHeaders1(io.vertx.ext.web.client.WebClient)}
 ----
 
 The headers are an instance of {@link io.vertx.core.MultiMap} which provides operations for adding,
@@ -210,7 +210,7 @@ You can also write headers using putHeader
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#sendHeaders2(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#sendHeaders2(io.vertx.ext.web.client.WebClient)}
 ----
 
 === Configure the request to add authentication.
@@ -225,7 +225,7 @@ You can configure the request to add basic access authentication as follows:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#addBasicAccessAuthentication(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#addBasicAccessAuthentication(io.vertx.ext.web.client.WebClient)}
 ----
 
 In OAuth 2.0, a request contains a header field of the form `Authorization: Bearer <bearerToken>`,
@@ -235,7 +235,7 @@ You can configure the request to add bearer token authentication as follows:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#addBearerTokenAuthentication(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#addBearerTokenAuthentication(io.vertx.ext.web.client.WebClient)}
 ----
 
 === Reusing requests
@@ -245,7 +245,7 @@ safely, making it very easy to configure and reuse {@link io.vertx.ext.web.clien
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#multiGet(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#multiGet(io.vertx.ext.web.client.WebClient)}
 ----
 
 Beware though that {@link io.vertx.ext.web.client.HttpRequest} instances are mutable.
@@ -253,7 +253,7 @@ Therefore you should call the {@link io.vertx.ext.web.client.HttpRequest#copy()}
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#multiGetCopy(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#multiGetCopy(io.vertx.ext.web.client.WebClient)}
 ----
 
 === Timeouts
@@ -262,7 +262,7 @@ You can set a connect timeout  for a specific http request using {@link io.vertx
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#connectTimeout(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#connectTimeout(io.vertx.ext.web.client.WebClient)}
 ----
 
 If the client cannot obtain a connection to the server within the timeout period an exception will be passed to the response
@@ -272,7 +272,7 @@ You can set an idle timeout  for a specific http request using {@link io.vertx.e
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#idleTimeout(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#idleTimeout(io.vertx.ext.web.client.WebClient)}
 ----
 
 If the request does not return any data within the timeout period an exception will be passed to the response
@@ -282,7 +282,7 @@ You can set both timeouts using {@link io.vertx.ext.web.client.HttpRequest#timeo
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#timeout(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#timeout(io.vertx.ext.web.client.WebClient)}
 ----
 
 
@@ -294,7 +294,7 @@ On a success result the callback happens after the response has been received
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#receiveResponse(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#receiveResponse(io.vertx.ext.web.client.WebClient)}
 ----
 
 [CAUTION]
@@ -326,14 +326,14 @@ Use {@link io.vertx.ext.web.codec.BodyCodec#jsonObject()} To decode a Json objec
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#receiveResponseAsJsonObject(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#receiveResponseAsJsonObject(io.vertx.ext.web.client.WebClient)}
 ----
 
 In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#receiveResponseAsJsonPOJO(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#receiveResponseAsJsonPOJO(io.vertx.ext.web.client.WebClient)}
 ----
 
 When large response are expected, use the {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}.
@@ -342,7 +342,7 @@ and signals the success or the failure of the operation in the async result resp
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#receiveResponseAsWriteStream(io.vertx.ext.web.client.WebClient, io.vertx.core.streams.WriteStream)}
+{@link examples.client.WebClientExamples#receiveResponseAsWriteStream(io.vertx.ext.web.client.WebClient, io.vertx.core.streams.WriteStream)}
 ----
 
 It becomes frequent to see API returning a stream of JSON objects. For example, the Twitter API can provides a feed of
@@ -351,7 +351,7 @@ You pass a JSON parser that emits the read JSON streams from the HTTP response:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#receiveResponseAsJsonStream(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#receiveResponseAsJsonStream(io.vertx.ext.web.client.WebClient)}
 ----
 
 Finally if you are not interested at all by the response content, the {@link io.vertx.ext.web.codec.BodyCodec#none()}
@@ -359,7 +359,7 @@ simply discards the entire response body
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#receiveResponseAndDiscard(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#receiveResponseAndDiscard(io.vertx.ext.web.client.WebClient)}
 ----
 
 When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
@@ -367,7 +367,7 @@ that decode the response to a specific type
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#receiveResponseAsBufferDecodeAsJsonObject(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#receiveResponseAsBufferDecodeAsJsonObject(io.vertx.ext.web.client.WebClient)}
 ----
 
 WARNING: this is only valid for the response decoded as a buffer.
@@ -377,7 +377,7 @@ WARNING: this is only valid for the response decoded as a buffer.
 Using a specific body codec: {@link io.vertx.ext.web.codec.impl.SseBodyCodec}, you can decode a Server-Sent Events stream into a list of events:
 [source,$lang]
 ----
-{@link examples.WebClientExamples#receiveResponseAsServerSentEvents}
+{@link examples.client.WebClientExamples#receiveResponseAsServerSentEvents}
 ----
 [[http-response-expectations]]
 === Response expectations
@@ -388,7 +388,7 @@ In other words, you must perform sanity checks manually after the response is re
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#manualSanityChecks(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#manualSanityChecks(io.vertx.ext.web.client.WebClient)}
 ----
 
 You can trade flexibility for clarity and conciseness using _response expectations_.
@@ -400,14 +400,14 @@ The Web Client can reuse the Vert.x HTTP Client predefined expectations:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#usingPredefinedPredicates(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#usingPredefinedPredicates(io.vertx.ext.web.client.WebClient)}
 ----
 
 You can also create custom expectations when existing expectations don't fit your needs:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#usingPredicates(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#usingPredicates(io.vertx.ext.web.client.WebClient)}
 ----
 
 ==== Predefined expectations
@@ -420,7 +420,7 @@ response has a `2xx` code, you can also create a custom one:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#usingSpecificStatus(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#usingSpecificStatus(io.vertx.ext.web.client.WebClient)}
 ----
 
 For content types, e.g. {@link io.vertx.core.http.HttpResponseExpectation#JSON} to verify that the
@@ -428,7 +428,7 @@ response body contains JSON data, you can also create a custom one:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#usingSpecificContentType(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#usingSpecificContentType(io.vertx.ext.web.client.WebClient)}
 ----
 
 Please refer to the {@link io.vertx.core.http.HttpResponseExpectation} documentation for a full list of predefined predicates.
@@ -441,7 +441,7 @@ the body and conveys a simple message. You can customize the exception class by 
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#predicateCustomError()}
+{@link examples.client.WebClientExamples#predicateCustomError()}
 ----
 
 Many web APIs provide details in error responses.
@@ -459,7 +459,7 @@ To avoid losing this information, it is possible to transform response body:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#predicateCustomErrorWithBody()}
+{@link examples.client.WebClientExamples#predicateCustomErrorWithBody()}
 ----
 
 WARNING: creating exception in Java can have a performance cost when it captures a stack trace, so you might want
@@ -474,14 +474,14 @@ By default the client follows redirections, you can configure the default behavi
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testClientDisableFollowRedirects(io.vertx.core.Vertx)}
+{@link examples.client.WebClientExamples#testClientDisableFollowRedirects(io.vertx.core.Vertx)}
 ----
 
 The client will follow at most `16` requests redirections, it can be changed in the same options:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testClientChangeMaxRedirects(io.vertx.core.Vertx)}
+{@link examples.client.WebClientExamples#testClientChangeMaxRedirects(io.vertx.core.Vertx)}
 ----
 
 NOTE: For security reason, client won't follow redirects for request with methods different from GET or HEAD
@@ -494,7 +494,7 @@ The client can be configured to perform client side load balancing instead
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#clientSideLoadBalancing}
+{@link examples.client.WebClientExamples#clientSideLoadBalancing}
 ----
 
 Vert.x provides out of the box several load balancing policies you can use
@@ -510,7 +510,7 @@ Hash based routing can be achieved with the {@link io.vertx.core.net.endpoint.Lo
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#clientSideLoadBalancing}
+{@link examples.client.WebClientExamples#clientSideLoadBalancing}
 ----
 
 You can read more details about client side load balancing in the Vert.x Core HTTP client documentation.
@@ -523,7 +523,7 @@ Vert.x web offers an HTTP response caching facility; to use it, you create a {@l
 
 [source,$lang]
 ----
-{@link examples.CachingWebClientExamples#create(io.vertx.core.Vertx)}
+{@link examples.client.CachingWebClientExamples#create(io.vertx.core.Vertx)}
 ----
 
 === Configuring what is cached
@@ -535,7 +535,7 @@ This can be configured by passing {@link io.vertx.ext.web.client.CachingWebClien
 
 [source,$lang]
 ----
-{@link examples.CachingWebClientExamples#createWithOptions(io.vertx.core.Vertx)}
+{@link examples.client.CachingWebClientExamples#createWithOptions(io.vertx.core.Vertx)}
 ----
 
 Responses that contain the `private` directive in the `Cache-Control` header will not be cached unless the client is also
@@ -548,7 +548,7 @@ To do so, implement {@link io.vertx.ext.web.client.spi.CacheStore}, and then you
 
 [source,$lang]
 ----
-{@link examples.CachingWebClientExamples#createWithCustomStore(io.vertx.core.Vertx)}
+{@link examples.client.CachingWebClientExamples#createWithCustomStore(io.vertx.core.Vertx)}
 ----
 
 === Handling private responses
@@ -564,7 +564,7 @@ a {@link io.vertx.ext.web.client.WebClientSession}.
 
 [source,$lang]
 ----
-{@link examples.CachingWebClientExamples#createWithSession(io.vertx.core.Vertx)}
+{@link examples.client.CachingWebClientExamples#createWithSession(io.vertx.core.Vertx)}
 ----
 
 == URI templates
@@ -586,28 +586,28 @@ then use it to create a request
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testUriTemplate1}
+{@link examples.client.WebClientExamples#testUriTemplate1}
 ----
 
 set the template parameter
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testUriTemplate2}
+{@link examples.client.WebClientExamples#testUriTemplate2}
 ----
 
 and finally send the request as usual
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testUriTemplate3}
+{@link examples.client.WebClientExamples#testUriTemplate3}
 ----
 
 or fluently
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testUriTemplateFluent}
+{@link examples.client.WebClientExamples#testUriTemplateFluent}
 ----
 
 === URI templates expansion
@@ -618,7 +618,7 @@ String expansion takes care of encoding the parameters for you,
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testUriTemplateEncoding}
+{@link examples.client.WebClientExamples#testUriTemplateEncoding}
 ----
 
 The default expansion syntax is known as _simple string expansion_, there are other expansion syntax available
@@ -634,7 +634,7 @@ this behavior to fail instead:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testConfigureTemplateExpansion}
+{@link examples.client.WebClientExamples#testConfigureTemplateExpansion}
 ----
 
 === Template parameter values
@@ -646,7 +646,7 @@ The expansion of each kind depends on the expansion style (denoted by the `?` pr
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testUriTemplateMapExpansion}
+{@link examples.client.WebClientExamples#testUriTemplateMapExpansion}
 ----
 
 Form-style query expansion expands the variable `{?query*}` as `?color=red&width=30&height=50` per definition.
@@ -659,14 +659,14 @@ You can specify the behavior per request
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testOverrideRequestSSL(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#testOverrideRequestSSL(io.vertx.ext.web.client.WebClient)}
 ----
 
 Or using create methods with absolute URI argument
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testAbsRequestSSL(io.vertx.ext.web.client.WebClient)}
+{@link examples.client.WebClientExamples#testAbsRequestSSL(io.vertx.ext.web.client.WebClient)}
 ----
 
 == Sessions management
@@ -681,7 +681,7 @@ You create a {@link io.vertx.ext.web.client.WebClientSession} instance as follow
 
 [source,$lang]
 ----
-{@link examples.WebClientSessionExamples#create}
+{@link examples.client.WebClientSessionExamples#create}
 ----
 
 === Making requests
@@ -696,7 +696,7 @@ You can set any session level headers to be added to every request as follows:
 
 [source,$lang]
 ----
-{@link examples.WebClientSessionExamples#setHeaders}
+{@link examples.client.WebClientSessionExamples#setHeaders}
 ----
 
 The headers will then be added to every request; notice that these headers will be sent to all hosts; if you need
@@ -715,7 +715,7 @@ You create a {@link io.vertx.ext.web.client.OAuth2WebClient} instance as follows
 
 [source,$lang]
 ----
-{@link examples.WebClientOauth2Examples#create}
+{@link examples.client.WebClientOauth2Examples#create}
 ----
 
 Client's can also take advantage of OpenId Service discovery to fully configure the client, for example to connect to
@@ -723,7 +723,7 @@ a real keycloak server one can just do:
 
 [source,$lang]
 ----
-{@link examples.WebClientOauth2Examples#discovery}
+{@link examples.client.WebClientOauth2Examples#discovery}
 ----
 
 
@@ -739,7 +739,7 @@ You can set token expiration leeway to every request as follows:
 
 [source,$lang]
 ----
-{@link examples.WebClientOauth2Examples#leeway}
+{@link examples.client.WebClientOauth2Examples#leeway}
 ----
 
 If a request is to be performed the current active user object is checked for expiration with the extra given leeway.
@@ -753,7 +753,7 @@ handler/promise.
 
 [source,$lang]
 ----
-{@link examples.WebClientOauth2Examples#renewTokenOnForbidden}
+{@link examples.client.WebClientOauth2Examples#renewTokenOnForbidden}
 ----
 
 
@@ -770,5 +770,5 @@ To achieve this, you must run your application with JDK16+ or create the {@link 
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#testSocketAddress}
+{@link examples.client.WebClientExamples#testSocketAddress}
 ----

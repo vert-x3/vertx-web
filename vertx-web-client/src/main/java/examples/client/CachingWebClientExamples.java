@@ -1,4 +1,4 @@
-package examples;
+package examples.client;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
