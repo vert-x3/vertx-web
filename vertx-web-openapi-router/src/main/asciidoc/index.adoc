@@ -38,7 +38,7 @@ With the {@link io.vertx.ext.web.openapi.router.RouterBuilder} you can easily ge
 
 [source,$lang]
 ----
-{@link examples.RouterExamples#createRouter}
+{@link examples.openapi.router.RouterExamples#createRouter}
 ----
 
 The {@link io.vertx.ext.web.openapi.router.RouterBuilder} provides methods to access the generated routes.
@@ -46,14 +46,14 @@ These routes can then be customized by adding custom handlers or enable / disabl
 
 [source,$lang]
 ----
-{@link examples.RouterExamples#modifyRoutes}
+{@link examples.openapi.router.RouterExamples#modifyRoutes}
 ----
 
 After a successful validation of the incoming request, the validated parameters and request body are stored in the RoutingContext and can be accessed inside your custom handlers.
 
 [source,$lang]
 ----
-{@link examples.RouterExamples#accessValidatedRequest}
+{@link examples.openapi.router.RouterExamples#accessValidatedRequest}
 ----
 
 === Define security handlers
@@ -72,7 +72,7 @@ For example:
 
 [source,$lang]
 ----
-{@link examples.RouterExamples#securityConfiguration}
+{@link examples.openapi.router.RouterExamples#securityConfiguration}
 ----
 
 Of course Oauth2/openIdConnect are also supported, given that these modes are more complex to configure, instead of providing a simple configuration object, you need to provide a factory that can creates the handler as you need.
@@ -80,12 +80,12 @@ The factory will receive the configuration from the contract, or in case of `ope
 
 [source,$lang]
 ----
-{@link examples.RouterExamples#securityConfigurationOauth2}
+{@link examples.openapi.router.RouterExamples#securityConfigurationOauth2}
 ----
 
 Discovery may sound simpler and if you are working with a openId compliant server you can use the the `openIdConnect` security scheme.
 
 [source,$lang]
 ----
-{@link examples.RouterExamples#securityConfigurationOpenIdConnect}
+{@link examples.openapi.router.RouterExamples#securityConfigurationOpenIdConnect}
 ----

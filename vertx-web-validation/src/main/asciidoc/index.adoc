@@ -44,14 +44,14 @@ When you receive an HTTP request, you usually need to perform parsing and valida
 
 [source,$lang]
 ----
-{@link examples.WebValidationExamples#withoutWebValidation}
+{@link examples.validation.WebValidationExamples#withoutWebValidation}
 ----
 
 Vert.x Web Validation provides an easy to use API to build an handler that performs parsing and validation of the request:
 
 [source,$lang]
 ----
-{@link examples.WebValidationExamples#withWebValidation}
+{@link examples.validation.WebValidationExamples#withWebValidation}
 ----
 
 == Creating the `ValidationHandler`
@@ -67,7 +67,7 @@ Every parameter is represented by a {@link io.vertx.ext.web.validation.impl.para
 
 [source,$lang]
 ----
-{@link examples.WebValidationExamples#parameters}
+{@link examples.validation.WebValidationExamples#parameters}
 ----
 
 === Defining custom error messages
@@ -84,7 +84,7 @@ While header and path parameters allows only simple parameters, query and cookie
 
 [source,$lang]
 ----
-{@link examples.WebValidationExamples#parametersComplex}
+{@link examples.validation.WebValidationExamples#parametersComplex}
 ----
 
 For more info on all available parameters, look at {@link io.vertx.ext.web.validation.builder.Parameters} documentation.
@@ -99,7 +99,7 @@ You can easily create these processor with methods provided in {@link io.vertx.e
 
 [source,$lang]
 ----
-{@link examples.WebValidationExamples#bodies}
+{@link examples.validation.WebValidationExamples#bodies}
 ----
 
 In this example the `ValidationHandler` will be able to manage two different body types that consistently parse and validate.
@@ -115,7 +115,7 @@ For example, to define a "request body required" predicate:
 
 [source,$lang]
 ----
-{@link examples.WebValidationExamples#requestBodyRequired}
+{@link examples.validation.WebValidationExamples#requestBodyRequired}
 ----
 
 === Building the `ValidationHandler`
@@ -124,7 +124,7 @@ After you configured all parameters, bodies and request predicates, you can buil
 
 [source,$lang]
 ----
-{@link examples.WebValidationExamples#buildAndMount}
+{@link examples.validation.WebValidationExamples#buildAndMount}
 ----
 
 == Using the parsed parameters and body
@@ -133,7 +133,7 @@ The `ValidationHandler` will place the parsed values into {@link io.vertx.ext.we
 
 [source,$lang]
 ----
-{@link examples.WebValidationExamples#useParameters}
+{@link examples.validation.WebValidationExamples#useParameters}
 ----
 
 == Manage the failures
@@ -151,7 +151,7 @@ For example:
 
 [source,$lang]
 ----
-{@link examples.WebValidationExamples#manageFailure}
+{@link examples.validation.WebValidationExamples#manageFailure}
 ----
 
 `BadRequestException` also provides an handy method called {@link io.vertx.ext.web.validation.BadRequestException#toJson()} that converts the exception to a Json

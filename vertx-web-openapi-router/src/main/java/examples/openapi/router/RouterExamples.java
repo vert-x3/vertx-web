@@ -1,4 +1,4 @@
-package examples;
+package examples.openapi.router;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;

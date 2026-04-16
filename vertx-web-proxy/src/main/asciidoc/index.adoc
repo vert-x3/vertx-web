@@ -45,7 +45,7 @@ listens to port `7070`
 
 [source,$lang]
 ----
-{@link examples.WebProxyExamples#origin}
+{@link examples.proxy.WebProxyExamples#origin}
 ----
 
 == Proxy Server
@@ -54,7 +54,7 @@ Create the *proxy server* that listens to port `8080`
 
 [source,$lang]
 ----
-{@link examples.WebProxyExamples#proxy}
+{@link examples.proxy.WebProxyExamples#proxy}
 ----
 
 == Using `ProxyHandler`
@@ -64,14 +64,14 @@ with specified target and `ProxyHandler`.
 
 [source,$lang]
 ----
-{@link examples.WebProxyExamples#route}
+{@link examples.proxy.WebProxyExamples#route}
 ----
 
 Or you can specify the target in `ProxyHandler` instead.
 
 [source,$lang]
 ----
-{@link examples.WebProxyExamples#routeShort}
+{@link examples.proxy.WebProxyExamples#routeShort}
 ----
 
 Finally, the *proxy server* requests will be routed as a reverse proxy to the *origin server* conveniently.
@@ -83,7 +83,7 @@ It shouldn't be installed on the same route or a previous route.
 
 [source,$lang]
 ----
-{@link examples.WebProxyExamples#notCompatibleWithBodyHandler}
+{@link examples.proxy.WebProxyExamples#notCompatibleWithBodyHandler}
 ----
 ====
 
@@ -94,5 +94,5 @@ each one and specify the target independently.
 
 [source,$lang]
 ----
-{@link examples.WebProxyExamples#multi}
+{@link examples.proxy.WebProxyExamples#multi}
 ----

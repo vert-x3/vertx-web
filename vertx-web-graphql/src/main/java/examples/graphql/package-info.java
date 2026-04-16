@@ -18,6 +18,6 @@
  * @author Thomas Segismont
  */
 @Source
-package examples;
+package examples.graphql;
 
 import io.vertx.docgen.Source;

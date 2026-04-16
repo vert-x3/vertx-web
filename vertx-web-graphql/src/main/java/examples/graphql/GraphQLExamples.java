@@ -14,7 +14,7 @@
  * under the License.
  */
 
-package examples;
+package examples.graphql;
 
 import graphql.GraphQL;
 import graphql.execution.preparsed.persisted.ApolloPersistedQuerySupport;
