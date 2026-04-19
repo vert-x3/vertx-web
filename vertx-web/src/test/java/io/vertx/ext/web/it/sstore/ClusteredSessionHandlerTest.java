@@ -19,6 +19,7 @@ package io.vertx.ext.web.it.sstore;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -33,9 +34,12 @@ import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,17 +53,38 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   byte[] bytes = TestUtils.randomByteArray(100);
   Buffer buffer = TestUtils.randomBuffer(100);
 
-  FakeClusterManager clusterManager;
   Vertx[] vertices = new Vertx[numNodes];
   HttpServer[] servers = new HttpServer[numNodes];
+
+  // Backward compat
+  public void setUp() throws Exception {
+  }
+
+  // Backward compat
+  protected ClusterManager getClusterManager() {
+    return new FakeClusterManager();
+  }
+
+  // Backward compat
+  protected void close(List<Vertx> clustered) throws Exception {
+    for (Vertx vertx : clustered) {
+      vertx.close().await();
+    }
+    FakeClusterManager.reset();
+  }
 
   @BeforeEach
   @Override
   public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
     super.setUp(vertx, testContext);
-    clusterManager = new FakeClusterManager();
+    setUp();
     for (int i = 0;i < numNodes;i++) {
-      vertices[i] = Vertx.builder().withClusterManager(clusterManager).buildClustered().await();
+      ClusterManager clusterManager = getClusterManager();
+      vertices[i] = Vertx
+        .builder()
+        .withClusterManager(clusterManager)
+        .buildClustered()
+        .await();
     }
     store = ClusteredSessionStore.create(vertices[0], 3000);
     servers[0] = null;
@@ -67,6 +92,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     servers[2] = null;
   }
 
+  @AfterEach
   @Override
   public void tearDown(VertxTestContext testContext) throws Exception {
     for (HttpServer server : servers) {
@@ -74,9 +100,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
         server.close().await();
       }
     }
-    for (int i = 0;i < numNodes;i++) {
-      vertices[i].close().await();
-    }
+    close(Arrays.asList(vertices));
     super.tearDown(testContext);
   }
 
