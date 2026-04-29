@@ -12,7 +12,7 @@
   <artifactId>vertx-web-templ-jte</artifactId>
 
   <properties>
-    <jte.version>3.2.1</jte.version>
+    <jte.version>3.2.3</jte.version>
   </properties>
 
   <dependencies>
