@@ -154,6 +154,18 @@ public class CORSHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testPreflightMismatchMethod() throws Exception {
+    Consumer<RoutingContext> handler = mock(Consumer.class);
+
+    Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
+
+    router.route().handler(CorsHandler.create().addOrigin("http://vertx.io").allowedMethods(allowedMethods));
+    router.route().handler(context -> context.response().end());
+    router.errorHandler(403, handler::accept);
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "http://vertx.io"), resp -> verify(handler).accept(any()), 403, "CORS Rejected - Method not allowed", null);
+  }
+
+  @Test
   public void testPreflightAllowedHeaders() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("X-wibble", "X-blah"));
@@ -221,7 +233,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testRealRequestAllowCredentials() throws Exception {
-    Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
+    Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET, HttpMethod.PUT, HttpMethod.DELETE));
     router.route().handler(CorsHandler.create().addOriginWithRegex("http://vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> context.response().end());
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("origin", "http://vertx.io").send(), 200, "OK");
@@ -230,7 +242,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testRealRequestCredentialsNoWildcardOrigin() throws Exception {
-    Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
+    Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET, HttpMethod.PUT, HttpMethod.DELETE));
     router.route().handler(CorsHandler.create().addOriginWithRegex("http://vertx.*").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> context.response().end());
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("origin", "http://vertx.io").send(), 200, "OK");
@@ -239,7 +251,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testRealRequestCredentialsWildcard() throws Exception {
-    Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
+    Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET, HttpMethod.PUT, HttpMethod.DELETE));
     router.route().handler(CorsHandler.create().allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> context.response().end());
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("origin", "http://vertx.io").send(), 200, "OK");
@@ -500,7 +512,7 @@ public class CORSHandlerTest extends WebTestBase {
 
   @Test
   public void testRealRequestAllowCredentialsMultiOrigin() throws Exception {
-    Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
+    Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET, HttpMethod.PUT, HttpMethod.DELETE));
     router.route().handler(CorsHandler.create().addOrigins(Arrays.asList("http://www.example.com", "https://www.vertx.io")).allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> context.response().end());
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").putHeader("origin", "https://www.vertx.io").send(), 200, "OK");
