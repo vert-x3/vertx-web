@@ -49,6 +49,13 @@ These routes can then be customized by adding custom handlers or enable / disabl
 {@link examples.openapi.router.RouterExamples#modifyRoutes}
 ----
 
+The operation model is stored in the route metadata and be retrieved from the RoutingContext.
+
+[source,$lang]
+----
+{@link examples.openapi.router.RouterExamples#accessOpenAPIModel}
+----
+
 After a successful validation of the incoming request, the validated parameters and request body are stored in the RoutingContext and can be accessed inside your custom handlers.
 
 [source,$lang]
