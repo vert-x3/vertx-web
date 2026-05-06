@@ -95,7 +95,18 @@ public interface RoutingContextInternal extends RoutingContext {
    *
    * @param body  the body
    */
-  void setBody(Buffer body);
+  default void setBody(Buffer body) {
+    setBody(body, null, body == null ? -1 : body.length());
+  }
+
+  /**
+   * Set the body or streamed body file metadata. Used by the {@link io.vertx.ext.web.handler.BodyHandler}.
+   *
+   * @param body  the in-memory body, may be {@code null} when body is streamed to file
+   * @param bodyFile  streamed body file, may be {@code null} when body is in memory
+   * @param bodyLength  body length in bytes
+   */
+  void setBody(Buffer body, @Nullable String bodyFile, int bodyLength);
 
   /**
    * Set the session. Used by the {@link io.vertx.ext.web.handler.SessionHandler}.

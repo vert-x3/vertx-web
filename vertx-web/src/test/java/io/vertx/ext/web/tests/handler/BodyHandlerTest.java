@@ -93,7 +93,29 @@ public class BodyHandlerTest extends WebTestBase {
     Buffer buff = TestUtils.randomBuffer(1000);
     router.route().handler(rc -> {
       assertEquals(buff, rc.body().buffer());
+      assertNull(rc.body().asFile());
       rc.response().end();
+    });
+    testRequest(webClient.post("/").sendBuffer(buff), 200, "OK");
+  }
+
+  @Test
+  public void testBodyAsFile() {
+    String uploadsDirectory = new File(tempUploads, "bodyAsFile").getPath();
+    new File(uploadsDirectory).mkdirs();
+    router.clear();
+    router.route().handler(BodyHandler.create()
+      .setUploadsDirectory(uploadsDirectory)
+      .setBodyAsFile(true));
+    Buffer buff = TestUtils.randomBuffer(1000);
+    router.route().handler(rc -> {
+      assertNull(rc.body().buffer());
+      assertEquals(buff.length(), rc.body().length());
+      String bodyFile = rc.body().asFile();
+      assertNotNull(bodyFile);
+      assertTrue(bodyFile.startsWith(uploadsDirectory + File.separator));
+      assertEquals(buff, vertx.fileSystem().readFileBlocking(bodyFile));
+      vertx.fileSystem().delete(bodyFile).onComplete(TestUtils.onSuccess(v -> rc.response().end()));
     });
     testRequest(webClient.post("/").sendBuffer(buff), 200, "OK");
   }
