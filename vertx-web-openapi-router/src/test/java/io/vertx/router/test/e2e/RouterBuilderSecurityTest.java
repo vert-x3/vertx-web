@@ -23,6 +23,7 @@ import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.router.test.ResourceHelper;
@@ -43,7 +44,7 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderWithAuthn(VertxTestContext testContext) {
+  void testBuilderWithAuthn(VertxTestContext testContext, Checkpoint checkpoint) {
     createServer(pathDereferencedContractGlobal, rb -> {
       rb.security("api_key")
         .apiKeyHandler(APIKeyHandler.create(null))
@@ -51,13 +52,13 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
         .apiKeyHandler(APIKeyHandler.create(null));
       return Future.succeededFuture(rb);
     })
-      .onSuccess(v -> testContext.completeNow())
+      .onSuccess(v -> checkpoint.flag())
       .onFailure(testContext::failNow);
   }
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderWithDisabledSecurity(VertxTestContext testContext) {
+  void testBuilderWithDisabledSecurity(VertxTestContext testContext, Checkpoint checkpoint) {
     createServer(pathDereferencedContractGlobal, rb -> {
       rb
         .getRoutes()
@@ -81,12 +82,12 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
             assertThat(response.statusCode()).isEqualTo(200);
           }));
       })
-      .onSuccess(v -> testContext.completeNow())
+      .onSuccess(v -> checkpoint.flag())
       .onFailure(testContext::failNow);
   }
 
   @Test
-  public void mountSingle(Vertx vertx, VertxTestContext testContext) {
+  public void mountSingle(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
 
     AuthenticationProvider authProvider = cred -> Future.succeededFuture(User.fromName(cred.toString()));
 
@@ -262,7 +263,7 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
               assertThat(response.statusCode()).isEqualTo(200);
             }));
         })
-        .onSuccess(v -> testContext.completeNow())
+        .onSuccess(v -> checkpoint.flag())
         .onFailure(testContext::failNow);
     });
   }

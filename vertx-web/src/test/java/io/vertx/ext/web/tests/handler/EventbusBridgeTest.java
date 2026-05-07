@@ -45,6 +45,7 @@ import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
 import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,7 +83,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookCreateSocket(VertxTestContext testContext) throws Exception {
+  public void testHookCreateSocket(Checkpoint checkpoint) throws Exception {
 
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
@@ -90,7 +91,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           assertNotNull(be.socket());
           assertNull(be.getRawMessage());
           be.complete(true);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -99,18 +100,18 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookCreateSocketRejected(VertxTestContext testContext) throws Exception {
+  public void testHookCreateSocketRejected(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> be.complete(be.type() != BridgeEventType.SOCKET_CREATED)));
 
     BridgeClient client = new BridgeClient(super.wsClient, transport);
     client
-      .closeHandler(v -> testContext.completeNow())
+      .closeHandler(v -> checkpoint.flag())
       .connect(websocketURI);
   }
 
   @Test
-  public void testHookSocketClosed(VertxTestContext testContext) throws Exception {
+  public void testHookSocketClosed(Checkpoint checkpoint) throws Exception {
 
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
@@ -118,7 +119,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           assertNotNull(be.socket());
           assertNull(be.getRawMessage());
           be.complete(true);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -130,7 +131,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookSocketClosedAbruptly(VertxTestContext testContext) throws Exception {
+  public void testHookSocketClosedAbruptly(Checkpoint checkpoint) throws Exception {
 
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
@@ -138,7 +139,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           assertNotNull(be.socket());
           assertNull(be.getRawMessage());
           be.complete(true);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -150,7 +151,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookSend(VertxTestContext testContext) throws Exception {
+  public void testHookSend(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SEND) {
@@ -159,7 +160,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           assertEquals(addr, raw.getString("address"));
           assertEquals("foobar", raw.getString("body"));
           be.complete(true);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -168,7 +169,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookSendHeaders(VertxTestContext testContext) throws Exception {
+  public void testHookSendHeaders(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SEND) {
@@ -179,7 +180,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           raw.put("headers", new JsonObject().put("hdr1", "val1").put("hdr2", "val2"));
           be.setRawMessage(raw);
           be.complete(true);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -188,12 +189,12 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookSendRejected(VertxTestContext testContext) throws Exception {
+  public void testHookSendRejected(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SEND) {
           be.complete(false);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -203,12 +204,12 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookSendMissingAddress(VertxTestContext testContext) throws Exception {
+  public void testHookSendMissingAddress(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.SEND) {
           be.getRawMessage().remove("address");
-          testContext.completeNow();
+          checkpoint.flag();
         }
         be.complete(true);
       }));
@@ -217,7 +218,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookPublish(VertxTestContext testContext) throws Exception {
+  public void testHookPublish(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.PUBLISH) {
@@ -226,7 +227,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           assertEquals(addr, raw.getString("address"));
           assertEquals("foobar", raw.getString("body"));
           be.complete(true);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -235,7 +236,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookPublishHeaders(VertxTestContext testContext) throws Exception {
+  public void testHookPublishHeaders(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.PUBLISH) {
@@ -246,7 +247,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           raw.put("headers", new JsonObject().put("hdr1", "val1").put("hdr2", "val2"));
           be.setRawMessage(raw);
           be.complete(true);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -255,12 +256,12 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookPubRejected(VertxTestContext testContext) throws Exception {
+  public void testHookPubRejected(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.PUBLISH) {
           be.complete(false);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -270,12 +271,12 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookPublishMissingAddress(VertxTestContext testContext) throws Exception {
+  public void testHookPublishMissingAddress(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.PUBLISH) {
           be.getRawMessage().remove("address");
-          testContext.completeNow();
+          checkpoint.flag();
         }
         be.complete(true);
       }));
@@ -284,7 +285,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookRegister(VertxTestContext testContext) throws Exception {
+  public void testHookRegister(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.REGISTER) {
@@ -292,7 +293,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           JsonObject raw = be.getRawMessage();
           assertEquals(addr, raw.getString("address"));
           be.complete(true);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -301,12 +302,12 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookRegisterRejected(VertxTestContext testContext) throws Exception {
+  public void testHookRegisterRejected(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.REGISTER) {
           be.complete(false);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -316,12 +317,12 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookRegisterMissingAddress(VertxTestContext testContext) throws Exception {
+  public void testHookRegisterMissingAddress(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.REGISTER) {
           be.getRawMessage().remove("address");
-          testContext.completeNow();
+          checkpoint.flag();
         }
         be.complete(true);
       }));
@@ -381,7 +382,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookReceive(VertxTestContext testContext) throws Exception {
+  public void testHookReceive(Checkpoint checkpoint) throws Exception {
 
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
@@ -391,7 +392,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           assertEquals(addr, raw.getString("address"));
           assertEquals("foobar", raw.getString("body"));
           be.complete(true);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -400,12 +401,12 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookReceiveRejected(VertxTestContext testContext) throws Exception {
+  public void testHookReceiveRejected(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.RECEIVE) {
           be.complete(false);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -414,7 +415,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookUnregister(VertxTestContext testContext) throws Exception {
+  public void testHookUnregister(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.UNREGISTER) {
@@ -422,7 +423,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           JsonObject raw = be.getRawMessage();
           assertEquals(addr, raw.getString("address"));
           be.complete(true);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -431,12 +432,12 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookUnregisterRejected(VertxTestContext testContext) throws Exception {
+  public void testHookUnregisterRejected(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.UNREGISTER) {
           be.complete(false);
-          testContext.completeNow();
+          checkpoint.flag();
         } else {
           be.complete(true);
         }
@@ -446,12 +447,12 @@ public abstract class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testHookUnregisterMissingAddress(VertxTestContext testContext) throws Exception {
+  public void testHookUnregisterMissingAddress(Checkpoint checkpoint) throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions, be -> {
         if (be.type() == BridgeEventType.UNREGISTER) {
           be.getRawMessage().remove("address");
-          testContext.completeNow();
+          checkpoint.flag();
         }
         be.complete(true);
       }));

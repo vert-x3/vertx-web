@@ -7,7 +7,6 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.uritemplate.ExpandOptions;
 import io.vertx.uritemplate.UriTemplate;
 import org.junit.jupiter.api.Test;
@@ -15,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -27,12 +27,11 @@ public class UriTemplateTest extends WebClientTestBase {
 
   private static final String EURO_SYMBOL = "\u20AC";
 
-  private void testRequest(VertxTestContext testContext, Function<WebClient, HttpRequest<Buffer>> reqFactory, Consumer<HttpServerRequest> reqChecker) {
-    Checkpoint serverChecked = testContext.checkpoint(2);
+  private void testRequest(CountDownLatch serverChecked, Function<WebClient, HttpRequest<Buffer>> reqFactory, Consumer<HttpServerRequest> reqChecker) {
     server.requestHandler(req -> {
       try {
         reqChecker.accept(req);
-        serverChecked.flag();
+        serverChecked.countDown();
       } finally {
         req.response().end();
       }
@@ -44,9 +43,9 @@ public class UriTemplateTest extends WebClientTestBase {
   }
 
   @Test
-  public void testUriTemplate(VertxTestContext testContext) {
+  public void testUriTemplate(Checkpoint checkpoint) {
     UriTemplate template = UriTemplate.of("/test{?name}{&currency}");
-    testRequest(testContext, client ->
+    testRequest(checkpoint.asLatch(2), client ->
         client.get(template)
           .setTemplateParam("name", "Julien")
           .setTemplateParam("currency", "\u20AC"),
@@ -58,9 +57,9 @@ public class UriTemplateTest extends WebClientTestBase {
   }
 
   @Test
-  public void testQueryParam(VertxTestContext testContext) {
+  public void testQueryParam(Checkpoint checkpoint) {
     UriTemplate template = UriTemplate.of("/{?name}{&currency}");
-    testRequest(testContext, client ->
+    testRequest(checkpoint.asLatch(2), client ->
         client.get(template)
           .setTemplateParam("name", "Julien")
           .setTemplateParam("currency", EURO_SYMBOL)
@@ -74,9 +73,9 @@ public class UriTemplateTest extends WebClientTestBase {
   }
 
   @Test
-  public void testAbsoluteURI(VertxTestContext testContext) {
+  public void testAbsoluteURI(Checkpoint checkpoint) {
     UriTemplate template = UriTemplate.of("http://{host}:{port}/{?name}{&currency}");
-    testRequest(testContext, client ->
+    testRequest(checkpoint.asLatch(2), client ->
         client.requestAbs(HttpMethod.GET, template)
           .setTemplateParam("host", "localhost")
           .setTemplateParam("port", "8080")
@@ -92,11 +91,11 @@ public class UriTemplateTest extends WebClientTestBase {
   }
 
   @Test
-  public void testTemplateExpansion(VertxTestContext testContext) {
+  public void testTemplateExpansion(Checkpoint checkpoint) {
     Map<String, String> query = new HashMap<>();
     query.put("color", "red");
     query.put("currency", EURO_SYMBOL);
-    testRequest(testContext, client -> {
+    testRequest(checkpoint.asLatch(2), client -> {
       HttpRequest<Buffer> request = client.request(HttpMethod.GET, UriTemplate.of("/{action}?username={username}{&query*}"))
         .setTemplateParam("action", "info")
         .setTemplateParam("query", query);

@@ -24,8 +24,8 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.ext.web.Router;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 public class VirtualThreadTest {
 
   @Test
-  public void testBlockingHandler(Vertx vertx, VertxTestContext testContext) {
+  public void testBlockingHandler(Vertx vertx, Checkpoint checkpoint) {
     assumeTrue(Runtime.version().feature() >= 21);
     HttpServer server = vertx.createHttpServer();
     HttpClient client = vertx.createHttpClient();
@@ -56,7 +56,7 @@ public class VirtualThreadTest {
         .await();
       assertEquals("Hello", body.toString());
       assertTrue(System.currentTimeMillis() - now >= 200);
-      testContext.completeNow();
+      checkpoint.flag();
     });
   }
 }

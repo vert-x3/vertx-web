@@ -4,6 +4,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +35,7 @@ public class Router100ContinueTest {
   }
 
   @Test
-  public void testContinue(VertxTestContext testContext) {
+  public void testContinue(VertxTestContext testContext, Checkpoint checkpoint) {
     router.route()
       .handler(BodyHandler.create())
       .handler(ctx -> {
@@ -50,7 +51,7 @@ public class Router100ContinueTest {
           .onFailure(testContext::failNow)
           .onSuccess(res -> {
             assertEquals(200, res.statusCode());
-            testContext.completeNow();
+            checkpoint.flag();
           });
 
         req
@@ -66,7 +67,7 @@ public class Router100ContinueTest {
   }
 
   @Test
-  public void testBadExpectation(VertxTestContext testContext) {
+  public void testBadExpectation(VertxTestContext testContext, Checkpoint checkpoint) {
     router.route()
       .handler(BodyHandler.create())
       .handler(ctx -> {
@@ -82,7 +83,7 @@ public class Router100ContinueTest {
           .onFailure(testContext::failNow)
           .onSuccess(res -> {
             assertEquals(417, res.statusCode());
-            testContext.completeNow();
+            checkpoint.flag();
           });
 
         req
@@ -98,7 +99,7 @@ public class Router100ContinueTest {
   }
 
   @Test
-  public void testExpectButTooLarge(VertxTestContext testContext) {
+  public void testExpectButTooLarge(VertxTestContext testContext, Checkpoint checkpoint) {
     router.route()
       .handler(BodyHandler.create().setBodyLimit(1))
       .handler(ctx -> {
@@ -115,7 +116,7 @@ public class Router100ContinueTest {
           .onSuccess(res -> {
             // entity too large
             assertEquals(413, res.statusCode());
-            testContext.completeNow();
+            checkpoint.flag();
           });
 
         req

@@ -27,7 +27,6 @@ import io.vertx.ext.web.tests.handler.EventbusBridgeTest.BridgeClient;
 import io.vertx.ext.web.tests.handler.EventbusBridgeTest.Transport;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
 import io.vertx.tests.eventbus.WrappedClusterManager;
@@ -93,7 +92,7 @@ public abstract class SlowClusterEventbusBridgeTest {
   }
 
   @Test
-  public void testRegistration(VertxTestContext testContext) throws Exception {
+  public void testRegistration(Checkpoint checkpoint) throws Exception {
     String payload = "hello slinkydeveloper!";
     String addr = "someaddress";
     String websocketURI = "/eventbus/websocket";
@@ -128,8 +127,6 @@ public abstract class SlowClusterEventbusBridgeTest {
       }));
 
     BridgeClient bridgeClient = new BridgeClient(wsClient, transport);
-
-    Checkpoint checkpoint = testContext.checkpoint();
 
     bridgeClient.handler((address, received) -> {
       assertTrue(step.compareAndSet(2, 3));

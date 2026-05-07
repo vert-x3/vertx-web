@@ -31,6 +31,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.tests.WebTestBase;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.AfterAll;
@@ -315,7 +316,7 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testFileUploadFileRemovalOnClientClosesConnection(VertxTestContext testContext) {
+  public void testFileUploadFileRemovalOnClientClosesConnection(Checkpoint checkpoint) {
 
     String uploadsDirectory = new File(tempUploads, "clientClose").getPath();
     new File(uploadsDirectory).mkdirs();
@@ -349,7 +350,7 @@ public class BodyHandlerTest extends WebTestBase {
         //wait for upload being deleted
         repeatWhile(100, i -> i < 100 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() != 0, () -> {
           assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
-          testContext.completeNow();
+          checkpoint.flag();
         });
       });
     }));

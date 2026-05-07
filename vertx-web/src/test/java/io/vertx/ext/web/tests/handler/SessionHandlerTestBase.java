@@ -24,7 +24,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.tests.WebTestBase;
-import io.vertx.junit5.VertxTestContext;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.test.core.AsyncTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
@@ -470,7 +470,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 	}
 
 	@Test
-	public void testVersion(VertxTestContext testContext) throws Exception {
+	public void testVersion(Checkpoint checkpoint) throws Exception {
 		AbstractSession session = (AbstractSession) store.createSession(10000);
 
 		assertEquals(0, session.version());
@@ -525,7 +525,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 								assertEquals(2, session3.version());
 								// confirm the content is present
 								assertEquals("w", session3.get("k"));
-								testContext.completeNow();
+								checkpoint.flag();
 							});
 						});
 					});

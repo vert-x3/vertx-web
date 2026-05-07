@@ -7,6 +7,7 @@ import io.vertx.core.parsetools.JsonParser;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +53,7 @@ public class JsonStreamTest {
   }
 
   @Test
-  public void testSimpleStream(VertxTestContext testContext) {
+  public void testSimpleStream(VertxTestContext testContext, Checkpoint checkpoint) {
     AtomicInteger counter = new AtomicInteger();
     JsonParser parser = JsonParser.newParser().objectValueMode()
       .exceptionHandler(testContext::failNow)
@@ -61,7 +62,7 @@ public class JsonStreamTest {
         assertEquals(counter.getAndIncrement(), object.getInteger("count"));
         assertEquals("some message", object.getString("data"));
       })
-      .endHandler(x -> testContext.completeNow());
+      .endHandler(x -> checkpoint.flag());
 
     client.get("/?separator=nl&count=10").as(BodyCodec.jsonStream(parser)).send().onComplete(x -> {
       if (x.failed()) {
@@ -71,7 +72,7 @@ public class JsonStreamTest {
   }
 
   @Test
-  public void testSimpleStreamUsingBlankLine(VertxTestContext testContext) {
+  public void testSimpleStreamUsingBlankLine(VertxTestContext testContext, Checkpoint checkpoint) {
     AtomicInteger counter = new AtomicInteger();
     JsonParser parser = JsonParser.newParser().objectValueMode()
       .exceptionHandler(testContext::failNow)
@@ -80,7 +81,7 @@ public class JsonStreamTest {
         assertEquals(counter.getAndIncrement(), object.getInteger("count"));
         assertEquals("some message", object.getString("data"));
       })
-      .endHandler(x -> testContext.completeNow());
+      .endHandler(x -> checkpoint.flag());
 
     client.get("/?separator=bl&count=10").as(BodyCodec.jsonStream(parser)).send().onComplete(x -> {
       if (x.failed()) {

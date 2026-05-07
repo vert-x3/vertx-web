@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
 
 import static io.vertx.ext.web.validation.builder.Bodies.json;
 import static io.vertx.ext.web.validation.builder.Parameters.param;
@@ -57,8 +58,8 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
   }
 
   @Test
-  public void serviceProxyTypedTest(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(3);
+  public void serviceProxyTypedTest(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(3);
 
     AnotherTestService service = new AnotherTestServiceImpl(vertx);
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -97,22 +98,21 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.POST, "/testE/123")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("id", 123).put("value", 1)))
-      .sendJson(new JsonObject().put("value", 1), testContext, checkpoint);
+      .sendJson(new JsonObject().put("value", 1), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testF/123")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonArray().add(1 + 123).add(2 + 123).add(3 + 123)))
-      .sendJson(new JsonArray().add(1).add(2).add(3), testContext, checkpoint);
+      .sendJson(new JsonArray().add(1).add(2).add(3), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testF/123")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("id", 123).put("value", 1)))
-      .sendJson(new JsonObject().put("value", 1), testContext, checkpoint);
+      .sendJson(new JsonObject().put("value", 1), testContext, latch::countDown);
   }
 
   @Test
-  public void serviceProxyDataObjectTest(Vertx vertx, VertxTestContext testContext) throws IOException {
-    Checkpoint checkpoint = testContext.checkpoint();
+  public void serviceProxyDataObjectTest(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) throws IOException {
 
     AnotherTestService service = new AnotherTestServiceImpl(vertx);
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -147,8 +147,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
   }
 
   @Test
-  public void emptyOperationResultTest(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint();
+  public void emptyOperationResultTest(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
 
     TestService service = new TestServiceImpl(vertx);
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -169,8 +168,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
   }
 
   @Test
-  public void authorizedUserTest(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint();
+  public void authorizedUserTest(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
 
     TestService service = new TestServiceImpl(vertx);
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -195,8 +193,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
   }
 
   @Test
-  public void extraPayloadTest(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint();
+  public void extraPayloadTest(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
 
     TestService service = new TestServiceImpl(vertx);
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -219,8 +216,8 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
   }
 
   @Test
-  public void serviceProxyManualFailureTest(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void serviceProxyManualFailureTest(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     FailureTestService service = new FailureTestServiceImpl(vertx);
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -262,17 +259,16 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
 
     testRequest(client, HttpMethod.POST, "/testFailure")
       .expect(statusCode(501), statusMessage("error for Francesco"))
-      .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, checkpoint);
+      .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testException")
       .expect(statusCode(500), statusMessage("Unknown failure: (RECIPIENT_FAILURE,-1)"))
-      .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, checkpoint);
+      .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, latch::countDown);
   }
 
 
   @Test
-  public void binaryDataTest(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint();
+  public void binaryDataTest(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
 
     BinaryTestService service = new BinaryTestServiceImpl();
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -296,8 +292,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
   }
 
   @Test
-  public void authorizationPropagationTest(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint();
+  public void authorizationPropagationTest(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
 
     TestService service = new TestServiceImpl(vertx);
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");

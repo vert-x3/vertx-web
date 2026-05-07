@@ -26,7 +26,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import io.vertx.junit5.VertxTestContext;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.Test;
 
@@ -80,13 +80,13 @@ public class TemplateTest extends WebTestBase {
   }
 
   @Test
-  public void testTemplateEngineFail(VertxTestContext testContext) {
+  public void testTemplateEngineFail(Checkpoint checkpoint) {
     TemplateEngine engine = new TestEngine(true);
     router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
     router.errorHandler(500, ctx -> {
       Throwable t = ctx.failure();
       assertEquals("eek", t.getMessage());
-      testContext.completeNow();
+      checkpoint.flag();
     });
     testRequest(HttpMethod.GET, "/foo.html", 500, "Internal Server Error");
   }

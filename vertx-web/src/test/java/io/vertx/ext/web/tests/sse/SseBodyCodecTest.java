@@ -5,8 +5,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.SseEvent;
 import io.vertx.ext.web.codec.spi.BodyStream;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -76,7 +76,7 @@ public class SseBodyCodecTest {
   }
 
   @Test
-  public void testInvalidRetryField(VertxTestContext testContext) throws Exception {
+  public void testInvalidRetryField(Checkpoint checkpoint) throws Exception {
     AtomicReference<Throwable> caught = new AtomicReference<>();
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(evt -> fail("Should not receive event"));
@@ -84,7 +84,7 @@ public class SseBodyCodecTest {
         caught.set(err);
         assertNotNull(caught.get());
         assertTrue(caught.get().getMessage().contains("Invalid \"retry\" value"));
-        testContext.completeNow();
+        checkpoint.flag();
       });
     });
 
