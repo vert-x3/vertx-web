@@ -53,6 +53,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.util.function.BiFunction;
@@ -315,8 +316,8 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testHttp2Push(VertxTestContext testContext) throws Exception {
-    Checkpoint pushReceived = testContext.checkpoint(2);
+  public void testHttp2Push(Checkpoint checkpoint) throws Exception {
+    CountDownLatch pushReceived = checkpoint.asLatch(2);
 
     List<Http2PushMapping> mappings = new ArrayList<>();
     mappings.add(new Http2PushMapping("style.css", "style", false));
@@ -353,7 +354,7 @@ public class StaticHandlerTest extends WebTestBase {
               .compose(HttpClientResponse::body)
               .onComplete(TestUtils.onSuccess(body -> {
                 assertTrue(body.length() > 0);
-                pushReceived.flag();
+                pushReceived.countDown();
               }));
         }).send()
           .expecting(HttpResponseExpectation.SC_OK)
@@ -937,8 +938,7 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testWriteResponseWhenAlreadyClosed(VertxTestContext testContext) throws Exception {
-    Checkpoint done = testContext.checkpoint();
+  public void testWriteResponseWhenAlreadyClosed(Checkpoint done) throws Exception {
     router.clear();
     router
       .route()

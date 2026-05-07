@@ -47,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -99,8 +100,7 @@ public class SockJSHandlerTest extends WebTestBase {
 
   // https://github.com/vert-x3/vertx-web/issues/77
   @Test
-  public void testSendWebsocketContinuationFrames(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testSendWebsocketContinuationFrames(Checkpoint done) {
     // Use raw websocket transport
     wsClient.connect("/echo/websocket").onComplete(TestUtils.onSuccess(ws -> {
 
@@ -129,8 +129,7 @@ public class SockJSHandlerTest extends WebTestBase {
    * after the frames are re-combined
    */
   @Test
-  public void testCombineBinaryContinuationFramesRawWebSocket(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testCombineBinaryContinuationFramesRawWebSocket(Checkpoint done) {
     String serverPath = "/combine";
 
     AtomicReference<Buffer> serverReceivedMessage = new AtomicReference<>();
@@ -155,8 +154,7 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testSplitLargeReplyRawWebSocket(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testSplitLargeReplyRawWebSocket(Checkpoint done) {
     String serverPath = "/split";
 
     String largeReply = TestUtils.randomAlphaString(65536 * 5);
@@ -184,8 +182,7 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testTextFrameRawWebSocket(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testTextFrameRawWebSocket(Checkpoint done) {
     String serverPath = "/textecho";
     setupSockJsServer(serverPath, this::echoRequest);
 
@@ -202,8 +199,7 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testTextFrameSockJs(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testTextFrameSockJs(Checkpoint done) {
     String serverPath = "/text-sockjs";
     setupSockJsServer(serverPath, this::echoRequest);
 
@@ -220,8 +216,7 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testCombineTextFrameSockJs(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testCombineTextFrameSockJs(Checkpoint done) {
     String serverPath = "/text-combine-sockjs";
     setupSockJsServer(serverPath, this::echoRequest);
 
@@ -249,8 +244,7 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testSplitLargeReplySockJs(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testSplitLargeReplySockJs(Checkpoint done) {
     String serverPath = "/large-reply-sockjs";
 
     String largeMessage = TestUtils.randomAlphaString(65536 * 2);
@@ -350,8 +344,8 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testWebContext(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint(2);
+  public void testWebContext(Checkpoint checkpoint) {
+    CountDownLatch done = checkpoint.asLatch(2);
     SessionStore store = SessionStore.create(vertx);
     SessionHandler handler = SessionHandler.create(store).setCookieless(true);
     CompletableFuture<String> sessionID = new CompletableFuture<>();
@@ -392,7 +386,7 @@ public class SockJSHandlerTest extends WebTestBase {
         } catch (InterruptedException | ExecutionException e) {
           fail(e.getMessage());
         }
-        done.flag();
+        done.countDown();
       }));
 
     wsClient.connect(new WebSocketConnectOptions()
@@ -401,19 +395,19 @@ public class SockJSHandlerTest extends WebTestBase {
       .compose(ws -> wsClient.connect(new WebSocketConnectOptions()
         .setPort(8080)
         .setURI("/webcontextuser/websocket")))
-      .onComplete(TestUtils.onSuccess(wsuser -> done.flag()));
+      .onComplete(TestUtils.onSuccess(wsuser -> done.countDown()));
   }
 
   @Test
-  public void testCookiesRemoved(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint(2);
+  public void testCookiesRemoved(Checkpoint checkpoint) {
+    CountDownLatch done = checkpoint.asLatch(2);
     router.route("/cookiesremoved*").subRouter(SockJSHandler.create(vertx)
       .socketHandler(sock -> {
         MultiMap headers = sock.headers();
         String cookieHeader = headers.get("cookie");
         assertNotNull(cookieHeader);
         assertEquals("JSESSIONID=wibble", cookieHeader);
-        done.flag();
+        done.countDown();
       }));
     MultiMap headers = HttpHeaders.headers();
     headers.add("cookie", "JSESSIONID=wibble");
@@ -423,13 +417,12 @@ public class SockJSHandlerTest extends WebTestBase {
       .setPort(8080)
       .setURI("/cookiesremoved/websocket")
       .setHeaders(headers)).onComplete(TestUtils.onSuccess(ws -> {
-        done.flag();
+        done.countDown();
     }));
   }
 
   @Test
-  public void testTimeoutCloseCode(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testTimeoutCloseCode(Checkpoint done) {
     router.route("/ws-timeout*").subRouter(SockJSHandler
       .create(vertx)
       .bridge(new SockJSBridgeOptions().setPingTimeout(1))
@@ -445,8 +438,7 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testInvalidMessageCode(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testInvalidMessageCode(Checkpoint done) {
     router.route("/ws-timeout*").subRouter(SockJSHandler
       .create(vertx)
       .bridge(new SockJSBridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))

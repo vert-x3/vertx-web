@@ -33,7 +33,7 @@ import io.vertx.ext.web.sstore.SessionStore;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
-import io.vertx.junit5.VertxTestContext;
+import io.vertx.junit5.Checkpoint;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -67,12 +67,12 @@ public class CSRFHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testPostWithoutHeader(VertxTestContext testContext) {
+  public void testPostWithoutHeader(Checkpoint checkpoint) {
     router.route()
       .handler(BodyHandler.create())
       .handler(CSRFHandler.create(vertx, "Abracadabra"));
     router.route().handler(rc -> rc.response().end());
-    router.errorHandler(403, rc -> testContext.completeNow());
+    router.errorHandler(403, rc -> checkpoint.flag());
 
     testRequest(HttpMethod.POST, "/", 403, "Forbidden", null);
   }

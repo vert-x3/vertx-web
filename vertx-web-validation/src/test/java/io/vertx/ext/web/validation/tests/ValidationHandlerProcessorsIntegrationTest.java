@@ -31,6 +31,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import static io.vertx.ext.web.validation.builder.Parameters.explodedParam;
@@ -63,8 +64,8 @@ import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
 public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHandlerTest {
 
   @Test
-  public void testPathParamsSimpleTypes(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void testPathParamsSimpleTypes(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -88,7 +89,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.GET, String.format("/testPathParams/%s/%s/%s", a, b, c))
       .expect(statusCode(200), statusMessage(a + b + c))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/testPathParams/hello/bla/10")
       .expect(statusCode(400))
@@ -97,12 +98,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "b",
         ParameterLocation.PATH
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testQueryParamsSimpleTypes(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void testQueryParamsSimpleTypes(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -120,7 +121,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       });
     testRequest(client, HttpMethod.GET, "/testQueryParams?param1=true&param2=10")
       .expect(statusCode(200), statusMessage("true10"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/testQueryParams?param1=true&param2=bla")
       .expect(statusCode(400))
@@ -129,13 +130,13 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "param2",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
   @Disabled("Due to an issue with circular references, which is not understood yet.")
-  public void testQueryJsonObjectAsyncParam(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void testQueryJsonObjectAsyncParam(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -160,7 +161,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.GET, "/test?myTree=" + urlEncode(testSuccessObj.encode()))
       .expect(statusCode(200), jsonBodyResponse(testSuccessObj))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     JsonObject testFailureObj = testSuccessObj.copy();
     testFailureObj.remove("value");
@@ -172,12 +173,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "myTree",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testQueryParamsAsyncValidation(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(4);
+  public void testQueryParamsAsyncValidation(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(4);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -196,7 +197,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
       });
     testRequest(client, HttpMethod.GET, "/test?param1=true&param2=5")
       .expect(statusCode(200), statusMessage("true5"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?param1=bla&param2=5")
       .expect(statusCode(400))
@@ -205,7 +206,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "param1",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?param1=true&param2=bla")
       .expect(statusCode(400))
@@ -214,7 +215,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "param2",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?param1=true&param2=15")
       .expect(statusCode(400))
@@ -223,12 +224,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "param2",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testQueryParamOptional(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(3);
+  public void testQueryParamOptional(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -247,11 +248,11 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.GET, "/testQueryParams?param1=true&param2=10")
       .expect(statusCode(200), statusMessage("true10"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/testQueryParams?param1=true")
       .expect(statusCode(200), statusMessage("truenull"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/testQueryParams?param1=true&param2=bla")
       .expect(statusCode(400))
@@ -260,12 +261,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "param2",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testQueryParamArrayExploded(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(3);
+  public void testQueryParamArrayExploded(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -285,7 +286,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.GET, "/test?parameter=2&parameter=4&parameter=6")
       .expect(statusCode(200), statusMessage("2,4,6"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?parameter=2&parameter=2&parameter=false")
       .expect(statusCode(400))
@@ -294,7 +295,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "parameter",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?parameter=2&parameter=2&parameter=1")
       .expect(statusCode(400))
@@ -303,12 +304,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "parameter",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testQueryParamArrayCommaSeparated(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(3);
+  public void testQueryParamArrayCommaSeparated(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -330,7 +331,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.GET, "/test?parameter=" + urlEncode("2,4,6"))
       .expect(statusCode(200), statusMessage("2,4,6"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?parameter=" + urlEncode("1,false,3"))
       .expect(statusCode(400))
@@ -339,7 +340,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "parameter",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?parameter=" + urlEncode("6,2,1"))
       .expect(statusCode(400))
@@ -348,13 +349,13 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "parameter",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
 
   @Test
-  public void testQueryParamDefault(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(3);
+  public void testQueryParamDefault(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -373,11 +374,11 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.GET, "/test?param1=5&param2=10")
       .expect(statusCode(200), statusMessage("510"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?param2=10")
       .expect(statusCode(200), statusMessage("1010"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?param1=5")
       .expect(statusCode(400))
@@ -386,13 +387,13 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "param2",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
 
   @Test
-  public void testQueryArrayParamsArrayAndPathParam(VertxTestContext testContext) throws Exception {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void testQueryArrayParamsArrayAndPathParam(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -415,7 +416,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     testRequest(client, HttpMethod.GET, "/testQueryParams/true?awesomeArray=1&awesomeArray=2&awesomeArray=3" +
       "&anotherParam=5.2")
       .expect(statusCode(200), statusMessage("true" + new JsonArray().add(1).add(2).add(3).toString() + "5.2"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/testQueryParams/true?awesomeArray=1&awesomeArray=bla&awesomeArray=3" +
       "&anotherParam=5.2")
@@ -425,12 +426,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "awesomeArray",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testHeaderParamsSimpleTypes(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void testHeaderParamsSimpleTypes(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -456,7 +457,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     testRequest(client, HttpMethod.GET, "/testHeaderParams")
       .with(requestHeader("x-a", a), requestHeader("x-b", b), requestHeader("x-c", c))
       .expect(statusCode(200), statusMessage(a + b + c))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/testHeaderParams")
       .with(requestHeader("x-a", a), requestHeader("x-b", "bla"), requestHeader("x-c", c))
@@ -465,12 +466,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "x-b",
         ParameterLocation.HEADER
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testHeaderParamsAsync(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(4);
+  public void testHeaderParamsAsync(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(4);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -497,7 +498,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     testRequest(client, HttpMethod.GET, "/test")
       .with(requestHeader("x-a", a), requestHeader("x-b", b), requestHeader("x-c", c))
       .expect(statusCode(200), statusMessage(a + b + c))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test")
       .with(requestHeader("x-a", a), requestHeader("x-b", "bla"), requestHeader("x-c", c))
@@ -506,7 +507,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "x-b",
         ParameterLocation.HEADER
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test")
       .with(requestHeader("x-a", a), requestHeader("x-b", b), requestHeader("x-c", "bla"))
@@ -515,7 +516,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "x-c",
         ParameterLocation.HEADER
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test")
       .with(requestHeader("x-a", a), requestHeader("x-b", b), requestHeader("x-c", "15"))
@@ -524,12 +525,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "x-c",
         ParameterLocation.HEADER
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testCookieParamsSimpleTypes(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void testCookieParamsSimpleTypes(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -556,7 +557,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     testRequest(client, HttpMethod.GET, "/testCookieParams")
       .with(cookie(successParams))
       .expect(statusCode(200), statusMessage("true10"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     QueryStringEncoder failureParams = new QueryStringEncoder("/");
     failureParams.addParam("param1", "true");
@@ -570,12 +571,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "param2",
         ParameterLocation.COOKIE
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testCookieParamsAsync(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(3);
+  public void testCookieParamsAsync(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
       .create(schemaRepo)
@@ -602,7 +603,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     testRequest(client, HttpMethod.GET, "/test")
       .with(cookie(successParams))
       .expect(statusCode(200), statusMessage("true10"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     QueryStringEncoder failureParams1 = new QueryStringEncoder("/");
     failureParams1.addParam("param1", "true");
@@ -615,7 +616,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "param2",
         ParameterLocation.COOKIE
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     QueryStringEncoder failureParams2 = new QueryStringEncoder("/");
     failureParams2.addParam("param1", "true");
@@ -628,12 +629,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "param2",
         ParameterLocation.COOKIE
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testFormURLEncoded(VertxTestContext testContext, @TempDir Path tempDir) throws Exception {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void testFormURLEncoded(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
       .body(Bodies.formUrlEncoded(objectSchema().requiredProperty("parameter", intSchema())))
@@ -653,19 +654,19 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(200), statusMessage("5"))
-      .sendURLEncodedForm(MultiMap.caseInsensitiveMultiMap().add("parameter", "5"), testContext, checkpoint);
+      .sendURLEncodedForm(MultiMap.caseInsensitiveMultiMap().add("parameter", "5"), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(400))
       .expect(
         badBodyResponse(BodyProcessorException.BodyProcessorErrorType.PARSING_ERROR)
       )
-      .sendURLEncodedForm(MultiMap.caseInsensitiveMultiMap().add("parameter", "bla"), testContext, checkpoint);
+      .sendURLEncodedForm(MultiMap.caseInsensitiveMultiMap().add("parameter", "bla"), testContext, latch::countDown);
   }
 
   @Test
-  public void testMultipartForm(VertxTestContext testContext, @TempDir Path tempDir) throws Exception {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void testMultipartForm(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
       .body(Bodies.multipartFormData(objectSchema().requiredProperty("parameter", intSchema())))
@@ -685,19 +686,19 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(200), statusMessage("5"))
-      .sendMultipartForm(MultipartForm.create().attribute("parameter", "5"), testContext, checkpoint);
+      .sendMultipartForm(MultipartForm.create().attribute("parameter", "5"), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(400))
       .expect(
         badBodyResponse(BodyProcessorException.BodyProcessorErrorType.PARSING_ERROR)
       )
-      .sendMultipartForm(MultipartForm.create().attribute("parameter", "bla"), testContext, checkpoint);
+      .sendMultipartForm(MultipartForm.create().attribute("parameter", "bla"), testContext, latch::countDown);
   }
 
   @Test
-  public void testBothFormTypes(VertxTestContext testContext, @TempDir Path tempDir) throws Exception {
-    Checkpoint checkpoint = testContext.checkpoint(6);
+  public void testBothFormTypes(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
+    CountDownLatch latch = checkpoint.asLatch(6);
 
     ObjectSchemaBuilder bodySchema = objectSchema().requiredProperty("parameter", intSchema());
 
@@ -727,41 +728,41 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(200), statusMessage("5"))
-      .sendURLEncodedForm(MultiMap.caseInsensitiveMultiMap().add("parameter", "5"), testContext, checkpoint);
+      .sendURLEncodedForm(MultiMap.caseInsensitiveMultiMap().add("parameter", "5"), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(400))
       .expect(
         badBodyResponse(BodyProcessorException.BodyProcessorErrorType.PARSING_ERROR)
       )
-      .sendURLEncodedForm(MultiMap.caseInsensitiveMultiMap().add("parameter", "bla"), testContext, checkpoint);
+      .sendURLEncodedForm(MultiMap.caseInsensitiveMultiMap().add("parameter", "bla"), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(200), statusMessage("5"))
-      .sendMultipartForm(MultipartForm.create().attribute("parameter", "5"), testContext, checkpoint);
+      .sendMultipartForm(MultipartForm.create().attribute("parameter", "5"), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(400))
       .expect(
         badBodyResponse(BodyProcessorException.BodyProcessorErrorType.PARSING_ERROR)
       )
-      .sendMultipartForm(MultipartForm.create().attribute("parameter", "bla"), testContext, checkpoint);
+      .sendMultipartForm(MultipartForm.create().attribute("parameter", "bla"), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(200), statusMessage("No body"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(400))
       .expect(
         badBodyResponse(BodyProcessorException.BodyProcessorErrorType.MISSING_MATCHING_BODY_PROCESSOR)
       )
-      .sendJson(new JsonObject(), testContext, checkpoint);
+      .sendJson(new JsonObject(), testContext, latch::countDown);
   }
 
   @Test
-  public void testSameResultWithDifferentBodyTypes(VertxTestContext testContext, @TempDir Path tempDir) throws Exception {
-    Checkpoint checkpoint = testContext.checkpoint(3);
+  public void testSameResultWithDifferentBodyTypes(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
+    CountDownLatch latch = checkpoint.asLatch(3);
 
     JsonObject expectedResult = new JsonObject()
       .put("int", 10)
@@ -807,7 +808,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
           .add("string", "hello")
           .add("array", "1")
           .add("array", "1.1"),
-        testContext, checkpoint
+        testContext, latch::countDown
       );
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
@@ -818,17 +819,17 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
           .attribute("string", "hello")
           .attribute("array", "1")
           .attribute("array", "1.1"),
-        testContext, checkpoint
+        testContext, latch::countDown
       );
 
     testRequest(client, HttpMethod.POST, "/testFormParam")
       .expect(statusCode(200))
-      .sendJson(expectedResult, testContext, checkpoint);
+      .sendJson(expectedResult, testContext, latch::countDown);
   }
 
   @Test
-  public void testValidationHandlerChaining(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(1);
+  public void testValidationHandlerChaining(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(1);
 
     ValidationHandler validationHandler1 = ValidationHandlerBuilder.create(schemaRepo)
       .queryParameter(param("param1", intSchema()))
@@ -854,12 +855,12 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.GET, "/testHandlersChaining?param1=10&param2=true")
       .expect(statusCode(200), statusMessage("10true"))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testJsonBody(VertxTestContext testContext, @TempDir Path tempDir) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void testJsonBody(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
       .body(Bodies.json(objectSchema()))
@@ -880,18 +881,18 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.POST, "/test")
       .expect(statusCode(200), statusMessage("{}"))
-      .sendJson(new JsonObject(), testContext, checkpoint);
+      .sendJson(new JsonObject(), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/test")
       .expect(statusCode(400))
       .expect(badBodyResponse(BodyProcessorException.BodyProcessorErrorType.VALIDATION_ERROR))
-      .sendJson("aaa", testContext, checkpoint);
+      .sendJson("aaa", testContext, latch::countDown);
   }
 
   @Test
   @Disabled("Due to an issue with circular references, which is not understood yet.")
-  public void testJsonBodyAsyncCircular(VertxTestContext testContext, @TempDir Path tempDir) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+  public void testJsonBodyAsyncCircular(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(2);
 
     SchemaBuilder childs = arraySchema().items(new GenericSchemaBuilder().withKeyword("$ref", "#"));
     SchemaBuilder treeSchema = objectSchema().requiredProperty("value", stringSchema()).property("childs", childs);
@@ -919,17 +920,17 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.POST, "/test")
       .expect(statusCode(200), jsonBodyResponse(testObj))
-      .sendJson(testObj, testContext, checkpoint);
+      .sendJson(testObj, testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/test")
       .expect(statusCode(400))
       .expect(badBodyResponse(BodyProcessorException.BodyProcessorErrorType.VALIDATION_ERROR))
-      .sendJson("aaa", testContext, checkpoint);
+      .sendJson("aaa", testContext, latch::countDown);
   }
 
   @Test
-  public void testQueryExpandedObjectAdditionalPropertiesAndDefault(VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(4);
+  public void testQueryExpandedObjectAdditionalPropertiesAndDefault(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(4);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
       .queryParameter(optionalExplodedParam("explodedObject",
@@ -952,15 +953,15 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.GET, "/test")
       .expect(statusCode(200), jsonBodyResponse(new JsonObject()))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?wellKnownProperty=10")
       .expect(statusCode(200), jsonBodyResponse(new JsonObject().put("wellKnownProperty", 10)))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?wellKnownProperty=10&myFlag=false")
       .expect(statusCode(200), jsonBodyResponse(new JsonObject().put("wellKnownProperty", 10).put("myFlag", false)))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/test?wellKnownProperty=10&myFlag=bla")
       .expect(statusCode(400))
@@ -969,11 +970,11 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
         "explodedObject",
         ParameterLocation.QUERY
       ))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testSimpleHeaderCaseInsensitivity(VertxTestContext testContext) {
+  public void testSimpleHeaderCaseInsensitivity(VertxTestContext testContext, Checkpoint checkpoint) {
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
       .headerParameter(param("AnHeader", intSchema()))
       .build();
@@ -991,7 +992,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
     testRequest(client, HttpMethod.GET, "/test")
       .with(requestHeader("anheader", "10"))
       .expect(statusCode(200), jsonBodyResponse(10))
-      .send(testContext);
+      .send(testContext, checkpoint);
   }
 
 }

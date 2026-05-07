@@ -20,6 +20,7 @@ import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.AuthorizationHandler;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
@@ -35,7 +36,7 @@ class RouterBuilderSecurityAndAuthZTest extends RouterBuilderTestBase {
   final Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("security").resolve("security_test.yaml");
 
   @Test
-  public void mountSingle(Vertx vertx, VertxTestContext testContext) {
+  public void mountSingle(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
 
     AuthenticationProvider authProvider = cred -> {
       User user = User.fromName(cred.toString());
@@ -63,7 +64,7 @@ class RouterBuilderSecurityAndAuthZTest extends RouterBuilderTestBase {
             assertThat(response.statusCode()).isEqualTo(200);
           }));
       })
-      .onSuccess(v -> testContext.completeNow())
+      .onSuccess(v -> checkpoint.flag())
       .onFailure(testContext::failNow);
   }
 }

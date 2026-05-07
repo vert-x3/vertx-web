@@ -39,7 +39,6 @@ import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.test.core.TestUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
@@ -670,8 +669,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testSetExceptionHandler(VertxTestContext testContext) throws Exception {
-    Checkpoint done = testContext.checkpoint();
+  public void testSetExceptionHandler(Checkpoint done) throws Exception {
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
@@ -2343,7 +2341,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testMultipleHandlersMultipleConnections(VertxTestContext testContext) throws Exception {
+  public void testMultipleHandlersMultipleConnections(Checkpoint checkpoint) throws Exception {
     router.get("/path").handler(routingContext -> {
       routingContext.put("response", "handler1");
       routingContext.next();
@@ -2355,14 +2353,14 @@ public class RouterTest extends WebTestBase {
       response.setChunked(true);
       response.end(routingContext.get("response") + "handler3");
     });
-    Checkpoint done = testContext.checkpoint(100);
+    CountDownLatch done = checkpoint.asLatch(100);
 
     for (int i = 0; i < 100; i++) {
       vertx.executeBlocking(() -> {
         testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
         return null;
       }).onComplete(TestUtils.onSuccess(v -> {
-        done.flag();
+        done.countDown();
       }));
     }
   }
@@ -2407,7 +2405,7 @@ public class RouterTest extends WebTestBase {
   I've also added a timer when I call routingContext.next()
    */
   @Test
-  public void testMultipleHandlersMultipleConnectionsDelayed(VertxTestContext testContext) throws Exception {
+  public void testMultipleHandlersMultipleConnectionsDelayed(Checkpoint checkpoint) throws Exception {
     router.get("/path").handler(routingContext -> {
       routingContext.put("response", "handler1");
       routingContext.vertx().setTimer((int) (1 + Math.random() * 10), asyncResult -> routingContext.next());
@@ -2420,7 +2418,7 @@ public class RouterTest extends WebTestBase {
       response.end(routingContext.get("response") + "handler3");
     });
 
-    Checkpoint done = testContext.checkpoint(100);
+    CountDownLatch done = checkpoint.asLatch(100);
     for (int i = 0; i < 100; i++) {
       // using executeBlocking should create multiple connections
       vertx.executeBlocking(() -> {
@@ -2428,7 +2426,7 @@ public class RouterTest extends WebTestBase {
         testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
         return null;
       }).onComplete(TestUtils.onSuccess(v -> {
-        done.flag();
+        done.countDown();
       }));
     }
   }
@@ -2437,7 +2435,7 @@ public class RouterTest extends WebTestBase {
     This test is similar to test above but it mixes right and failing requests
    */
   @Test
-  public void testMultipleHandlersMultipleConnectionsDelayedMixed(VertxTestContext testContext) throws Exception {
+  public void testMultipleHandlersMultipleConnectionsDelayedMixed(Checkpoint checkpoint) throws Exception {
     router.get("/:param").handler(routingContext -> {
       if (routingContext.pathParam("param").equals("fail")) {
         routingContext.fail(400);
@@ -2468,7 +2466,7 @@ public class RouterTest extends WebTestBase {
 
     final int multipleConnections = 500;
 
-    Checkpoint done = testContext.checkpoint(multipleConnections);
+    CountDownLatch done = checkpoint.asLatch(multipleConnections);
 
     Callable<Object> execute200Request = () -> {
       Thread.sleep((int) (1 + Math.random() * 10));
@@ -2486,7 +2484,7 @@ public class RouterTest extends WebTestBase {
       // using executeBlocking should create multiple connections
       vertx.executeBlocking((new Random().nextBoolean() ? execute200Request : execute400Request), false)
         .onComplete(TestUtils.onSuccess(v -> {
-          done.flag();
+          done.countDown();
         }));
     }
   }
@@ -2600,7 +2598,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void stressTestMultipleHandlers(VertxTestContext testContext) throws Exception {
+  public void stressTestMultipleHandlers(Checkpoint checkpoint) throws Exception {
     final int HANDLERS_NUMBER = 100;
     final int REQUESTS_NUMBER = 200;
 
@@ -2619,7 +2617,7 @@ public class RouterTest extends WebTestBase {
         .end(sum.toString());
     });
 
-    Checkpoint done = testContext.checkpoint(REQUESTS_NUMBER);
+    CountDownLatch done = checkpoint.asLatch(REQUESTS_NUMBER);
     final StringBuilder sum = new StringBuilder();
     for (int i = 0; i < HANDLERS_NUMBER; i++) {
       sum.append(i);
@@ -2631,7 +2629,7 @@ public class RouterTest extends WebTestBase {
         testSyncRequest("GET", "/path", 200, "OK", sum.toString());
         return null;
       }).onComplete(TestUtils.onSuccess(v -> {
-        done.flag();
+        done.countDown();
       }));
     }
   }
@@ -2656,17 +2654,16 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testMissingHostHeaderHttp1_1(VertxTestContext testContext) {
-    testMissingHostHeader(testContext, "HTTP/1.1", 400);
+  public void testMissingHostHeaderHttp1_1(Checkpoint done) {
+    testMissingHostHeader(done, "HTTP/1.1", 400);
   }
 
   @Test
-  public void testMissingHostHeaderHttp1_0(VertxTestContext testContext) {
-    testMissingHostHeader(testContext, "HTTP/1.0", 200);
+  public void testMissingHostHeaderHttp1_0(Checkpoint done) {
+    testMissingHostHeader(done, "HTTP/1.0", 200);
   }
 
-  private void testMissingHostHeader(VertxTestContext testContext, String httpVersion, int expectedStatusCode) {
-    Checkpoint done = testContext.checkpoint();
+  private void testMissingHostHeader(Checkpoint done, String httpVersion, int expectedStatusCode) {
     router.route().handler(rc -> rc.response().end());
     NetClient nc = vertx.createNetClient();
     NetSocket so = nc.connect(SocketAddress.inetSocketAddress(8080, "localhost")).await();
@@ -2687,7 +2684,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testMultipleHandlersWithFailuresDeadlock(VertxTestContext testContext) throws Exception {
+  public void testMultipleHandlersWithFailuresDeadlock(Checkpoint checkpoint) throws Exception {
     AtomicBoolean first = new AtomicBoolean(true);
     CountDownLatch firstHandlerLatch = new CountDownLatch(1);
     CountDownLatch secondHandlerLatch = new CountDownLatch(1);
@@ -2724,7 +2721,7 @@ public class RouterTest extends WebTestBase {
       event.fail(new NullPointerException());
     });
 
-    Checkpoint done = testContext.checkpoint(2);
+    CountDownLatch done = checkpoint.asLatch(2);
     for (int i = 0; i < 2; i++) {
       vertx.executeBlocking(() -> {
         HttpServerRequest request = mock(HttpServerRequestInternal.class);
@@ -2740,7 +2737,7 @@ public class RouterTest extends WebTestBase {
         router.handle(request);
         return null;
       }, false).onComplete(TestUtils.onSuccess(v -> {
-        done.flag();
+        done.countDown();
       }));
     }
   }
@@ -3525,7 +3522,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testPausedConnection(VertxTestContext testContext) {
+  public void testPausedConnection(Checkpoint checkpoint) {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
@@ -3544,7 +3541,7 @@ public class RouterTest extends WebTestBase {
 
     int numRequests = 20;
 
-    Checkpoint checkpoint = testContext.checkpoint(numRequests);
+    CountDownLatch latch = checkpoint.asLatch(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0; i < numRequests; i++) {
@@ -3556,7 +3553,7 @@ public class RouterTest extends WebTestBase {
           .expecting(HttpResponseExpectation.SC_OK)
           .compose(HttpClientResponse::end)
         ).onComplete(TestUtils.onSuccess(resp -> {
-          checkpoint.flag();
+          latch.countDown();
         }));
     }
 
@@ -3565,7 +3562,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testPausedConnection2(VertxTestContext testContext) {
+  public void testPausedConnection2(Checkpoint checkpoint) {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
@@ -3583,7 +3580,7 @@ public class RouterTest extends WebTestBase {
 
     int numRequests = 20;
 
-    Checkpoint checkpoint = testContext.checkpoint(numRequests);
+    CountDownLatch latch = checkpoint.asLatch(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0; i < numRequests; i++) {
@@ -3595,7 +3592,7 @@ public class RouterTest extends WebTestBase {
           .expecting(HttpResponseExpectation.SC_NOT_FOUND)
           .compose(HttpClientResponse::end))
         .onComplete(TestUtils.onSuccess(v -> {
-          checkpoint.flag();
+          latch.countDown();
         }));
     }
 
@@ -3604,7 +3601,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testPausedConnection3(VertxTestContext testContext) {
+  public void testPausedConnection3(Checkpoint checkpoint) {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
@@ -3624,7 +3621,7 @@ public class RouterTest extends WebTestBase {
 
     int numRequests = 20;
 
-    Checkpoint checkpoint = testContext.checkpoint(numRequests);
+    CountDownLatch latch = checkpoint.asLatch(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0; i < numRequests; i++) {
@@ -3636,7 +3633,7 @@ public class RouterTest extends WebTestBase {
           .expecting(HttpResponseExpectation.SC_OK)
           .compose(HttpClientResponse::end))
         .onComplete(TestUtils.onSuccess(v -> {
-          checkpoint.flag();
+          latch.countDown();
         }));
     }
 
@@ -3645,7 +3642,7 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testPausedConnection4(VertxTestContext testContext) {
+  public void testPausedConnection4(Checkpoint checkpoint) {
 
     router.route()
       .handler((PlatformHandler) ctx -> {
@@ -3655,7 +3652,7 @@ public class RouterTest extends WebTestBase {
 
     int numRequests = 20;
 
-    Checkpoint checkpoint = testContext.checkpoint(numRequests);
+    CountDownLatch latch = checkpoint.asLatch(numRequests);
 
     HttpClient client = vertx.createHttpClient(new PoolOptions().setHttp1MaxSize(1));
     for (int i = 0; i < numRequests; i++) {
@@ -3667,7 +3664,7 @@ public class RouterTest extends WebTestBase {
           .expecting(HttpResponseExpectation.SC_NOT_FOUND)
           .compose(HttpClientResponse::end))
         .onComplete(TestUtils.onSuccess(v -> {
-          checkpoint.flag();
+          latch.countDown();
         }));
     }
 

@@ -19,6 +19,7 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
 import io.vertx.ext.auth.oauth2.providers.OpenIDConnectAuth;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.router.test.ResourceHelper;
@@ -36,7 +37,7 @@ class RouterBuilderSecurityOptionalCallbackawareTest extends RouterBuilderTestBa
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderWithAuthn(VertxTestContext testContext) {
+  void testBuilderWithAuthn(VertxTestContext testContext, Checkpoint checkpoint) {
 
     AuthenticationProvider authProvider = cred -> Future.succeededFuture(User.fromName(cred.toString()));
 
@@ -67,7 +68,7 @@ class RouterBuilderSecurityOptionalCallbackawareTest extends RouterBuilderTestBa
       }))
       // this test may seem useless but it proves that the chain auth properly sets up a chain when the a handler
       // can perform redirects (callback aware) and doesn't throw an exception at setup time.
-      .onSuccess(v -> testContext.completeNow())
+      .onSuccess(v -> checkpoint.flag())
       .onFailure(testContext::failNow);
   }
 }

@@ -21,7 +21,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -46,8 +46,7 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
   }
 
   @Test
-  public void testHandleMessageFromXhrTransportWithAsyncHandler(VertxTestContext testContext) throws Exception {
-    Checkpoint cp = testContext.checkpoint();
+  public void testHandleMessageFromXhrTransportWithAsyncHandler(Checkpoint cp) throws Exception {
     socketHandler = () -> socket -> {
       socket.handler(buf -> {
         assertEquals("Hello World", buf.toString());

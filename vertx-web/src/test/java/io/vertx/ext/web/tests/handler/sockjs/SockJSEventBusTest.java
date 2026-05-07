@@ -16,7 +16,7 @@
 package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.junit5.VertxTestContext;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
@@ -30,16 +30,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class SockJSEventBusTest extends SockJSTestBase {
 
   @Test
-  public void testWriteText(VertxTestContext testContext) throws Exception {
-    testWrite(true, testContext);
+  public void testWriteText(Checkpoint checkpoint) throws Exception {
+    testWrite(true, checkpoint::flag);
   }
 
   @RepeatedTest(1000)
-  public void testWriteBinary(VertxTestContext testContext) throws Exception {
-    testWrite(false, testContext);
+  public void testWriteBinary(Checkpoint checkpoint) throws Exception {
+    testWrite(false, checkpoint::flag);
   }
 
-  private void testWrite(boolean text, VertxTestContext testContext) throws Exception {
+  private void testWrite(boolean text, Runnable done) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       if (text) {
@@ -48,7 +48,7 @@ public class SockJSEventBusTest extends SockJSTestBase {
         vertx.eventBus().send(socket.writeHandlerID(), Buffer.buffer(expected));
       }
       socket.endHandler(v -> {
-        testContext.completeNow();
+        done.run();
       });
     };
     startServers();

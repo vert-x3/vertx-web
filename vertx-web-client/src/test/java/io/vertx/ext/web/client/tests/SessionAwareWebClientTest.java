@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
@@ -41,7 +42,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.ext.web.client.impl.CookieStoreImpl;
 import io.vertx.ext.web.client.spi.CookieStore;
 import io.vertx.ext.web.multipart.MultipartForm;
@@ -332,7 +332,7 @@ public class SessionAwareWebClientTest {
   }
 
   @Test
-  public void testSendRequest(VertxTestContext testContext) throws IOException {
+  public void testSendRequest(Checkpoint checkpoint) throws IOException {
     AtomicInteger count = new AtomicInteger(0);
     client = buildClient(plainWebClient, new CookieStoreImpl() {
       @Override
@@ -344,13 +344,13 @@ public class SessionAwareWebClientTest {
 
     String encodedCookie = ServerCookieEncoder.STRICT.encode(new DefaultCookie("a", "1"));
     int expected = 7;
-    Checkpoint done = testContext.checkpoint(expected);
+    CountDownLatch done = checkpoint.asLatch(expected);
 
     prepareServer(req -> {
       req.response().headers().add("set-cookie", encodedCookie);
     });
 
-    Handler<AsyncResult<HttpResponse<Buffer>>> handler = ar -> { done.flag(); };
+    Handler<AsyncResult<HttpResponse<Buffer>>> handler = ar -> { done.countDown(); };
     HttpRequest<Buffer> req = client.post("/");
     req.send().onComplete(handler);
     req.sendBuffer(Buffer.buffer()).onComplete(handler);
@@ -366,7 +366,7 @@ public class SessionAwareWebClientTest {
   }
 
   @Test
-  public void testMultipleVerticles(VertxTestContext testContext) {
+  public void testMultipleVerticles(Checkpoint checkpoint) {
     String cookieName = "a";
 
     int numVerticles = 4;
@@ -379,14 +379,14 @@ public class SessionAwareWebClientTest {
     String host = "localhost";
     String uri = "/";
 
-    Checkpoint done = testContext.checkpoint(numVerticles * runs);
+    CountDownLatch done = checkpoint.asLatch(numVerticles * runs);
     Deployable v = new VerticleBase() {
       @Override
       public Future<?> start() throws Exception {
         vertx.eventBus().consumer("test", m -> {
           client.get(host, uri).send().onComplete(ar -> {
             assertTrue(ar.succeeded());
-            done.flag();
+            done.countDown();
           });
         });
         return super.start();
@@ -403,7 +403,7 @@ public class SessionAwareWebClientTest {
   }
 
   @Test
-  public void testCookieStore(VertxTestContext testContext) {
+  public void testCookieStore(Checkpoint checkpoint) {
     CookieStore store = CookieStore.build();
     Cookie c;
 
@@ -446,16 +446,16 @@ public class SessionAwareWebClientTest {
     validate(store.get(true, "test.vertx.io", "/"),
         new String[] { "a", "b", "e" },
         new String[] { "1", "2", "5" });
-    testContext.completeNow();
+    checkpoint.flag();
   }
 
   @Test
-  public void testCookieStoreIsFluent(VertxTestContext testContext) {
+  public void testCookieStoreIsFluent(Checkpoint checkpoint) {
     CookieStore store = CookieStore.build();
     Cookie cookie = new DefaultCookie("a", "a");
     assertTrue(store == store.put(cookie));
     assertTrue(store == store.remove(cookie));
-    testContext.completeNow();
+    checkpoint.flag();
   }
 
   @Test

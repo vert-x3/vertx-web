@@ -18,7 +18,7 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
-import io.vertx.junit5.VertxTestContext;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.Test;
 
@@ -32,22 +32,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class SockJSRawTransportTest extends SockJSTestBase {
 
   @Test
-  public void testWriteText(VertxTestContext testContext) throws Exception {
-    testWrite(true, testContext);
+  public void testWriteText(Checkpoint checkpoint) throws Exception {
+    testWrite(true, checkpoint);
   }
 
   @Test
-  public void testWriteBinary(VertxTestContext testContext) throws Exception {
-    testWrite(false, testContext);
+  public void testWriteBinary(Checkpoint checkpoint) throws Exception {
+    testWrite(false, checkpoint);
   }
 
   @Test
-  public void disableHost(VertxTestContext testContext) throws Exception {
+  public void disableHost(Checkpoint checkpoint) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(expected);
       socket.endHandler(v -> {
-        testContext.completeNow();
+        checkpoint.flag();
       });
     };
     startServers(new SockJSHandlerOptions());
@@ -70,7 +70,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
   }
 
   @Test
-  public void disableHostFailWhenOriginIsRequired(VertxTestContext testContext) throws Exception {
+  public void disableHostFailWhenOriginIsRequired(Checkpoint checkpoint) throws Exception {
     socketHandler = () -> socket -> {
       socket.write(TestUtils.randomAlphaString(64));
     };
@@ -83,17 +83,17 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         .setAllowOriginHeader(false)).onComplete(TestUtils.onFailure(err -> {
         assertNotNull(err);
         assertEquals("WebSocket upgrade failure: 403", err.getMessage());
-        testContext.completeNow();
+        checkpoint.flag();
       }));
   }
 
   @Test
-  public void goodOrigin(VertxTestContext testContext) throws Exception {
+  public void goodOrigin(Checkpoint checkpoint) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(expected);
       socket.endHandler(v -> {
-        testContext.completeNow();
+        checkpoint.flag();
       });
     };
     startServers(new SockJSHandlerOptions().setOrigin("http://localhost:8080"));
@@ -111,7 +111,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
   }
 
   @Test
-  public void badOrigin(VertxTestContext testContext) throws Exception {
+  public void badOrigin(Checkpoint checkpoint) throws Exception {
     socketHandler = () -> socket -> {
       socket.write(TestUtils.randomAlphaString(64));
     };
@@ -119,11 +119,11 @@ public class SockJSRawTransportTest extends SockJSTestBase {
     wsClient.connect("/test/websocket").onComplete(TestUtils.onFailure(err -> {
       assertNotNull(err);
       assertEquals("WebSocket upgrade failure: 403", err.getMessage());
-      testContext.completeNow();
+      checkpoint.flag();
     }));
   }
 
-  private void testWrite(boolean text, VertxTestContext testContext) throws Exception {
+  private void testWrite(boolean text, Checkpoint checkpoint) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       if (text) {
@@ -132,7 +132,7 @@ public class SockJSRawTransportTest extends SockJSTestBase {
         socket.write(Buffer.buffer(expected));
       }
       socket.endHandler(v -> {
-        testContext.completeNow();
+        checkpoint.flag();
       });
     };
     startServers(new SockJSHandlerOptions());

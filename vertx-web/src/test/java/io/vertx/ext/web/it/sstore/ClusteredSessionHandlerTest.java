@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -247,9 +248,9 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   }
 
   @Test
-  public void testDelayedLookupWithRequestUpgrade(VertxTestContext testContext) {
+  public void testDelayedLookupWithRequestUpgrade(Checkpoint checkpoint) {
     String sessionCookieName = "session";
-    Checkpoint testsComplete = testContext.checkpoint(3);
+    CountDownLatch testsComplete = checkpoint.asLatch(3);
 
     ProtocolUpgradeHandler upgradeHandler = ctx ->
       ctx.request()
@@ -258,7 +259,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
         .onSuccess(serverWebSocket -> {
           serverWebSocket.textMessageHandler(msg -> {
             assertEquals("foo", msg);
-            testsComplete.flag();
+            testsComplete.countDown();
           });
         });
 

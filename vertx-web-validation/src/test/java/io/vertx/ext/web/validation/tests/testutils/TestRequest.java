@@ -91,16 +91,6 @@ public class TestRequest {
   }
 
   /**
-   * Send and complete test context with {@link VertxTestContext#completeNow()} when request is completed and no assertion fails
-   *
-   * @param testContext
-   * @return a future that will be completed when the response is ready and no response assertion fails
-   */
-  public Future<HttpResponse<Buffer>> send(VertxTestContext testContext) {
-    return internalSend(testContext, h -> req.send().onComplete(h), testContext::completeNow);
-  }
-
-  /**
    * Send and execute {@code onEnd} code block wrapped in {@link VertxTestContext#verify(VertxTestContext.ExecutionBlock)}
    * when request is completed and no assertion fails
    *
@@ -122,17 +112,6 @@ public class TestRequest {
    */
   public Future<HttpResponse<Buffer>> sendJson(Object json, VertxTestContext testContext, Checkpoint checkpoint) {
     return internalSend(testContext, h -> req.sendJson(json).onComplete(h), checkpoint::flag);
-  }
-
-  /**
-   * Send a json and complete test context with {@link VertxTestContext#completeNow()} when request is completed and no assertion fails
-   *
-   * @param json
-   * @param testContext
-   * @return a future that will be completed when the response is ready and no response assertion fails
-   */
-  public Future<HttpResponse<Buffer>> sendJson(Object json, VertxTestContext testContext) {
-    return internalSend(testContext, h -> req.sendJson(json).onComplete(h), testContext::completeNow);
   }
 
   /**
@@ -161,17 +140,6 @@ public class TestRequest {
   }
 
   /**
-   * Send a {@link Buffer} and complete test context with {@link VertxTestContext#completeNow()} when request is completed and no assertion fails
-   *
-   * @param buf
-   * @param testContext
-   * @return a future that will be completed when the response is ready and no response assertion fails
-   */
-  public Future<HttpResponse<Buffer>> sendBuffer(Buffer buf, VertxTestContext testContext) {
-    return internalSend(testContext, h -> req.sendBuffer(buf).onComplete(h), testContext::completeNow);
-  }
-
-  /**
    * Send a {@link Buffer} and execute {@code onEnd} code block wrapped in {@link VertxTestContext#verify(VertxTestContext.ExecutionBlock)}
    * when request is completed and no assertion fails
    *
@@ -197,17 +165,6 @@ public class TestRequest {
   }
 
   /**
-   * Send an URL Encoded form and complete test context with {@link VertxTestContext#completeNow()} when request is completed and no assertion fails
-   *
-   * @param form
-   * @param testContext
-   * @return a future that will be completed when the response is ready and no response assertion fails
-   */
-  public Future<HttpResponse<Buffer>> sendURLEncodedForm(MultiMap form, VertxTestContext testContext) {
-    return internalSend(testContext, h -> req.sendForm(form).onComplete(h), testContext::completeNow);
-  }
-
-  /**
    * Send an URL Encoded form and execute {@code onEnd} code block wrapped in {@link VertxTestContext#verify(VertxTestContext.ExecutionBlock)}
    * when request is completed and no assertion fails
    *
@@ -230,17 +187,6 @@ public class TestRequest {
    */
   public Future<HttpResponse<Buffer>> sendMultipartForm(MultipartForm form, VertxTestContext testContext, Checkpoint checkpoint) {
     return internalSend(testContext, h -> req.sendMultipartForm(form).onComplete(h), checkpoint::flag);
-  }
-
-  /**
-   * Send a multipart form and complete test context with {@link VertxTestContext#completeNow()} when request is completed and no assertion fails
-   *
-   * @param form
-   * @param testContext
-   * @return a future that will be completed when the response is ready and no response assertion fails
-   */
-  public Future<HttpResponse<Buffer>> sendMultipartForm(MultipartForm form, VertxTestContext testContext) {
-    return internalSend(testContext, h -> req.sendMultipartForm(form).onComplete(h), testContext::completeNow);
   }
 
   /**

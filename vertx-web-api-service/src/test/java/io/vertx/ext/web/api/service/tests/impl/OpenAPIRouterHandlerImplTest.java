@@ -37,6 +37,7 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -89,10 +90,7 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
 
   @Test
   @DisplayName("Test eventbus address determination")
-  void testEventbusAddressDetermination(VertxTestContext testContext) {
-    Checkpoint addressOnly = testContext.checkpoint();
-    Checkpoint objectWithAddress = testContext.checkpoint();
-    Checkpoint objectWithAddressAndMethod = testContext.checkpoint();
+  void testEventbusAddressDetermination(VertxTestContext testContext, Checkpoint addressOnly, Checkpoint objectWithAddress, Checkpoint objectWithAddressAndMethod) {
 
     registerService(new DummyPetStoreServiceImpl() {
       @Override
@@ -124,8 +122,8 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
 
   @Test
   @DisplayName("Test that request parameters get forwarded correctly")
-  void testParametersForwardedCorrectly(VertxTestContext testContext) {
-    Checkpoint cp = testContext.checkpoint(3);
+  void testParametersForwardedCorrectly(VertxTestContext testContext, Checkpoint checkpoint) {
+    CountDownLatch cp = checkpoint.asLatch(3);
 
     int expectedLimit = 1337;
     JsonObject expectedPet = PetStoreService.buildPet(1337, "Foo");
@@ -135,21 +133,21 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
       @Override
       public Future<ServiceResponse> listPets(Integer limit, ServiceRequest context) {
         testContext.verify(() -> assertThat(limit).isEqualTo(expectedLimit));
-        cp.flag();
+        cp.countDown();
         return super.listPets(limit, context);
       }
 
       @Override
       public Future<ServiceResponse> createPets(JsonObject body, ServiceRequest context) {
         testContext.verify(() -> assertThat(body).isEqualTo(expectedPet));
-        cp.flag();
+        cp.countDown();
         return super.createPets(body, context);
       }
 
       @Override
       public Future<ServiceResponse> getPetById(String petId, ServiceRequest context) {
         testContext.verify(() -> assertThat(petId).isEqualTo(expectedPetId));
-        cp.flag();
+        cp.countDown();
         return super.getPetById(petId, context);
       }
     });
@@ -163,9 +161,9 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
 
   @Test
   @DisplayName("Test that response gets forwarded correctly")
-  void testResponseIsForwardedCorrectly(VertxTestContext testContext) {
+  void testResponseIsForwardedCorrectly(VertxTestContext testContext, Checkpoint checkpoint) {
     JsonArray petsToReturn = new JsonArray().add(PetStoreService.buildPet(1, "foo"));
-    Checkpoint cp = testContext.checkpoint(2);
+    CountDownLatch cp = checkpoint.asLatch(2);
 
     registerService(new DummyPetStoreServiceImpl() {
       @Override
@@ -184,7 +182,7 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
         assertThat(resp.statusCode()).isEqualTo(200);
         assertThat(resp.getHeader("X-Custom")).isEqualTo("1");
         assertThat(resp.bodyAsJsonArray()).isEqualTo(petsToReturn);
-        cp.flag();
+        cp.countDown();
       })).mapEmpty();
 
     Supplier<Future<Void>> requestAndVerifyCreate = () -> {
@@ -192,7 +190,7 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
       return createRequest(HttpMethod.POST, "/v1/pets").sendJsonObject(expectedPet).onSuccess(resp -> testContext.verify(() -> {
         assertThat(resp.statusCode()).isEqualTo(201);
         assertThat(resp.getHeader("X-Custom")).isEqualTo("2");
-        cp.flag();
+        cp.countDown();
       })).mapEmpty();
     };
 
@@ -203,7 +201,7 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
 
   @Test
   @DisplayName("Test that response gets forwarded correctly")
-  void testResponseMissingContentHeader(VertxTestContext testContext) {
+  void testResponseMissingContentHeader(VertxTestContext testContext, Checkpoint checkpoint) {
     registerService(new DummyPetStoreServiceImpl() {
       @Override
       public Future<ServiceResponse> getPetById(String petId, ServiceRequest context) {
@@ -212,11 +210,11 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
       }
     });
 
-    Checkpoint cp = testContext.checkpoint(2);
+    CountDownLatch cp = checkpoint.asLatch(2);
     Supplier<Future<Void>> requestAndVerifyList =
       () -> createRequest(HttpMethod.GET, "/v1/pets/1").send().onSuccess(resp -> testContext.verify(() -> {
         assertThat(resp.statusCode()).isEqualTo(500);
-        cp.flag();
+        cp.countDown();
       })).mapEmpty();
 
     createServer(routerBuilder -> {
@@ -227,7 +225,7 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
               String expectedMsg = "Content-Type header is required, when response contains a body.";
               assertThat(rtx.failure()).hasMessageThat().isEqualTo(expectedMsg);
               assertThat(rtx.failure()).isInstanceOf(IllegalArgumentException.class);
-              cp.flag();
+              cp.countDown();
             });
           }
         });

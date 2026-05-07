@@ -14,6 +14,8 @@ import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.codec.BodyCodec;
 
+import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.VertxTestContext;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -122,7 +124,7 @@ public class InterceptorTest extends WebClientTestBase {
   }
 
   @Test
-  public void testInterceptorsOrderFailOutsideInterceptor(io.vertx.junit5.VertxTestContext testContext) throws Exception {
+  public void testInterceptorsOrderFailOutsideInterceptor(Checkpoint failLatch) throws Exception {
     List<String> events = Collections.synchronizedList(new ArrayList<>());
 
     webClient.addInterceptor(context -> {
@@ -131,7 +133,6 @@ public class InterceptorTest extends WebClientTestBase {
     });
 
     HttpContext[] httpCtx = {null};
-    io.vertx.junit5.Checkpoint failLatch = testContext.checkpoint();
     webClient.addInterceptor(context -> {
       events.add(context.phase().name() + "_2");
       if (context.phase() == ClientPhase.CREATE_REQUEST) {
@@ -168,12 +169,13 @@ public class InterceptorTest extends WebClientTestBase {
   }
 
   @Test
-  public void testPhasesThreadFromVertxThread(io.vertx.junit5.VertxTestContext testContext) throws Exception {
+  public void testPhasesThreadFromVertxThread(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
     server.requestHandler(req -> req.response().end());
     startServer();
     vertx.getOrCreateContext().runOnContext(v -> {
       testPhasesThread((t1, t2) -> Arrays.asList(t2, t2, t2, t2, t2))
-        .onComplete(testContext.succeedingThenComplete());
+        .onSuccess(v2 -> checkpoint.flag())
+        .onFailure(testContext::failNow);
     });
   }
 

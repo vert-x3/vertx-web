@@ -171,8 +171,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   @Test
-  public void testFormLoginWithoutBodyHandlerFailure(VertxTestContext testContext) throws Exception {
-    Checkpoint done = testContext.checkpoint();
+  public void testFormLoginWithoutBodyHandlerFailure(Checkpoint done) throws Exception {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     FormLoginHandler loginHandler = FormLoginHandler.create(authProvider);

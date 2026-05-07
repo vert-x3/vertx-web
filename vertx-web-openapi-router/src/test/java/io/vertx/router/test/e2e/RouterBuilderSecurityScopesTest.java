@@ -20,6 +20,7 @@ import io.vertx.ext.auth.KeyStoreOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.handler.JWTAuthHandler;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.router.test.ResourceHelper;
@@ -39,7 +40,7 @@ class RouterBuilderSecurityScopesTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderWithAuthn(VertxTestContext testContext) {
+  void testBuilderWithAuthn(VertxTestContext testContext, Checkpoint checkpoint) {
 
     JWTAuth authProvider = JWTAuth.create(vertx, new JWTAuthOptions()
       .setKeyStore(new KeyStoreOptions()
@@ -92,7 +93,7 @@ class RouterBuilderSecurityScopesTest extends RouterBuilderTestBase {
             assertThat(response.bodyAsJsonArray()).isNull();
           }));
       })
-      .onSuccess(v -> testContext.completeNow())
+      .onSuccess(v -> checkpoint.flag())
       .onFailure(testContext::failNow);
   }
 }

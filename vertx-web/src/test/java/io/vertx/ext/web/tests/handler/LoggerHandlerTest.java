@@ -21,7 +21,6 @@ import io.vertx.ext.web.handler.LoggerFormat;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -57,8 +56,7 @@ public class LoggerHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testLogger4(VertxTestContext testContext) throws Exception {
-    Checkpoint done = testContext.checkpoint();
+  public void testLogger4(Checkpoint done) throws Exception {
     LoggerHandler logger = LoggerHandler.create(true, LoggerFormat.CUSTOM).customFormatter((req, ms) -> {
       done.flag();
       return "custom log message";
@@ -67,8 +65,7 @@ public class LoggerHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testLogger5(VertxTestContext testContext) throws Exception {
-    Checkpoint done = testContext.checkpoint();
+  public void testLogger5(Checkpoint done) throws Exception {
     LoggerHandler logger = LoggerHandler.create(true, LoggerFormat.CUSTOM).customFormatter((ctx, ms) -> {
       done.flag();
       return "custom log message";

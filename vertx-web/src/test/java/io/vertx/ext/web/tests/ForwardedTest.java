@@ -23,7 +23,6 @@ import io.vertx.core.net.NetClient;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
@@ -408,32 +407,31 @@ public class ForwardedTest extends WebTestBase {
   }
 
   @Test
-  public void testNoneMissingHostHeader(VertxTestContext testContext) {
-    testMissingHostHeader(testContext, router.allowForward(NONE).route("/"));
+  public void testNoneMissingHostHeader(Checkpoint done) {
+    testMissingHostHeader(done, router.allowForward(NONE).route("/"));
   }
 
   @Test
-  public void testAllMissingHostHeader(VertxTestContext testContext) {
-    testMissingHostHeader(testContext, router.allowForward(ALL).route("/"));
+  public void testAllMissingHostHeader(Checkpoint done) {
+    testMissingHostHeader(done, router.allowForward(ALL).route("/"));
   }
 
   @Test
-  public void testForwardMissingHostHeader(VertxTestContext testContext) {
-    testMissingHostHeader(testContext, router.allowForward(FORWARD).route("/"));
+  public void testForwardMissingHostHeader(Checkpoint done) {
+    testMissingHostHeader(done, router.allowForward(FORWARD).route("/"));
   }
 
   @Test
-  public void testXForwardMissingHostHeader(VertxTestContext testContext) {
-    testMissingHostHeader(testContext, router.allowForward(X_FORWARD).route("/"));
+  public void testXForwardMissingHostHeader(Checkpoint done) {
+    testMissingHostHeader(done, router.allowForward(X_FORWARD).route("/"));
   }
 
   @Test
-  public void testMissingHostHeader(VertxTestContext testContext) {
-    testMissingHostHeader(testContext, router.allowForward(ALL).route("/"));
+  public void testMissingHostHeader(Checkpoint done) {
+    testMissingHostHeader(done, router.allowForward(ALL).route("/"));
   }
 
-  private void testMissingHostHeader(VertxTestContext testContext, Route route) {
-    Checkpoint done = testContext.checkpoint();
+  private void testMissingHostHeader(Checkpoint done, Route route) {
 
     route.handler(rc -> {
       assertNull(rc.request().authority());
@@ -483,8 +481,7 @@ public class ForwardedTest extends WebTestBase {
   }
 
   @Test
-  public void testForwardedForAndWebSocket(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testForwardedForAndWebSocket(Checkpoint done) {
     String host = "vertx.io:1234";
     String address = "1.2.3.4";
     router.allowForward(ALL).route("/ws").handler(rc -> {
@@ -503,8 +500,7 @@ public class ForwardedTest extends WebTestBase {
   }
 
   @Test
-  public void testForwardedForAndWebSocketWithUppercase(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testForwardedForAndWebSocketWithUppercase(Checkpoint done) {
     String host = "vertx.io:1234";
     String address = "1.2.3.4";
     router.allowForward(ALL).route("/ws").handler(rc -> {

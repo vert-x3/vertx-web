@@ -45,8 +45,7 @@ public class UpgradeTest {
   }
 
   @Test
-  public void testUpgradeWithAsyncInBetween(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testUpgradeWithAsyncInBetween(VertxTestContext testContext, Checkpoint done) {
     router.route()
       .handler((PlatformHandler) ctx -> {
         ctx.request().pause();
@@ -84,8 +83,7 @@ public class UpgradeTest {
   }
 
   @Test
-  public void testUpgradeWithLongAwait(VertxTestContext testContext) {
-    Checkpoint done = testContext.checkpoint();
+  public void testUpgradeWithLongAwait(VertxTestContext testContext, Checkpoint done) {
     router.route()
       .handler((PlatformHandler) ctx -> {
         ctx.request().pause();

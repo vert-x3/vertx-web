@@ -35,8 +35,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
   }
 
   @Test
-  public void serviceProxyTypedTestWithRequestParameter(final Vertx vertx, final VertxTestContext testContext) {
-    final Checkpoint checkpoint = testContext.checkpoint();
+  public void serviceProxyTypedTestWithRequestParameter(final Vertx vertx, final VertxTestContext testContext, Checkpoint checkpoint) {
 
     final FuturesService service = new FuturesServiceImpl();
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -56,8 +55,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
   }
 
   @Test
-  public void serviceProxyTypedTestWithIntParameter(final Vertx vertx, final VertxTestContext testContext) {
-    final Checkpoint checkpoint = testContext.checkpoint();
+  public void serviceProxyTypedTestWithIntParameter(final Vertx vertx, final VertxTestContext testContext, Checkpoint checkpoint) {
 
     final FuturesService service = new FuturesServiceImpl();
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -77,8 +75,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
   }
 
   @Test
-  public void serviceProxyTypedTest(final Vertx vertx, final VertxTestContext testContext) {
-    final Checkpoint checkpoint = testContext.checkpoint();
+  public void serviceProxyTypedTest(final Vertx vertx, final VertxTestContext testContext, Checkpoint checkpoint) {
 
     final FuturesService service = new FuturesServiceImpl();
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");

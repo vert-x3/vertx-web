@@ -17,6 +17,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.handler.APIKeyHandler;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.router.test.ResourceHelper;
@@ -35,7 +36,7 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderWithAuthn(VertxTestContext testContext) {
+  void testBuilderWithAuthn(VertxTestContext testContext, Checkpoint checkpoint) {
 
     AuthenticationProvider authProvider = cred -> Future.succeededFuture(User.fromName(cred.toString()));
 
@@ -69,7 +70,7 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
             assertThat(response.body()).isEqualTo(Buffer.buffer("{\"username\":\"{\\\"token\\\":\\\"123456789\\\"}\"}"));
           }));
       })
-      .onSuccess(v -> testContext.completeNow())
+      .onSuccess(v -> checkpoint.flag())
       .onFailure(testContext::failNow);
   }
 }

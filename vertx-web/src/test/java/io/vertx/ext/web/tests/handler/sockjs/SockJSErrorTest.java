@@ -14,8 +14,8 @@ import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.handler.sockjs.BridgeEvent;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,7 +66,7 @@ public class SockJSErrorTest {
   }
 
   @Test
-  public void testEventBusBridgeLeakingConsumers(VertxTestContext testContext) throws InterruptedException {
+  public void testEventBusBridgeLeakingConsumers(Checkpoint checkpoint) throws InterruptedException {
     Promise<Void> firstClientDone = Promise.promise();
     // initial connection - double registration and unregistration
     WebSocketClient client = vertx.createWebSocketClient();
@@ -107,7 +107,7 @@ public class SockJSErrorTest {
         assertEquals(counter[0], number, "Message was lost, next id not matching.");
 
         if (number % 20 == 0) {
-          testContext.completeNow();
+          checkpoint.flag();
         }
       });
 
@@ -115,7 +115,7 @@ public class SockJSErrorTest {
   }
 
   @Test
-  public void testEventBusBridgeLeakingConsumersClean(VertxTestContext testContext) throws InterruptedException {
+  public void testEventBusBridgeLeakingConsumersClean(Checkpoint checkpoint) throws InterruptedException {
     Promise<Void> firstClientDone = Promise.promise();
     // initial connection - single registration and unregistration
     WebSocketClient client = vertx.createWebSocketClient();
@@ -153,7 +153,7 @@ public class SockJSErrorTest {
         assertEquals(counter[0], number, "Message was lost, next id not matching.");
 
         if (number % 20 == 0) {
-          testContext.completeNow();
+          checkpoint.flag();
         }
       });
 

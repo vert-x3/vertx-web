@@ -22,7 +22,7 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
+
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -43,13 +43,13 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
-  public void testNoDeadlockWhenWritingFromAnotherThreadWithSseTransport(VertxTestContext testContext) throws Exception {
+  public void testNoDeadlockWhenWritingFromAnotherThreadWithSseTransport(Checkpoint checkpoint) throws Exception {
     socketHandler = () -> {
       return socket -> {
         AtomicBoolean closed = new AtomicBoolean();
         socket.endHandler(v -> {
           closed.set(true);
-          testContext.completeNow();
+          checkpoint.flag();
         });
         new Thread(() -> {
           while (!closed.get()) {
@@ -73,11 +73,10 @@ public class SockJSSessionTest extends SockJSTestBase {
   }
 
   @Test
-  public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport(VertxTestContext testContext) throws Exception {
+  public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport(Checkpoint cp) throws Exception {
     Assumptions.assumeFalse(PlatformDependent.isWindows());
     final Buffer random = Buffer.buffer(TestUtils.randomAlphaString(256));
     int numMsg = 1000;
-    Checkpoint cp = testContext.checkpoint(1);
     AtomicInteger clientReceived = new AtomicInteger();
     AtomicInteger serverReceived = new AtomicInteger();
     BooleanSupplier shallStop = () -> clientReceived.get() > numMsg * 256 && serverReceived.get() > numMsg * 256;
@@ -120,11 +119,11 @@ public class SockJSSessionTest extends SockJSTestBase {
   }
 
   @Test
-  public void testCombineMultipleFramesIntoASingleMessage(VertxTestContext testContext) throws Exception {
+  public void testCombineMultipleFramesIntoASingleMessage(Checkpoint checkpoint) throws Exception {
     socketHandler = () -> {
       return socket -> socket.handler(buf -> {
         assertEquals("Hello World", buf.toString());
-        testContext.completeNow();
+        checkpoint.flag();
       });
     };
     startServers();
@@ -136,7 +135,7 @@ public class SockJSSessionTest extends SockJSTestBase {
   }
 
   @Test
-  public void doesNotSendEmptyAnswerForWriteSentInEarlierBatch(VertxTestContext testContext) throws Exception {
+  public void doesNotSendEmptyAnswerForWriteSentInEarlierBatch(Checkpoint checkpoint) throws Exception {
     AtomicInteger answerCount = new AtomicInteger();
     socketHandler = () -> {
       return socket -> socket.handler(buf -> {
@@ -167,7 +166,7 @@ public class SockJSSessionTest extends SockJSTestBase {
             break;
           case CLOSE:
             assertEquals(1, answerCount.get());
-            testContext.completeNow();
+            checkpoint.flag();
             break;
         }
       });

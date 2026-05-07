@@ -16,6 +16,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.openapi.validation.ValidatedRequest;
@@ -37,7 +38,7 @@ class PathParameterTest extends RouterBuilderTestBase {
   @Timeout(value = 2, timeUnit = TimeUnit.MINUTES)
   @ParameterizedTest
   @ValueSource(strings = {"3", "-1"})
-  void testPathParam(String id, VertxTestContext testContext) {
+  void testPathParam(String id, VertxTestContext testContext, Checkpoint checkpoint) {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("e2e").resolve("contract_various_scenarios.yaml");
     createServer(pathDereferencedContract, rb -> {
       rb.getRoute("stringPathParameter").setDoSecurity(false).addHandler(rc -> {
@@ -51,7 +52,7 @@ class PathParameterTest extends RouterBuilderTestBase {
     }).compose(v -> {
       return createRequest(GET, "/v1/user/" + id).send().onSuccess(response -> testContext.verify(() -> {
         assertThat(response.statusCode()).isEqualTo(HttpResponseStatus.OK.code());
-        testContext.completeNow();
+        checkpoint.flag();
       }));
     }).onFailure(testContext::failNow);
   }

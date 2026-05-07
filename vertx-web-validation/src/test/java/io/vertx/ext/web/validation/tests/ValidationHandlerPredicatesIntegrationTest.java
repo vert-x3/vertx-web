@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
 
 import static io.vertx.ext.web.validation.tests.testutils.TestRequest.statusCode;
@@ -29,8 +30,8 @@ import static io.vertx.ext.web.validation.tests.testutils.ValidationTestUtils.fa
 public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHandlerTest {
 
   @Test
-  public void testRequiredBodyPredicate(VertxTestContext testContext, @TempDir Path tempDir) {
-    Checkpoint checkpoint = testContext.checkpoint(3);
+  public void testRequiredBodyPredicate(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
       .predicate(RequestPredicate.BODY_REQUIRED)
@@ -48,20 +49,20 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.POST, "/testRequiredBody")
       .expect(statusCode(200))
-      .sendJson(new JsonObject(), testContext, checkpoint);
+      .sendJson(new JsonObject(), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/testRequiredBody")
       .expect(statusCode(400), failurePredicateResponse())
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testRequiredBody")
       .expect(statusCode(400), failurePredicateResponse())
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
   }
 
   @Test
-  public void testFileUploadExists(VertxTestContext testContext, @TempDir Path tempDir) {
-    Checkpoint checkpoint = testContext.checkpoint(4);
+  public void testFileUploadExists(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) {
+    CountDownLatch latch = checkpoint.asLatch(4);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
       .predicate(RequestPredicate.multipartFileUploadExists(
@@ -82,20 +83,20 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.POST, "/testFileUpload")
       .expect(statusCode(200))
-      .send(testContext, checkpoint);
+      .send(testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFileUpload")
       .expect(statusCode(400))
-      .sendMultipartForm(MultipartForm.create(), testContext, checkpoint);
+      .sendMultipartForm(MultipartForm.create(), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFileUpload")
       .expect(statusCode(400))
-      .sendMultipartForm(MultipartForm.create().attribute("myfile", "bla"), testContext, checkpoint);
+      .sendMultipartForm(MultipartForm.create().attribute("myfile", "bla"), testContext, latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFileUpload")
       .expect(statusCode(200))
       .sendMultipartForm(MultipartForm.create().textFileUpload("myfile", "myfile.txt", "src/test/resources/myfile" +
-        ".txt", "text/plain"), testContext, checkpoint);
+        ".txt", "text/plain"), testContext, latch::countDown);
   }
 
 }

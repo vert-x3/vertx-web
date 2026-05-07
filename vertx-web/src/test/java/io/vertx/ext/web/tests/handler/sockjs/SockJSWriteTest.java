@@ -20,9 +20,10 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.WebSocketBase;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.CountDownLatch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,12 +33,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SockJSWriteTest extends SockJSTestBase {
 
   @Test
-  public void testRaw(VertxTestContext testContext) throws Exception {
-    Checkpoint cp = testContext.checkpoint(2);
+  public void testRaw(Checkpoint checkpoint) throws Exception {
+    CountDownLatch cp = checkpoint.asLatch(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
-        cp.flag();
+        cp.countDown();
       }));
     };
     startServers();
@@ -45,7 +46,7 @@ public class SockJSWriteTest extends SockJSTestBase {
       wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(ws -> {
         ws.handler(buffer -> {
           if (buffer.toString().equals(expected)) {
-            cp.flag();
+            cp.countDown();
           }
         });
       }));
@@ -53,12 +54,12 @@ public class SockJSWriteTest extends SockJSTestBase {
   }
 
   @Test
-  public void testRawFailure(VertxTestContext testContext) throws Exception {
+  public void testRawFailure(Checkpoint checkpoint) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
         socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
-          testContext.completeNow();
+          checkpoint.flag();
         }));
       });
     };
@@ -69,12 +70,12 @@ public class SockJSWriteTest extends SockJSTestBase {
   }
 
   @Test
-  public void testWebSocket(VertxTestContext testContext) throws Exception {
-    Checkpoint cp = testContext.checkpoint(2);
+  public void testWebSocket(Checkpoint checkpoint) throws Exception {
+    CountDownLatch cp = checkpoint.asLatch(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
-        cp.flag();
+        cp.countDown();
       }));
     };
     startServers();
@@ -82,7 +83,7 @@ public class SockJSWriteTest extends SockJSTestBase {
       wsClient.connect("/test/400/8ne8e94a/websocket").onComplete(TestUtils.onSuccess(ws -> {
         ws.handler(buffer -> {
           if (buffer.toString().equals("a[\"" + expected + "\"]")) {
-            cp.flag();
+            cp.countDown();
           }
         });
       }));
@@ -90,12 +91,12 @@ public class SockJSWriteTest extends SockJSTestBase {
   }
 
   @Test
-  public void testWebSocketFailure(VertxTestContext testContext) throws Exception {
+  public void testWebSocketFailure(Checkpoint checkpoint) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
         socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
-          testContext.completeNow();
+          checkpoint.flag();
         }));
       });
     };
@@ -106,12 +107,12 @@ public class SockJSWriteTest extends SockJSTestBase {
   }
 
   @Test
-  public void testEventSource(VertxTestContext testContext) throws Exception {
-    Checkpoint cp = testContext.checkpoint(2);
+  public void testEventSource(Checkpoint checkpoint) throws Exception {
+    CountDownLatch cp = checkpoint.asLatch(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
-        cp.flag();
+        cp.countDown();
       }));
     };
     startServers();
@@ -120,19 +121,19 @@ public class SockJSWriteTest extends SockJSTestBase {
       .onComplete(TestUtils.onSuccess(resp -> {
         resp.handler(buffer -> {
           if (buffer.toString().equals("data: a[\"" + expected + "\"]\r\n\r\n")) {
-            cp.flag();
+            cp.countDown();
           }
         });
       }));
   }
 
   @Test
-  public void testEventSourceFailure(VertxTestContext testContext) throws Exception {
+  public void testEventSourceFailure(Checkpoint checkpoint) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
         socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
-          testContext.completeNow();
+          checkpoint.flag();
         }));
       });
     };
@@ -145,12 +146,12 @@ public class SockJSWriteTest extends SockJSTestBase {
   }
 
   @Test
-  public void testXHRStreaming(VertxTestContext testContext) throws Exception {
-    Checkpoint cp = testContext.checkpoint(2);
+  public void testXHRStreaming(Checkpoint checkpoint) throws Exception {
+    CountDownLatch cp = checkpoint.asLatch(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
-        cp.flag();
+        cp.countDown();
       }));
     };
     startServers();
@@ -160,19 +161,19 @@ public class SockJSWriteTest extends SockJSTestBase {
         assertEquals(200, resp.statusCode());
         resp.handler(buffer -> {
           if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
-            cp.flag();
+            cp.countDown();
           }
         });
       }));
   }
 
   @Test
-  public void testXHRStreamingFailure(VertxTestContext testContext) throws Exception {
+  public void testXHRStreamingFailure(Checkpoint checkpoint) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.endHandler(v -> {
         socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
-          testContext.completeNow();
+          checkpoint.flag();
         }));
       });
     };
@@ -185,12 +186,12 @@ public class SockJSWriteTest extends SockJSTestBase {
   }
 
   @Test
-  public void testXHRPolling(VertxTestContext testContext) throws Exception {
-    Checkpoint cp = testContext.checkpoint(2);
+  public void testXHRPolling(Checkpoint checkpoint) throws Exception {
+    CountDownLatch cp = checkpoint.asLatch(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onSuccess(v -> {
-        cp.flag();
+        cp.countDown();
       }));
     };
     startServers();
@@ -202,7 +203,7 @@ public class SockJSWriteTest extends SockJSTestBase {
           assertEquals(200, resp.statusCode());
           resp.handler(buffer -> {
             if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
-              cp.flag();
+              cp.countDown();
             } else {
               task[0].run();
             }
@@ -212,17 +213,17 @@ public class SockJSWriteTest extends SockJSTestBase {
   }
 
   @Test
-  public void testXHRPollingClose(VertxTestContext testContext) throws Exception {
+  public void testXHRPollingClose(Checkpoint checkpoint) throws Exception {
     // Take 5 seconds which is the hearbeat timeout
-    Checkpoint cp = testContext.checkpoint(2);
+    CountDownLatch cp = checkpoint.asLatch(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
-        cp.flag();
+        cp.countDown();
       }));
       socket.endHandler(v -> {
         socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
-          cp.flag();
+          cp.countDown();
         }));
       });
       socket.close();
@@ -235,17 +236,17 @@ public class SockJSWriteTest extends SockJSTestBase {
   }
 
   @Test
-  public void testXHRPollingShutdown(VertxTestContext testContext) throws Exception {
+  public void testXHRPollingShutdown(Checkpoint checkpoint) throws Exception {
     // Take 5 seconds which is the hearbeat timeout
-    Checkpoint cp = testContext.checkpoint(2);
+    CountDownLatch cp = checkpoint.asLatch(2);
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
       socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
-        cp.flag();
+        cp.countDown();
       }));
       socket.endHandler(v -> {
         socket.write(Buffer.buffer(expected)).onComplete(TestUtils.onFailure(err -> {
-          cp.flag();
+          cp.countDown();
         }));
       });
     };
