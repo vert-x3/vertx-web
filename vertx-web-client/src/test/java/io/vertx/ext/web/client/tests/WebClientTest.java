@@ -1472,7 +1472,7 @@ public class WebClientTest extends WebClientTestBase {
     }
   }
 
-  class TLSTestBase extends SendTestBase {
+  abstract class TLSTestBase extends SendTestBase {
     WebClientOptions clientOptions;
     HttpServerOptions serverOptions;
     Consumer<HttpServerRequest> serverAssertions;
@@ -1915,7 +1915,7 @@ public class WebClientTest extends WebClientTestBase {
     }
   }
 
-  class BodyCodecTestBase<T> extends SendTestBase {
+  abstract class BodyCodecTestBase<T> extends SendTestBase {
 
     BodyCodec<T> bodyCodec;
     String body;
@@ -2219,7 +2219,7 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Nested
-  class AsyncFileResponseBodyStreamTest extends BodyCodecTestBase<Void> {
+  abstract class AsyncFileResponseBodyStreamTest extends BodyCodecTestBase<Void> {
     final AtomicLong received = new AtomicLong();
     final AtomicBoolean closed = new AtomicBoolean();
     AsyncFileResponseBodyStreamTest() {
@@ -2378,7 +2378,7 @@ public class WebClientTest extends WebClientTestBase {
     }
   }
 
-  class ResponseBodyStreamTestBase extends SendTestBase {
+  abstract class ResponseBodyStreamTestBase extends SendTestBase {
 
     final Promise<Void> resume = Promise.promise();
     final AtomicBoolean ended = new AtomicBoolean();
@@ -2458,7 +2458,7 @@ public class WebClientTest extends WebClientTestBase {
     }
   }
 
-  class FollowRedirectsTestBase extends SendTestBase {
+  abstract class FollowRedirectsTestBase extends SendTestBase {
 
     private static final String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
 
