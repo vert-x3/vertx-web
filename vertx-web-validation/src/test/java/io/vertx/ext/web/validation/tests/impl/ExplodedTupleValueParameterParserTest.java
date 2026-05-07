@@ -6,10 +6,9 @@ import io.vertx.ext.web.validation.impl.parameter.ExplodedArrayValueParameterPar
 import io.vertx.ext.web.validation.impl.parameter.ExplodedTupleValueParameterParser;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.ext.web.validation.tests.testutils.TestParsers;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,7 +18,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class ExplodedTupleValueParameterParserTest {
 
   @Test

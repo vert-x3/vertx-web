@@ -14,7 +14,7 @@ import io.vertx.ext.web.validation.tests.testutils.TestSchemas;
 import io.vertx.json.schema.Draft;
 import io.vertx.json.schema.JsonSchemaOptions;
 import io.vertx.json.schema.SchemaRepository;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(VertxExtension.class)
+@VertxTest
 @ExtendWith(MockitoExtension.class)
 public class TextPlainBodyProcessorTest {
   private SchemaRepository repository;
