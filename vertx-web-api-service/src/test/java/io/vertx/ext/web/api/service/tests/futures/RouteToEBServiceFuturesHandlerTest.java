@@ -9,12 +9,11 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.validation.tests.BaseValidationHandlerTest;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.serviceproxy.ServiceBinder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import static io.vertx.ext.web.validation.builder.Parameters.param;
 import static io.vertx.ext.web.validation.tests.testutils.TestRequest.jsonBodyResponse;
@@ -24,7 +23,7 @@ import static io.vertx.ext.web.validation.tests.testutils.TestRequest.testReques
 import static io.vertx.json.schema.common.dsl.Schemas.intSchema;
 
 @SuppressWarnings("unchecked")
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTest {
 
   MessageConsumer<JsonObject> consumer;

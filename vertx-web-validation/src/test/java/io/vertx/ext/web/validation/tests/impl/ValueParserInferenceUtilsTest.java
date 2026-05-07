@@ -3,11 +3,10 @@ package io.vertx.ext.web.validation.tests.impl;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.validation.impl.ValueParserInferenceUtils;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.regex.Pattern;
 
@@ -21,7 +20,7 @@ import static io.vertx.json.schema.common.dsl.Schemas.tupleSchema;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class ValueParserInferenceUtilsTest {
 
   @Test

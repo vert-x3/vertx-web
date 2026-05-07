@@ -5,9 +5,8 @@ import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.impl.parameter.DeepObjectValueParameterParser;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.ext.web.validation.tests.testutils.TestParsers;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +16,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class DeepObjectValueParameterParserTest {
 
   @Test

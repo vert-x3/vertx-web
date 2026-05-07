@@ -16,7 +16,7 @@ import io.vertx.json.schema.Draft;
 import io.vertx.json.schema.JsonSchemaOptions;
 import io.vertx.json.schema.SchemaRepository;
 import io.vertx.json.schema.ValidationException;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import static io.vertx.json.schema.common.dsl.Schemas.schema;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(VertxExtension.class)
+@VertxTest
 @ExtendWith(MockitoExtension.class)
 class JsonBodyProcessorImplTest {
   private SchemaRepository repository;

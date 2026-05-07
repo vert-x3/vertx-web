@@ -4,9 +4,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.impl.parameter.ExplodedArrayValueParameterParser;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,7 +16,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class ExplodedArrayValueParameterParserTest {
 
   @Test

@@ -8,10 +8,9 @@ import io.vertx.ext.web.validation.RequestPredicate;
 import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
@@ -26,7 +25,7 @@ import static io.vertx.ext.web.validation.tests.testutils.ValidationTestUtils.fa
  * @author Francesco Guardiani @slinkydeveloper
  */
 @SuppressWarnings("unchecked")
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHandlerTest {
 
   @Test

@@ -5,14 +5,13 @@ import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.impl.parser.SplitterCharTupleParser;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
 import io.vertx.ext.web.validation.tests.testutils.TestParsers;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class SplitterCharTupleValueParserTest {
 
   @Test

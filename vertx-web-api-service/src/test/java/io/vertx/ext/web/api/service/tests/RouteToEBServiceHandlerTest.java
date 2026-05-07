@@ -16,12 +16,11 @@ import io.vertx.ext.web.validation.tests.BaseValidationHandlerTest;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.json.schema.JsonSchema;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.serviceproxy.ServiceBinder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.net.URI;
@@ -47,7 +46,7 @@ import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
 
   MessageConsumer<JsonObject> consumer;

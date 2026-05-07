@@ -22,11 +22,10 @@ import io.vertx.json.schema.common.dsl.GenericSchemaBuilder;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
 import io.vertx.json.schema.common.dsl.SchemaBuilder;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.net.URI;
@@ -60,7 +59,7 @@ import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHandlerTest {
 
   @Test

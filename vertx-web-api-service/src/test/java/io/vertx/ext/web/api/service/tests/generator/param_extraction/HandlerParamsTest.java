@@ -14,6 +14,7 @@ import io.vertx.ext.web.validation.impl.RequestParameterImpl;
 import io.vertx.ext.web.validation.impl.RequestParametersImpl;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.serviceproxy.ServiceBinder;
 import org.junit.jupiter.api.AfterEach;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 import static io.vertx.ext.web.api.service.tests.SomeEnum.FIRST;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(VertxExtension.class)
+@VertxTest
 public class HandlerParamsTest {
 
   private static final String ADDRESS = "address";
