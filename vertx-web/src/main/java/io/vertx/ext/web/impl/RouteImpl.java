@@ -286,10 +286,10 @@ public class RouteImpl implements Route {
     // See if the path is a wildcard "*" is present - If so we need to configure this path to be not exact
     if (path.charAt(path.length() - 1) != '*') {
       state = state.setExactPath(true);
-      state = state.setPath(path);
+      state = state.setPath(unescapeEscapedColons(path));
     } else {
       state = state.setExactPath(false);
-      state = state.setPath(path.substring(0, path.length() - 1));
+      state = state.setPath(unescapeEscapedColons(path.substring(0, path.length() - 1)));
     }
 
     state = state.setPathEndsWithSlash(state.getPath().endsWith("/"));
@@ -298,7 +298,7 @@ public class RouteImpl implements Route {
     // a regex for that
     int params = 0;
     for (int i = 0; i < path.length(); i++) {
-      if (path.charAt(i) == ':') {
+      if (path.charAt(i) == ':' && !isEscapedColon(path, i)) {
         params++;
       }
     }
@@ -307,6 +307,9 @@ public class RouteImpl implements Route {
       if (params != found) {
         throw new IllegalArgumentException("path param does not follow the variable naming rules, expected (" + params + ") found (" + found + ")");
       }
+    } else {
+      state = state.setGroups(null);
+      state = state.setPattern(null);
     }
   }
 
@@ -335,8 +338,12 @@ public class RouteImpl implements Route {
 
   // intersection of regex chars and https://tools.ietf.org/html/rfc3986#section-3.3
   private static final Pattern RE_OPERATORS_NO_STAR = Pattern.compile("([\\(\\)\\$\\+\\.])");
+  // NUL sentinel used only while building the route regex so escaped ':' is not parsed as a path parameter.
+  // It is restored before compiling the pattern.
+  private static final String ESCAPED_COLON_SENTINEL = "\u0000";
 
   private synchronized int createPatternRegex(String path) {
+    path = maskEscapedColons(path);
     // escape path from any regex special chars
     path = RE_OPERATORS_NO_STAR.matcher(path).replaceAll("\\\\$1");
     // allow usage of * at the end as per documentation
@@ -366,11 +373,48 @@ public class RouteImpl implements Route {
     if (state.isExactPath() && !state.isPathEndsWithSlash()) {
       sb.append("/?");
     }
-    path = sb.toString();
+    path = sb.toString().replace(ESCAPED_COLON_SENTINEL, ":");
 
     state = state.setGroups(groups);
     state = state.setPattern(Pattern.compile(path));
     return index;
+  }
+
+  private static String unescapeEscapedColons(String path) {
+    return replaceEscapedColons(path, ":");
+  }
+
+  private static String maskEscapedColons(String path) {
+    return replaceEscapedColons(path, ESCAPED_COLON_SENTINEL);
+  }
+
+  private static String replaceEscapedColons(String path, String replacement) {
+    StringBuilder replaced = null;
+    int start = 0;
+    for (int i = 0; i < path.length(); i++) {
+      if (path.charAt(i) == ':' && isEscapedColon(path, i)) {
+        if (replaced == null) {
+          replaced = new StringBuilder(path.length());
+        }
+        int escapeIndex = i - 1;
+        replaced.append(path, start, escapeIndex);
+        replaced.append(replacement);
+        start = i + 1;
+      }
+    }
+    if (replaced == null) {
+      return path;
+    }
+    replaced.append(path, start, path.length());
+    return replaced.toString();
+  }
+
+  private static boolean isEscapedColon(String path, int colonIndex) {
+    int backslashes = 0;
+    for (int i = colonIndex - 1; i >= 0 && path.charAt(i) == '\\'; i--) {
+      backslashes++;
+    }
+    return backslashes % 2 == 1;
   }
 
   private void checkPath(String path) {
@@ -396,35 +440,48 @@ public class RouteImpl implements Route {
   }
 
   private void validateMount(Router router) {
+    List<String> mountGroups = pathParamNames(state);
     for (Route route : router.getRoutes()) {
-      final String combinedPath;
-
       if (route.getPath() == null) {
         // This is a router with pattern and not path
         // we cannot validate
         continue;
       }
 
-      // this method is similar to what the pattern generation does but
-      // it will not generate a pattern, it will only verify if the paths do not contain
-      // colliding parameter names with the mount path
-
-      // escape path from any regex special chars
-      combinedPath = RE_OPERATORS_NO_STAR
-        .matcher(state.getPath() + (state.isPathEndsWithSlash() ? route.getPath().substring(1) : route.getPath()))
-        .replaceAll("\\\\$1");
-
-      // We need to search for any :<token name> tokens in the String
-      Matcher m = RE_TOKEN_SEARCH.matcher(combinedPath);
-      Set<String> groups = new HashSet<>();
-      while (m.find()) {
-        String group = m.group();
+      Set<String> groups = new HashSet<>(mountGroups);
+      for (String group : pathParamNames(route)) {
         if (groups.contains(group)) {
           throw new IllegalStateException("Cannot use identifier " + group + " more than once in pattern string");
         }
         groups.add(group);
       }
     }
+  }
+
+  private static List<String> pathParamNames(Route route) {
+    if (route instanceof RouteImpl) {
+      RouteImpl routeImpl = (RouteImpl) route;
+      return pathParamNames(routeImpl.state());
+    }
+    String path = route.getPath();
+    return path == null ? Collections.emptyList() : pathParamNames(path);
+  }
+
+  private static List<String> pathParamNames(RouteState routeState) {
+    // Use the already parsed groups: getPath() contains unescaped literal colons.
+    List<String> groups = routeState.getGroups();
+    return groups == null ? Collections.emptyList() : groups;
+  }
+
+  private static List<String> pathParamNames(String path) {
+    // Mirrors path token parsing without generating a route regex.
+    path = RE_OPERATORS_NO_STAR.matcher(maskEscapedColons(path)).replaceAll("\\\\$1");
+    Matcher m = RE_TOKEN_SEARCH.matcher(path);
+    List<String> groups = new ArrayList<>();
+    while (m.find()) {
+      groups.add(m.group(1));
+    }
+    return groups;
   }
 
   @Override

@@ -46,4 +46,14 @@ public class RouterExtendedParamTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/flights/LAX-SFO", 200, "OK");
   }
+
+  @Test
+  public void testRouteEscapedColonWithDashVariable() throws Exception {
+    router.route("/foo/\\:literal/:my-id").handler(rc -> {
+      assertEquals("123", rc.pathParam("my-id"));
+      rc.response().end(rc.pathParam("my-id"));
+    });
+    testRequest(HttpMethod.GET, "/foo/:literal/123", 200, "OK", "123");
+    testRequest(HttpMethod.GET, "/foo/not-literal/123", 404, "Not Found");
+  }
 }
