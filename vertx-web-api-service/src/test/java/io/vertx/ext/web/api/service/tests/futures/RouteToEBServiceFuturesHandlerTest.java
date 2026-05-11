@@ -10,7 +10,6 @@ import io.vertx.ext.web.validation.tests.BaseValidationHandlerTest;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.serviceproxy.ServiceBinder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +33,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
   }
 
   @Test
-  public void serviceProxyTypedTestWithRequestParameter(final Vertx vertx, final VertxTestContext testContext, Checkpoint checkpoint) {
+  public void serviceProxyTypedTestWithRequestParameter(final Vertx vertx, Checkpoint checkpoint) {
 
     final FuturesService service = new FuturesServiceImpl();
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -54,7 +53,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
   }
 
   @Test
-  public void serviceProxyTypedTestWithIntParameter(final Vertx vertx, final VertxTestContext testContext, Checkpoint checkpoint) {
+  public void serviceProxyTypedTestWithIntParameter(final Vertx vertx, Checkpoint checkpoint) {
 
     final FuturesService service = new FuturesServiceImpl();
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -74,7 +73,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
   }
 
   @Test
-  public void serviceProxyTypedTest(final Vertx vertx, final VertxTestContext testContext, Checkpoint checkpoint) {
+  public void serviceProxyTypedTest(final Vertx vertx, Checkpoint checkpoint) {
 
     final FuturesService service = new FuturesServiceImpl();
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");

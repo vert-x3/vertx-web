@@ -23,7 +23,6 @@ import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
 import io.vertx.json.schema.common.dsl.SchemaBuilder;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -63,7 +62,7 @@ import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
 public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHandlerTest {
 
   @Test
-  public void testPathParamsSimpleTypes(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testPathParamsSimpleTypes(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -101,7 +100,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testQueryParamsSimpleTypes(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testQueryParamsSimpleTypes(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -134,7 +133,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
   @Test
   @Disabled("Due to an issue with circular references, which is not understood yet.")
-  public void testQueryJsonObjectAsyncParam(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testQueryJsonObjectAsyncParam(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -176,7 +175,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testQueryParamsAsyncValidation(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testQueryParamsAsyncValidation(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(4);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -227,7 +226,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testQueryParamOptional(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testQueryParamOptional(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -264,7 +263,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testQueryParamArrayExploded(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testQueryParamArrayExploded(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -307,7 +306,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testQueryParamArrayCommaSeparated(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testQueryParamArrayCommaSeparated(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -353,7 +352,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
 
   @Test
-  public void testQueryParamDefault(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testQueryParamDefault(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -391,7 +390,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
 
   @Test
-  public void testQueryArrayParamsArrayAndPathParam(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testQueryArrayParamsArrayAndPathParam(Checkpoint checkpoint) throws Exception {
     CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -429,7 +428,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testHeaderParamsSimpleTypes(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testHeaderParamsSimpleTypes(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -469,7 +468,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testHeaderParamsAsync(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testHeaderParamsAsync(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(4);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -528,7 +527,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testCookieParamsSimpleTypes(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testCookieParamsSimpleTypes(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -574,7 +573,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testCookieParamsAsync(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testCookieParamsAsync(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder
@@ -632,7 +631,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testFormURLEncoded(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
+  public void testFormURLEncoded(@TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
     CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
@@ -664,7 +663,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testMultipartForm(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
+  public void testMultipartForm(@TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
     CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
@@ -696,7 +695,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testBothFormTypes(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
+  public void testBothFormTypes(@TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
     CountDownLatch latch = checkpoint.asLatch(6);
 
     ObjectSchemaBuilder bodySchema = objectSchema().requiredProperty("parameter", intSchema());
@@ -760,7 +759,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testSameResultWithDifferentBodyTypes(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
+  public void testSameResultWithDifferentBodyTypes(@TempDir Path tempDir, Checkpoint checkpoint) throws Exception {
     CountDownLatch latch = checkpoint.asLatch(3);
 
     JsonObject expectedResult = new JsonObject()
@@ -827,7 +826,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testValidationHandlerChaining(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testValidationHandlerChaining(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(1);
 
     ValidationHandler validationHandler1 = ValidationHandlerBuilder.create(schemaRepo)
@@ -858,7 +857,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testJsonBody(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) {
+  public void testJsonBody(@TempDir Path tempDir, Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(2);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
@@ -890,7 +889,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
 
   @Test
   @Disabled("Due to an issue with circular references, which is not understood yet.")
-  public void testJsonBodyAsyncCircular(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) {
+  public void testJsonBodyAsyncCircular(@TempDir Path tempDir, Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(2);
 
     SchemaBuilder childs = arraySchema().items(new GenericSchemaBuilder().withKeyword("$ref", "#"));
@@ -928,7 +927,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testQueryExpandedObjectAdditionalPropertiesAndDefault(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testQueryExpandedObjectAdditionalPropertiesAndDefault(Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(4);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
@@ -973,7 +972,7 @@ public class ValidationHandlerProcessorsIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testSimpleHeaderCaseInsensitivity(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testSimpleHeaderCaseInsensitivity(Checkpoint checkpoint) {
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
       .headerParameter(param("AnHeader", intSchema()))
       .build();

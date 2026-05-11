@@ -25,7 +25,6 @@ import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.validation.ResponseValidator;
 import io.vertx.router.test.ResourceHelper;
@@ -89,7 +88,7 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
 
   @Test
   @DisplayName("Test eventbus address determination")
-  void testEventbusAddressDetermination(VertxTestContext testContext, Checkpoint addressOnly, Checkpoint objectWithAddress, Checkpoint objectWithAddressAndMethod) {
+  void testEventbusAddressDetermination(Checkpoint addressOnly, Checkpoint objectWithAddress, Checkpoint objectWithAddressAndMethod) {
 
     registerService(new DummyPetStoreServiceImpl() {
       @Override
@@ -122,7 +121,7 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
 
   @Test
   @DisplayName("Test that request parameters get forwarded correctly")
-  void testParametersForwardedCorrectly(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testParametersForwardedCorrectly(Checkpoint checkpoint) {
     CountDownLatch cp = checkpoint.asLatch(3);
 
     int expectedLimit = 1337;
@@ -161,7 +160,7 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
 
   @Test
   @DisplayName("Test that response gets forwarded correctly")
-  void testResponseIsForwardedCorrectly(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testResponseIsForwardedCorrectly(Checkpoint checkpoint) {
     JsonArray petsToReturn = new JsonArray().add(PetStoreService.buildPet(1, "foo"));
     CountDownLatch cp = checkpoint.asLatch(2);
 
@@ -205,7 +204,7 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
 
   @Test
   @DisplayName("Test that response gets forwarded correctly")
-  void testResponseMissingContentHeader(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testResponseMissingContentHeader(Checkpoint checkpoint) {
     registerService(new DummyPetStoreServiceImpl() {
       @Override
       public Future<ServiceResponse> getPetById(String petId, ServiceRequest context) {

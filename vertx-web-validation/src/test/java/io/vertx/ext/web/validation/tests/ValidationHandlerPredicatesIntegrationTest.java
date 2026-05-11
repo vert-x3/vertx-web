@@ -9,7 +9,6 @@ import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -29,7 +28,7 @@ import static io.vertx.ext.web.validation.tests.testutils.ValidationTestUtils.fa
 public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHandlerTest {
 
   @Test
-  public void testRequiredBodyPredicate(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) {
+  public void testRequiredBodyPredicate(@TempDir Path tempDir, Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(3);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
@@ -60,7 +59,7 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
   }
 
   @Test
-  public void testFileUploadExists(VertxTestContext testContext, @TempDir Path tempDir, Checkpoint checkpoint) {
+  public void testFileUploadExists(@TempDir Path tempDir, Checkpoint checkpoint) {
     CountDownLatch latch = checkpoint.asLatch(4);
 
     ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)

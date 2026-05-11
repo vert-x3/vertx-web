@@ -25,7 +25,6 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
@@ -90,8 +89,7 @@ public class TestRequest {
   }
 
   /**
-   * Send and execute {@code onEnd} code block wrapped in {@link VertxTestContext#verify(VertxTestContext.ExecutionBlock)}
-   * when request is completed and no assertion fails
+   * Send and execute {@code onEnd} code block when request is completed and no assertion fails
    *
    * @param onEnd
    * @return a future that will be completed when the response is ready and no response assertion fails
@@ -112,8 +110,7 @@ public class TestRequest {
   }
 
   /**
-   * Send a json and execute {@code onEnd} code block wrapped in {@link VertxTestContext#verify(VertxTestContext.ExecutionBlock)}
-   * when request is completed and no assertion fails
+   * Send a json and execute {@code onEnd} code block when request is completed and no assertion fails
    *
    * @param json
    * @param onEnd
@@ -135,8 +132,7 @@ public class TestRequest {
   }
 
   /**
-   * Send a {@link Buffer} and execute {@code onEnd} code block wrapped in {@link VertxTestContext#verify(VertxTestContext.ExecutionBlock)}
-   * when request is completed and no assertion fails
+   * Send a {@link Buffer} and execute {@code onEnd} code block when request is completed and no assertion fails
    *
    * @param buf
    * @param onEnd
@@ -158,8 +154,7 @@ public class TestRequest {
   }
 
   /**
-   * Send an URL Encoded form and execute {@code onEnd} code block wrapped in {@link VertxTestContext#verify(VertxTestContext.ExecutionBlock)}
-   * when request is completed and no assertion fails
+   * Send an URL Encoded form and execute {@code onEnd} code block when request is completed and no assertion fails
    *
    * @param form
    * @param onEnd
@@ -181,8 +176,7 @@ public class TestRequest {
   }
 
   /**
-   * Send a multipart form and execute {@code onEnd} code block wrapped in {@link VertxTestContext#verify(VertxTestContext.ExecutionBlock)}
-   * when request is completed and no assertion fails
+   * Send a multipart form and execute {@code onEnd} code block when request is completed and no assertion fails
    *
    * @param form
    * @param onEnd

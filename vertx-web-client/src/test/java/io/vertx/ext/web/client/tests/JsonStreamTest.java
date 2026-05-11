@@ -9,7 +9,6 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.VertxRunner;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +55,7 @@ public class JsonStreamTest {
   }
 
   @Test
-  public void testSimpleStream(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testSimpleStream(Checkpoint checkpoint) {
     AtomicInteger counter = new AtomicInteger();
     JsonParser parser = JsonParser.newParser().objectValueMode()
       .exceptionHandler(v -> fail())
@@ -74,7 +73,7 @@ public class JsonStreamTest {
   }
 
   @Test
-  public void testSimpleStreamUsingBlankLine(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testSimpleStreamUsingBlankLine(Checkpoint checkpoint) {
     AtomicInteger counter = new AtomicInteger();
     JsonParser parser = JsonParser.newParser().objectValueMode()
       .exceptionHandler(Assertions::fail)

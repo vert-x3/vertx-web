@@ -7,7 +7,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +44,7 @@ public class UpgradeTest {
   }
 
   @Test
-  public void testUpgradeWithAsyncInBetween(VertxTestContext testContext, Checkpoint done) {
+  public void testUpgradeWithAsyncInBetween(Checkpoint done) {
     router.route()
       .handler((PlatformHandler) ctx -> {
         ctx.request().pause();
@@ -82,7 +81,7 @@ public class UpgradeTest {
   }
 
   @Test
-  public void testUpgradeWithLongAwait(VertxTestContext testContext, Checkpoint done) {
+  public void testUpgradeWithLongAwait(Checkpoint done) {
     router.route()
       .handler((PlatformHandler) ctx -> {
         ctx.request().pause();
