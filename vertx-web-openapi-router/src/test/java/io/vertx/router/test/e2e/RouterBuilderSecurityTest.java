@@ -14,6 +14,7 @@ package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -44,7 +45,7 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderWithAuthn(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testBuilderWithAuthn() {
     createServer(pathDereferencedContractGlobal, rb -> {
       rb.security("api_key")
         .apiKeyHandler(APIKeyHandler.create(null))
@@ -52,13 +53,12 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
         .apiKeyHandler(APIKeyHandler.create(null));
       return Future.succeededFuture(rb);
     })
-      .onSuccess(v -> checkpoint.flag())
-      .onFailure(testContext::failNow);
+      .await();
   }
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderWithDisabledSecurity(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testBuilderWithDisabledSecurity() {
     createServer(pathDereferencedContractGlobal, rb -> {
       rb
         .getRoutes()
@@ -78,16 +78,13 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
          */
         return createRequest(GET, "/v1/petsWithOverride")
           .send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-          }));
+          .expecting(HttpResponseExpectation.SC_OK);
       })
-      .onSuccess(v -> checkpoint.flag())
-      .onFailure(testContext::failNow);
+      .await();
   }
 
   @Test
-  public void mountSingle(Vertx vertx, VertxTestContext testContext, Checkpoint checkpoint) {
+  public void mountSingle(Vertx vertx) {
 
     AuthenticationProvider authProvider = cred -> Future.succeededFuture(User.fromName(cred.toString()));
 
@@ -194,57 +191,33 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
 
         return Future.succeededFuture(rb);
       })
-        .compose(v -> {
-          return createRequest(GET, "/v1/pets_single_security")
-            .putHeader("api_key", "test")
-            .send()
-            .onSuccess(response -> testContext.verify(() -> {
-              assertThat(response.statusCode()).isEqualTo(200);
-            }));
-        })
-        .compose(v -> {
-          return createRequest(GET, "/v1/pets_and_security")
-            .putHeader("api_key", "test")
-            .putHeader("second_api_key", "test")
-            .putHeader("third_api_key", "test")
-            .send()
-            .onSuccess(response -> testContext.verify(() -> {
-              assertThat(response.statusCode()).isEqualTo(200);
-            }));
-        })
-        .compose(v -> {
-          return createRequest(GET, "/v1/pets_or_security")
-            .putHeader("api_key", "test")
-            .send()
-            .onSuccess(response -> testContext.verify(() -> {
-              assertThat(response.statusCode()).isEqualTo(200);
-            }));
-        })
-        .compose(v -> {
-          return createRequest(GET, "/v1/pets_or_security")
-            .putHeader("second_api_key", "test")
-            .send()
-            .onSuccess(response -> testContext.verify(() -> {
-              assertThat(response.statusCode()).isEqualTo(200);
-            }));
-        })
-        .compose(v -> {
-          return createRequest(GET, "/v1/pets_or_and_security")
-            .putHeader("api_key", "test")
-            .send()
-            .onSuccess(response -> testContext.verify(() -> {
-              assertThat(response.statusCode()).isEqualTo(200);
-            }));
-        })
-        .compose(v -> {
-          return createRequest(GET, "/v1/pets_or_and_security")
-            .putHeader("second_api_key", "test")
-            .putHeader("sibling_second_api_key", "test")
-            .send()
-            .onSuccess(response -> testContext.verify(() -> {
-              assertThat(response.statusCode()).isEqualTo(200);
-            }));
-        })
+        .compose(v -> createRequest(GET, "/v1/pets_single_security")
+          .putHeader("api_key", "test")
+          .send()
+          .expecting(HttpResponseExpectation.SC_OK))
+        .compose(v -> createRequest(GET, "/v1/pets_and_security")
+          .putHeader("api_key", "test")
+          .putHeader("second_api_key", "test")
+          .putHeader("third_api_key", "test")
+          .send()
+          .expecting(HttpResponseExpectation.SC_OK))
+        .compose(v -> createRequest(GET, "/v1/pets_or_security")
+          .putHeader("api_key", "test")
+          .send()
+          .expecting(HttpResponseExpectation.SC_OK))
+        .compose(v -> createRequest(GET, "/v1/pets_or_security")
+          .putHeader("second_api_key", "test")
+          .send()
+          .expecting(HttpResponseExpectation.SC_OK))
+        .compose(v -> createRequest(GET, "/v1/pets_or_and_security")
+          .putHeader("api_key", "test")
+          .send()
+          .expecting(HttpResponseExpectation.SC_OK))
+        .compose(v -> createRequest(GET, "/v1/pets_or_and_security")
+          .putHeader("second_api_key", "test")
+          .putHeader("sibling_second_api_key", "test")
+          .send()
+          .expecting(HttpResponseExpectation.SC_OK))
         .compose(v -> {
           // This is a complicated one:
           // 1. We make a bare request
@@ -259,12 +232,8 @@ class RouterBuilderSecurityTest extends RouterBuilderTestBase {
 
           return createRequest(GET, "/v1/pets_oauth2")
             .send()
-            .onSuccess(response -> testContext.verify(() -> {
-              assertThat(response.statusCode()).isEqualTo(200);
-            }));
-        })
-        .onSuccess(v -> checkpoint.flag())
-        .onFailure(testContext::failNow);
-    });
+            .expecting(HttpResponseExpectation.SC_OK);
+        });
+    }).await();
   }
 }

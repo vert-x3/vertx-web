@@ -32,7 +32,6 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,8 +60,8 @@ public class BodyHandlerTest extends WebTestBase {
 
   @Override
   @BeforeEach
-  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     router.route().handler(BodyHandler.create());
   }
 

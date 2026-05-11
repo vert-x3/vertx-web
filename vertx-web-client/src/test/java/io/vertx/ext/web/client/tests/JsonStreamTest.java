@@ -10,12 +10,15 @@ import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.test.core.VertxRunner;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Checks the behavior of the {@link io.vertx.ext.web.codec.impl.JsonStreamBodyCodec}.
@@ -56,7 +59,7 @@ public class JsonStreamTest {
   public void testSimpleStream(VertxTestContext testContext, Checkpoint checkpoint) {
     AtomicInteger counter = new AtomicInteger();
     JsonParser parser = JsonParser.newParser().objectValueMode()
-      .exceptionHandler(testContext::failNow)
+      .exceptionHandler(v -> fail())
       .handler(event -> {
         JsonObject object = event.objectValue();
         assertEquals(counter.getAndIncrement(), object.getInteger("count"));
@@ -64,18 +67,17 @@ public class JsonStreamTest {
       })
       .endHandler(x -> checkpoint.flag());
 
-    client.get("/?separator=nl&count=10").as(BodyCodec.jsonStream(parser)).send().onComplete(x -> {
-      if (x.failed()) {
-        testContext.failNow(x.cause());
-      }
-    });
+    client.get("/?separator=nl&count=10")
+      .as(BodyCodec.jsonStream(parser))
+      .send()
+      .await();;
   }
 
   @Test
   public void testSimpleStreamUsingBlankLine(VertxTestContext testContext, Checkpoint checkpoint) {
     AtomicInteger counter = new AtomicInteger();
     JsonParser parser = JsonParser.newParser().objectValueMode()
-      .exceptionHandler(testContext::failNow)
+      .exceptionHandler(Assertions::fail)
       .handler(event -> {
         JsonObject object = event.objectValue();
         assertEquals(counter.getAndIncrement(), object.getInteger("count"));
@@ -83,10 +85,9 @@ public class JsonStreamTest {
       })
       .endHandler(x -> checkpoint.flag());
 
-    client.get("/?separator=bl&count=10").as(BodyCodec.jsonStream(parser)).send().onComplete(x -> {
-      if (x.failed()) {
-        testContext.failNow(x.cause());
-      }
-    });
+    client.get("/?separator=bl&count=10")
+      .as(BodyCodec.jsonStream(parser))
+      .send()
+      .await();
   }
 }

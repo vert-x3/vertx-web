@@ -75,11 +75,10 @@ public class UpgradeTest {
       });
 
     wsClient.connect("/")
-      .onFailure(testContext::failNow)
-      .onSuccess(webSocket -> {
+      .onComplete(TestUtils.onSuccess2(webSocket -> {
         webSocket.frameHandler(System.out::println);
         webSocket.closeHandler(ok -> done.flag());
-      });
+      }));
   }
 
   @Test
@@ -111,10 +110,9 @@ public class UpgradeTest {
       .addHeader("cookie", "session=" + TestUtils.randomAlphaString(32));
 
     wsClient.connect(options)
-      .onFailure(testContext::failNow)
-      .onSuccess(webSocket -> {
+      .onComplete(TestUtils.onSuccess2(webSocket -> {
         webSocket.frameHandler(System.out::println);
         webSocket.closeHandler(ok -> done.flag());
-      });
+      }));
   }
 }

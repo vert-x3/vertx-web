@@ -18,6 +18,7 @@ package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.internal.buffer.BufferInternal;
@@ -39,7 +40,6 @@ import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -65,8 +65,8 @@ public class SockJSHandlerTest extends WebTestBase {
 
   @Override
   @BeforeEach
-  public void setUp(io.vertx.core.Vertx vertx, io.vertx.junit5.VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     // Make sure a catch-all BodyHandler will not prevent websocket connection
     router.route().handler(BodyHandler.create());
     SockJSProtocolTest.installTestApplications(router, vertx);

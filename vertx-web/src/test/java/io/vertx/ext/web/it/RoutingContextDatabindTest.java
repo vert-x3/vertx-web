@@ -24,7 +24,7 @@ import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
-import io.vertx.junit5.VertxTestContext;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,8 +41,8 @@ public class RoutingContextDatabindTest extends WebTestBase {
 
   @Override
   @BeforeEach
-  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     router.route().handler(BodyHandler.create());
   }
 

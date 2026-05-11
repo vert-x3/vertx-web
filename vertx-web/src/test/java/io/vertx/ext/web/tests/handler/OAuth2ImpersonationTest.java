@@ -35,7 +35,6 @@ import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.core.Vertx;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -77,16 +76,16 @@ public class OAuth2ImpersonationTest extends WebTestBase {
 
   @Override
   @AfterEach
-  public void tearDown(VertxTestContext testContext) throws Exception {
+  public void tearDown() throws Exception {
     server.close();
 
-    super.tearDown(testContext);
+    super.tearDown();
   }
 
   @Override
   @BeforeEach
-  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
 
     oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
       .setClientId("client-id")

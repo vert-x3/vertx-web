@@ -68,13 +68,12 @@ public class WebClientTestBase {
   protected SocketAddress testAddress;
 
   @BeforeEach
-  public void setUp(@ProvidedBy(VertxProv.class) Vertx vertx, VertxTestContext testContext) {
+  public void setUp(@ProvidedBy(VertxProv.class) Vertx vertx) {
     this.vertx = vertx;
     server = vertx.createHttpServer(createBaseServerOptions());
     client = vertx.createHttpClient(createBaseClientOptions());
     webClient = (WebClientInternal) WebClient.wrap(client);
     testAddress = SocketAddress.inetSocketAddress(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST);
-    testContext.completeNow();
   }
 
   protected HttpServerOptions createBaseServerOptions() {

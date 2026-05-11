@@ -13,21 +13,20 @@
 package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
-import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.handler.APIKeyHandler;
-import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
+import io.vertx.test.core.TestUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.truth.Truth.assertThat;
 import static io.vertx.core.http.HttpMethod.GET;
 
 class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
@@ -36,7 +35,7 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderWithAuthn(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testBuilderWithAuthn() {
 
     AuthenticationProvider authProvider = cred -> Future.succeededFuture(User.fromName(cred.toString()));
 
@@ -56,21 +55,12 @@ class RouterBuilderSecurityOptionalTest extends RouterBuilderTestBase {
 
       return Future.succeededFuture(rb);
     })
-      .compose(v -> {
-        return createRequest(GET, "/v1/pets").send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.body()).isEqualTo(Buffer.buffer("null"));
-          }));
-      })
-      .compose(v -> {
-        return createRequest(GET, "/v1/pets").putHeader("api_key", "123456789").send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.body()).isEqualTo(Buffer.buffer("{\"username\":\"{\\\"token\\\":\\\"123456789\\\"}\"}"));
-          }));
-      })
-      .onSuccess(v -> checkpoint.flag())
-      .onFailure(testContext::failNow);
+      .compose(v -> createRequest(GET, "/v1/pets").send()
+        .expecting(HttpResponseExpectation.SC_OK)
+        .andThen(TestUtils.onSuccess2(response -> Assertions.assertEquals("null", response.bodyAsString()))))
+      .compose(v -> createRequest(GET, "/v1/pets").putHeader("api_key", "123456789").send()
+        .expecting(HttpResponseExpectation.SC_OK)
+        .andThen(TestUtils.onSuccess2(response -> Assertions.assertEquals("{\"username\":\"{\\\"token\\\":\\\"123456789\\\"}\"}", response.bodyAsString()))))
+      .await();
   }
 }

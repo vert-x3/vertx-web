@@ -14,9 +14,11 @@ package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.junit5.Checkpoint;
@@ -25,6 +27,7 @@ import io.vertx.junit5.VertxTestContext;
 import io.vertx.openapi.validation.ValidatedRequest;
 import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
+import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -47,8 +50,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
   @ParameterizedTest(name = "{index} should load and mount all operations of an OpenAPI ({0}) contract")
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
   @ValueSource(strings = {"v3.0", "v3.1"})
-  void testRouter(String version, VertxTestContext testContext, Checkpoint cpListPets, Checkpoint cpCreatePets,
-      Checkpoint cpShowPetById) {
+  void testRouter(String version, VertxTestContext testContext, Checkpoint cpListPets, Checkpoint cpCreatePets, Checkpoint cpShowPetById) {
     CountDownLatch latchListPets = cpListPets.asLatch(2);
     CountDownLatch latchCreatePets = cpCreatePets.asLatch(2);
     CountDownLatch latchShowPetById = cpShowPetById.asLatch(2);
@@ -56,11 +58,11 @@ class RouterBuilderTest extends RouterBuilderTestBase {
     Function<CountDownLatch, Handler<RoutingContext>> buildCheckpointHandler = cp -> rc -> {
       ValidatedRequest validatedRequest = rc.get(RouterBuilder.KEY_META_DATA_VALIDATED_REQUEST);
       cp.countDown();
-      rc.response().send(Json.encode(validatedRequest)).onFailure(testContext::failNow);
+      rc.response().send(Json.encode(validatedRequest));
     };
 
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve(version).resolve("petstore.json");
-    createServer(pathDereferencedContract, rb -> {
+    HttpResponse<Buffer> response = createServer(pathDereferencedContract, rb -> {
       rb.getRoute("listPets")
         .setDoSecurity(false)
         .addHandler(buildCheckpointHandler.apply(latchListPets));
@@ -71,28 +73,28 @@ class RouterBuilderTest extends RouterBuilderTestBase {
         .setDoSecurity(false)
         .addHandler(buildCheckpointHandler.apply(latchShowPetById));
       return Future.succeededFuture(rb);
-    }).compose(v -> createRequest(GET, "/v1/pets").addQueryParam("limit", "42").send())
-      .onSuccess(response -> testContext.verify(() -> {
-        JsonObject query = response.bodyAsJsonObject().getJsonObject("query");
+    }).compose(v -> createRequest(GET, "/v1/pets")
+        .addQueryParam("limit", "42").send())
+      .onComplete(TestUtils.onSuccess2(r -> {
+        JsonObject query = r.bodyAsJsonObject().getJsonObject("query");
         assertThat(query.getJsonObject("limit").getMap()).containsEntry("long", 42);
         latchListPets.countDown();
       }))
       .compose(v -> {
         JsonObject bodyJson = new JsonObject().put("id", 1).put("name", "FooBar");
-        return createRequest(POST, "/v1/pets").sendJsonObject(bodyJson).onSuccess(response -> testContext.verify(() -> {
-          JsonObject body = response.bodyAsJsonObject().getJsonObject("body");
+        return createRequest(POST, "/v1/pets")
+          .sendJsonObject(bodyJson).onComplete(TestUtils.onSuccess2(r -> {
+          JsonObject body = r.bodyAsJsonObject().getJsonObject("body");
           JsonObject bodyValueAsJson = body.getJsonObject("jsonObject");
           assertThat(bodyValueAsJson).isEqualTo(bodyJson);
           latchCreatePets.countDown();
         }));
       })
       .compose(v -> createRequest(GET, "/v1/pets/foobar").send())
-      .onSuccess(response -> testContext.verify(() -> {
-        JsonObject path = response.bodyAsJsonObject().getJsonObject("pathParameters");
-        assertThat(path.getJsonObject("petId").getMap()).containsEntry("string", "foobar");
-        latchShowPetById.countDown();
-      }))
-      .onFailure(testContext::failNow);
+      .await();
+    JsonObject path = response.bodyAsJsonObject().getJsonObject("pathParameters");
+    assertThat(path.getJsonObject("petId").getMap()).containsEntry("string", "foobar");
+    latchShowPetById.countDown();
   }
 
   @Test
@@ -108,37 +110,36 @@ class RouterBuilderTest extends RouterBuilderTestBase {
     }).compose(v -> {
         JsonObject invalidBodyJson = new JsonObject().put("foo", "bar");
         return createRequest(POST, "/v1/pets").sendJsonObject(invalidBodyJson)
-          .onSuccess(response -> testContext.verify(() -> {
+          .onComplete(TestUtils.onSuccess2(response -> {
             assertThat(response.bodyAsJsonObject()).isEqualTo(invalidBodyJson);
             checkpoint.flag();
           }));
       })
-      .onFailure(testContext::failNow);
+      .await();
   }
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testRouterWithCustomRequestExtractor(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testRouterWithCustomRequestExtractor(VertxTestContext testContext, Checkpoint checkpoint, Checkpoint cp2) {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
     createServer(pathDereferencedContract, contract -> RouterBuilder.create(vertx, contract, withBodyHandler()), rb -> {
       rb.rootHandler(BodyHandler.create()).getRoute("createPets")
         .setDoSecurity(false)
         .addHandler(rc -> {
           ValidatedRequest validatedRequest = rc.get(RouterBuilder.KEY_META_DATA_VALIDATED_REQUEST);
-          rc.response().send(Json.encode(validatedRequest)).onFailure(testContext::failNow);
+          rc.response().send(Json.encode(validatedRequest)).onComplete(cp2);
         });
       return Future.succeededFuture(rb);
     }).compose(v -> {
         JsonObject bodyJson = new JsonObject().put("id", 1).put("name", "FooBar");
         return createRequest(POST, "/v1/pets").sendJsonObject(bodyJson)
-          .onSuccess(response -> testContext.verify(() -> {
+          .onComplete(TestUtils.onSuccess2(response -> {
             JsonObject body = response.bodyAsJsonObject().getJsonObject("body");
             JsonObject bodyValueAsJson = body.getJsonObject("jsonObject");
             assertThat(bodyValueAsJson).isEqualTo(bodyJson);
             checkpoint.flag();
           }));
-      })
-      .onFailure(testContext::failNow);
+      }).await();
   }
 
   @Test
@@ -153,13 +154,13 @@ class RouterBuilderTest extends RouterBuilderTestBase {
     }).compose(v -> {
         JsonObject invalidBodyJson = new JsonObject().put("foo", "bar");
         return createRequest(POST, "/v1/pets").sendJsonObject(invalidBodyJson)
-          .onSuccess(response -> testContext.verify(() -> {
+          .onComplete(TestUtils.onSuccess2(response -> {
             assertThat(response.statusCode()).isEqualTo(BAD_REQUEST.code());
             assertThat(response.statusMessage()).isEqualTo(BAD_REQUEST.reasonPhrase());
             checkpoint.flag();
           }));
       })
-      .onFailure(testContext::failNow);
+      .await();
   }
 
   @Test
@@ -171,11 +172,11 @@ class RouterBuilderTest extends RouterBuilderTestBase {
       // This will trigger the default behavior of returning 501 Not Implemented
       return Future.succeededFuture(rb);
     }).compose(v -> createRequest(GET, "/v1/pets").send())
-      .onSuccess(response -> testContext.verify(() -> {
+      .onComplete(TestUtils.onSuccess2(response -> {
         assertThat(response.statusCode()).isEqualTo(NOT_IMPLEMENTED.code());
         checkpoint.flag();
       }))
-      .onFailure(testContext::failNow);
+      .await();
   }
 
   @Test
@@ -187,7 +188,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
     createServer(pathDereferencedContract, rb -> Future.succeededFuture(rb))
       .compose(v -> createRequest(GET, "/v1/pets").send())
-      .onSuccess(response -> testContext.verify(() -> {
+      .onComplete(TestUtils.onSuccess2(response -> {
         assertThat(response.statusCode()).isEqualTo(NOT_IMPLEMENTED.code());
         latchAllOperations.countDown();
       }))
@@ -195,16 +196,16 @@ class RouterBuilderTest extends RouterBuilderTestBase {
         JsonObject bodyJson = new JsonObject().put("id", 1).put("name", "FooBar");
         return createRequest(POST, "/v1/pets").sendJsonObject(bodyJson);
       })
-      .onSuccess(response -> testContext.verify(() -> {
+      .onComplete(TestUtils.onSuccess2(response -> {
         assertThat(response.statusCode()).isEqualTo(NOT_IMPLEMENTED.code());
         latchAllOperations.countDown();
       }))
       .compose(v -> createRequest(GET, "/v1/pets/123").send())
-      .onSuccess(response -> testContext.verify(() -> {
+      .onComplete(TestUtils.onSuccess2(response -> {
         assertThat(response.statusCode()).isEqualTo(NOT_IMPLEMENTED.code());
         latchAllOperations.countDown();
       }))
-      .onFailure(testContext::failNow);
+      .await();
   }
 
   @Test
@@ -224,7 +225,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
         .addHandler(rc -> rc.response().setStatusCode(OK.code()).end());
       return Future.succeededFuture(rb);
     }).compose(v -> createRequest(GET, "/v1/pets").send())
-      .onSuccess(response -> testContext.verify(() -> {
+      .onComplete(TestUtils.onSuccess2(response -> {
         assertThat(response.statusCode()).isEqualTo(OK.code());
         latchAllOperations.countDown();
       }))
@@ -232,15 +233,15 @@ class RouterBuilderTest extends RouterBuilderTestBase {
         JsonObject bodyJson = new JsonObject().put("id", 1).put("name", "FooBar");
         return createRequest(POST, "/v1/pets").sendJsonObject(bodyJson);
       })
-      .onSuccess(response -> testContext.verify(() -> {
+      .onComplete(TestUtils.onSuccess2(response -> {
         assertThat(response.statusCode()).isEqualTo(OK.code());
         latchAllOperations.countDown();
       }))
       .compose(v -> createRequest(GET, "/v1/pets/123").send())
-      .onSuccess(response -> testContext.verify(() -> {
+      .onComplete(TestUtils.onSuccess2(response -> {
         assertThat(response.statusCode()).isEqualTo(NOT_IMPLEMENTED.code());
         latchAllOperations.countDown();
       }))
-      .onFailure(testContext::failNow);
+      .await();
   }
 }

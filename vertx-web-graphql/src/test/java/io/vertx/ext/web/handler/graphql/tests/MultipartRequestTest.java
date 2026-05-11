@@ -23,6 +23,7 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
@@ -50,8 +51,8 @@ class Result {
 public class MultipartRequestTest extends WebTestBase {
   @Override
   @BeforeEach
-  public void setUp(io.vertx.core.Vertx vertx, io.vertx.junit5.VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     GraphQLHandler graphQLHandler = GraphQLHandler.create(graphQL(), createOptions());
     router.route().handler(BodyHandler.create());
     router.route("/graphql").order(100).handler(graphQLHandler);

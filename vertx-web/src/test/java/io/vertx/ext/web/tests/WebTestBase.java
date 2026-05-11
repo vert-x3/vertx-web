@@ -27,7 +27,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +57,7 @@ public abstract class WebTestBase {
   protected Router router;
 
   @BeforeEach
-  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
+  public void setUp(Vertx vertx) throws Exception {
     this.vertx = vertx;
     router = Router.router(vertx);
     server = vertx.createHttpServer(getHttpServerOptions().setMaxFormFields(2048));
@@ -67,7 +67,7 @@ public abstract class WebTestBase {
     server
       .requestHandler(router)
       .listen()
-      .onComplete(testContext.succeedingThenComplete());
+      .await();
   }
 
   protected HttpServerOptions getHttpServerOptions() {
@@ -83,19 +83,12 @@ public abstract class WebTestBase {
   }
 
   @AfterEach
-  public void tearDown(VertxTestContext testContext) throws Exception {
+  public void tearDown() throws Exception {
     if (client != null) {
-      client.close().onComplete(ar -> {
-        if (server != null) {
-          server.close().onComplete(testContext.succeedingThenComplete());
-        } else {
-          testContext.completeNow();
-        }
-      });
-    } else if (server != null) {
-      server.close().onComplete(testContext.succeedingThenComplete());
-    } else {
-      testContext.completeNow();
+      client.close().await();
+    }
+    if (server != null) {
+      server.close().await();
     }
   }
 

@@ -50,7 +50,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
     testRequest(client, HttpMethod.POST, "/testFutureWithRequestParameter/123")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("param", 123)))
-      .send(testContext, checkpoint);
+      .send(checkpoint);
   }
 
   @Test
@@ -70,7 +70,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
     testRequest(client, HttpMethod.POST, "/testFutureWithIntParameter/123")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("param", 123)))
-      .send(testContext, checkpoint);
+      .send(checkpoint);
   }
 
   @Test
@@ -90,7 +90,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
     testRequest(client, HttpMethod.POST, "/testFuture")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("foo", "bar")))
-      .send(testContext, checkpoint);
+      .send(checkpoint);
   }
 
 }

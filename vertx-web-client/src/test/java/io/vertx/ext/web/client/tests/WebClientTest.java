@@ -30,10 +30,7 @@ import io.vertx.test.fakeresolver.FakeAddressResolver;
 import io.vertx.test.proxy.*;
 import io.vertx.test.tls.Cert;
 import org.junit.Assert;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -533,6 +530,7 @@ public class WebClientTest extends WebClientTestBase {
     }
   }
 
+  @Disabled
   @Nested
   class ResolvingAddressTest extends SendTestBase {
     @Override

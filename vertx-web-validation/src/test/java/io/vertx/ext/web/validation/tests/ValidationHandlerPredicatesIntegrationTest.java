@@ -48,15 +48,15 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.POST, "/testRequiredBody")
       .expect(statusCode(200))
-      .sendJson(new JsonObject(), testContext, latch::countDown);
+      .sendJson(new JsonObject(), latch::countDown);
 
     testRequest(client, HttpMethod.GET, "/testRequiredBody")
       .expect(statusCode(400), failurePredicateResponse())
-      .send(testContext, latch::countDown);
+      .send(latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testRequiredBody")
       .expect(statusCode(400), failurePredicateResponse())
-      .send(testContext, latch::countDown);
+      .send(latch::countDown);
   }
 
   @Test
@@ -82,20 +82,20 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.POST, "/testFileUpload")
       .expect(statusCode(200))
-      .send(testContext, latch::countDown);
+      .send(latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFileUpload")
       .expect(statusCode(400))
-      .sendMultipartForm(MultipartForm.create(), testContext, latch::countDown);
+      .sendMultipartForm(MultipartForm.create(), latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFileUpload")
       .expect(statusCode(400))
-      .sendMultipartForm(MultipartForm.create().attribute("myfile", "bla"), testContext, latch::countDown);
+      .sendMultipartForm(MultipartForm.create().attribute("myfile", "bla"), latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testFileUpload")
       .expect(statusCode(200))
       .sendMultipartForm(MultipartForm.create().textFileUpload("myfile", "myfile.txt", "src/test/resources/myfile" +
-        ".txt", "text/plain"), testContext, latch::countDown);
+        ".txt", "text/plain"), latch::countDown);
   }
 
 }

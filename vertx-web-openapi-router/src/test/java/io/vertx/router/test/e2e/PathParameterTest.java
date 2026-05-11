@@ -14,6 +14,7 @@ package io.vertx.router.test.e2e;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.junit5.Checkpoint;
@@ -38,22 +39,19 @@ class PathParameterTest extends RouterBuilderTestBase {
   @Timeout(value = 2, timeUnit = TimeUnit.MINUTES)
   @ParameterizedTest
   @ValueSource(strings = {"3", "-1"})
-  void testPathParam(String id, VertxTestContext testContext, Checkpoint checkpoint) {
+  void testPathParam(String id) {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("e2e").resolve("contract_various_scenarios.yaml");
     createServer(pathDereferencedContract, rb -> {
       rb.getRoute("stringPathParameter").setDoSecurity(false).addHandler(rc -> {
         ValidatedRequest validatedRequest = rc.get(RouterBuilder.KEY_META_DATA_VALIDATED_REQUEST);
-        testContext.verify(() -> {
-          assertThat(validatedRequest.getPathParameters().get("id").getString()).isEqualTo(id);
-        });
+        assertThat(validatedRequest.getPathParameters().get("id").getString()).isEqualTo(id);
         rc.response().setStatusCode(200).end();
       });
       return Future.succeededFuture(rb);
-    }).compose(v -> {
-      return createRequest(GET, "/v1/user/" + id).send().onSuccess(response -> testContext.verify(() -> {
-        assertThat(response.statusCode()).isEqualTo(HttpResponseStatus.OK.code());
-        checkpoint.flag();
-      }));
-    }).onFailure(testContext::failNow);
+    }).compose(v -> createRequest(GET, "/v1/user/" + id)
+        .send()
+        .expecting(HttpResponseExpectation.SC_OK)
+      )
+      .await();
   }
 }

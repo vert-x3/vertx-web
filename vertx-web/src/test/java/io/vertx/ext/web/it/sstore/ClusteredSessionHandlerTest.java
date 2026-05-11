@@ -31,7 +31,6 @@ import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
 import org.junit.jupiter.api.AfterEach;
@@ -76,8 +75,8 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
   @BeforeEach
   @Override
-  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     setUp();
     for (int i = 0;i < numNodes;i++) {
       ClusterManager clusterManager = getClusterManager();
@@ -95,14 +94,14 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
   @AfterEach
   @Override
-  public void tearDown(VertxTestContext testContext) throws Exception {
+  public void tearDown() throws Exception {
     for (HttpServer server : servers) {
       if (server != null) {
         server.close().await();
       }
     }
     close(Arrays.asList(vertices));
-    super.tearDown(testContext);
+    super.tearDown();
   }
 
   @Test

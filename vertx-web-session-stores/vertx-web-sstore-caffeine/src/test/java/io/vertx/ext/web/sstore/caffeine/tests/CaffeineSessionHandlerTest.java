@@ -5,7 +5,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.caffeine.CaffeineSessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,8 +17,8 @@ public class CaffeineSessionHandlerTest extends SessionHandlerTestBase {
 
   @BeforeEach
   @Override
-  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     store = CaffeineSessionStore.create(vertx);
   }
 
