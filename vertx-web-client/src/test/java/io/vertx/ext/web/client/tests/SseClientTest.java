@@ -5,7 +5,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -121,7 +120,7 @@ public class SseClientTest {
 
   @Test
   @Timeout(value = 10, unit = TimeUnit.SECONDS)
-  public void testGetSseEvents(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testGetSseEvents(Checkpoint checkpoint) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/basic?count=5").as(BodyCodec.sseStream(stream -> {
@@ -142,7 +141,7 @@ public class SseClientTest {
 
   @Test
   @Timeout(value = 10, unit = TimeUnit.SECONDS)
-  public void testMultilineData(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testMultilineData(Checkpoint checkpoint) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/multiline-data").as(BodyCodec.sseStream(stream -> {
@@ -160,7 +159,7 @@ public class SseClientTest {
 
   @Test
   @Timeout(value = 10, unit = TimeUnit.SECONDS)
-  public void testComments(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testComments(Checkpoint checkpoint) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/comments").as(BodyCodec.sseStream(stream -> {
@@ -177,7 +176,7 @@ public class SseClientTest {
 
   @Test
   @Timeout(value = 10, unit = TimeUnit.SECONDS)
-  public void testRetryField(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testRetryField(Checkpoint checkpoint) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/retry").as(BodyCodec.sseStream(stream -> {
@@ -195,7 +194,7 @@ public class SseClientTest {
 
   @Test
   @Timeout(value = 10, unit = TimeUnit.SECONDS)
-  public void testNoEventType(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testNoEventType(Checkpoint checkpoint) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/no-event-type").as(BodyCodec.sseStream(stream -> {
@@ -215,7 +214,7 @@ public class SseClientTest {
 
   @Test
   @Timeout(value = 10, unit = TimeUnit.SECONDS)
-  public void testBurstEvents(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testBurstEvents(Checkpoint checkpoint) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
 
     client.get("/burst?count=100").as(BodyCodec.sseStream(stream -> {
@@ -234,7 +233,7 @@ public class SseClientTest {
 
   @Test
   @Timeout(value = 10, unit = TimeUnit.SECONDS)
-  public void testPauseResume(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testPauseResume(Checkpoint checkpoint) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
     final AtomicInteger pauseCount = new AtomicInteger(0);
 
@@ -261,7 +260,7 @@ public class SseClientTest {
 
   @Test
   @Timeout(value = 10, unit = TimeUnit.SECONDS)
-  public void testFetch(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testFetch(Checkpoint checkpoint) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
     final AtomicInteger fetchCount = new AtomicInteger(0);
 
@@ -293,7 +292,7 @@ public class SseClientTest {
 
   @Test
   @Timeout(value = 15, unit = TimeUnit.SECONDS)
-  public void testBackpressure(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testBackpressure(Checkpoint checkpoint) throws Exception {
     final List<SseEvent> events = new ArrayList<>();
     final List<Long> timestamps = new ArrayList<>();
 
@@ -321,7 +320,7 @@ public class SseClientTest {
 
   @Test
   @Timeout(value = 10, unit = TimeUnit.SECONDS)
-  public void testExceptionHandler(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testExceptionHandler(Checkpoint checkpoint) throws Exception {
     final List<Throwable> exceptions = new ArrayList<>();
 
     client.get("/invalid-retry").as(BodyCodec.sseStream(stream -> {

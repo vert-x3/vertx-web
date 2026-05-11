@@ -6,7 +6,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @VertxTest
 public class Router100ContinueTest {
@@ -89,7 +87,7 @@ public class Router100ContinueTest {
   }
 
   @Test
-  public void testExpectButTooLarge(VertxTestContext testContext, Checkpoint checkpoint, Checkpoint checkpoint2, Checkpoint checkpoint3) {
+  public void testExpectButTooLarge(Checkpoint checkpoint, Checkpoint checkpoint2, Checkpoint checkpoint3) {
     router.route()
       .handler(BodyHandler.create().setBodyLimit(1))
       .handler(ctx -> {

@@ -23,7 +23,6 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.openapi.validation.ValidatedRequest;
 import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
@@ -50,7 +49,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
   @ParameterizedTest(name = "{index} should load and mount all operations of an OpenAPI ({0}) contract")
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
   @ValueSource(strings = {"v3.0", "v3.1"})
-  void testRouter(String version, VertxTestContext testContext, Checkpoint cpListPets, Checkpoint cpCreatePets, Checkpoint cpShowPetById) {
+  void testRouter(String version, Checkpoint cpListPets, Checkpoint cpCreatePets, Checkpoint cpShowPetById) {
     CountDownLatch latchListPets = cpListPets.asLatch(2);
     CountDownLatch latchCreatePets = cpCreatePets.asLatch(2);
     CountDownLatch latchShowPetById = cpShowPetById.asLatch(2);
@@ -99,7 +98,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testRouterWithoutValidation(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testRouterWithoutValidation(Checkpoint checkpoint) {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
     createServer(pathDereferencedContract, rb -> {
       rb.rootHandler(BodyHandler.create()).getRoute("createPets")
@@ -120,7 +119,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testRouterWithCustomRequestExtractor(VertxTestContext testContext, Checkpoint checkpoint, Checkpoint cp2) {
+  void testRouterWithCustomRequestExtractor(Checkpoint checkpoint, Checkpoint cp2) {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
     createServer(pathDereferencedContract, contract -> RouterBuilder.create(vertx, contract, withBodyHandler()), rb -> {
       rb.rootHandler(BodyHandler.create()).getRoute("createPets")
@@ -144,7 +143,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testRouterWithInvalidRequest(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testRouterWithInvalidRequest(Checkpoint checkpoint) {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
     createServer(pathDereferencedContract, rb -> {
       rb.getRoute("createPets")
@@ -165,7 +164,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testRouterWithNoHandlerReturns501NotImplemented(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testRouterWithNoHandlerReturns501NotImplemented(Checkpoint checkpoint) {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("v3.1").resolve("petstore.json");
     createServer(pathDereferencedContract, rb -> {
       // Intentionally do NOT add any handlers for the operations
@@ -181,7 +180,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testRouterWithNoHandlersReturns501ForAllOperations(VertxTestContext testContext,
+  void testRouterWithNoHandlersReturns501ForAllOperations(
       Checkpoint cpAllOperations) {
     CountDownLatch latchAllOperations = cpAllOperations.asLatch(3);
 
@@ -210,7 +209,7 @@ class RouterBuilderTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testRouterWithPartialHandlersReturns501ForUnimplemented(VertxTestContext testContext,
+  void testRouterWithPartialHandlersReturns501ForUnimplemented(
       Checkpoint cpAllOperations) {
     CountDownLatch latchAllOperations = cpAllOperations.asLatch(3);
 
