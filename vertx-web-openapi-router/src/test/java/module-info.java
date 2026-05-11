@@ -10,6 +10,7 @@ open module io.vertx.web.openapi.router.tests {
   requires org.mockito;
   requires static io.vertx.auth.oauth2;
   requires static io.vertx.auth.jwt;
-  exports io.vertx.router.test.base;
+    requires io.vertx.core.tests;
+    exports io.vertx.router.test.base;
   exports io.vertx.router.test;
 }

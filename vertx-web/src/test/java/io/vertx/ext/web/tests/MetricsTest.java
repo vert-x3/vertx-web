@@ -11,7 +11,6 @@ import io.vertx.core.spi.metrics.VertxMetrics;
 import io.vertx.core.spi.observability.HttpRequest;
 import io.vertx.core.spi.observability.HttpResponse;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.junit5.VertxProvider;
 import io.vertx.junit5.ProvidedBy;
 import io.vertx.test.fakemetrics.FakeMetricsBase;
@@ -45,8 +44,8 @@ public class MetricsTest extends WebTestBase {
 
   @Override
   @BeforeEach
-  public void setUp(@ProvidedBy(MetricsVertxProvider.class) Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(@ProvidedBy(MetricsVertxProvider.class) Vertx vertx) throws Exception {
+    super.setUp(vertx);
   }
 
   @Test

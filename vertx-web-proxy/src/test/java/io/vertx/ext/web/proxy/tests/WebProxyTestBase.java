@@ -7,7 +7,6 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.tests.WebTestBase;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -22,8 +21,8 @@ public class WebProxyTestBase extends WebTestBase {
 
   @Override
   @BeforeEach
-  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     backendRouter = Router.router(vertx);
     backendServer = vertx.createHttpServer(getBackendServerOptions());
     proxyClient = vertx.createHttpClient(getProxyClientOptions());
@@ -40,13 +39,13 @@ public class WebProxyTestBase extends WebTestBase {
 
   @Override
   @AfterEach
-  public void tearDown(VertxTestContext testContext) throws Exception {
+  public void tearDown() throws Exception {
     if (proxyClient != null) {
       proxyClient.close().await();
     }
     if (backendServer != null) {
       backendServer.close().await();
     }
-    super.tearDown(testContext);
+    super.tearDown();
   }
 }

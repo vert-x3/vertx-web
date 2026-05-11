@@ -13,6 +13,7 @@
 package io.vertx.router.test.e2e;
 
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
@@ -40,7 +41,7 @@ class RouterBuilderSecurityScopesTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderWithAuthn(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testBuilderWithAuthn() {
 
     JWTAuth authProvider = JWTAuth.create(vertx, new JWTAuthOptions()
       .setKeyStore(new KeyStoreOptions()
@@ -72,28 +73,16 @@ class RouterBuilderSecurityScopesTest extends RouterBuilderTestBase {
         return createRequest(GET, "/v1/two_scopes_required")
           .putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo").put("scope", new JsonArray().add("read").add("write")), new JWTOptions()))
           .send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-          }));
+          .expecting(HttpResponseExpectation.SC_OK);
       })
-      .compose(v -> {
-        return createRequest(GET, "/v1/one_scope_required")
-          .putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo").put("scope", new JsonArray().add("read")), new JWTOptions()))
-          .send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-          }));
-      })
-      .compose(v -> {
-        return createRequest(GET, "/v1/no_scopes")
-          .putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()))
-          .send()
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(200);
-            assertThat(response.bodyAsJsonArray()).isNull();
-          }));
-      })
-      .onSuccess(v -> checkpoint.flag())
-      .onFailure(testContext::failNow);
+      .compose(v -> createRequest(GET, "/v1/one_scope_required")
+        .putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo").put("scope", new JsonArray().add("read")), new JWTOptions()))
+        .send()
+        .expecting(HttpResponseExpectation.SC_OK))
+      .compose(v -> createRequest(GET, "/v1/no_scopes")
+        .putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()))
+        .send()
+        .expecting(HttpResponseExpectation.SC_OK))
+      .await();
   }
 }

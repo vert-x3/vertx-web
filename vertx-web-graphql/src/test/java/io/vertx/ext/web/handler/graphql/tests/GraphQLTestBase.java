@@ -23,6 +23,7 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import org.junit.jupiter.api.BeforeEach;
 import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
@@ -42,8 +43,8 @@ public class GraphQLTestBase extends WebTestBase {
 
   @Override
   @BeforeEach
-  public void setUp(io.vertx.core.Vertx vertx, io.vertx.junit5.VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     router.route().handler(BodyHandler.create());
     graphQLHandler = GraphQLHandler.create(graphQL(), createOptions());
     router.route("/graphql").order(100).handler(graphQLHandler);

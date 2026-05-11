@@ -135,7 +135,9 @@ public class SseClientTest {
         }
         checkpoint.flag();
       });
-    })).send().onFailure(testContext::failNow);
+    }))
+      .send()
+      .await();
   }
 
   @Test
@@ -151,7 +153,9 @@ public class SseClientTest {
         assertEquals("line1\nline2\nline3", events.get(0).data());
         checkpoint.flag();
       });
-    })).send().onFailure(testContext::failNow);
+    }))
+      .send()
+      .await();
   }
 
   @Test
@@ -166,7 +170,9 @@ public class SseClientTest {
         assertEquals("test data", events.get(0).data());
         checkpoint.flag();
       });
-    })).send().onFailure(testContext::failNow);
+    }))
+      .send()
+      .await();
   }
 
   @Test
@@ -182,7 +188,9 @@ public class SseClientTest {
         assertEquals(5000, events.get(0).retry());
         checkpoint.flag();
       });
-    })).send().onFailure(testContext::failNow);
+    }))
+      .send()
+      .await();
   }
 
   @Test
@@ -200,7 +208,9 @@ public class SseClientTest {
         assertEquals("message", events.get(0).event());
         checkpoint.flag();
       });
-    })).send().onFailure(testContext::failNow);
+    }))
+      .send()
+      .await();
   }
 
   @Test
@@ -217,7 +227,9 @@ public class SseClientTest {
         }
         checkpoint.flag();
       });
-    })).send().onFailure(testContext::failNow);
+    }))
+      .send()
+      .await();
   }
 
   @Test
@@ -242,7 +254,9 @@ public class SseClientTest {
         assertTrue(pauseCount.get() >= 2, "Stream should have been paused at least twice");
         checkpoint.flag();
       });
-    })).send().onFailure(testContext::failNow);
+    }))
+      .send()
+      .await();
   }
 
   @Test
@@ -272,7 +286,9 @@ public class SseClientTest {
       });
       // Kick off by fetching the first event
       stream.fetch(1);
-    })).send().onFailure(testContext::failNow);
+    }))
+      .send()
+      .await();
   }
 
   @Test
@@ -298,7 +314,9 @@ public class SseClientTest {
         assertTrue(totalTime >= 750, "Events should be spread over time due to backpressure. Total time was " + totalTime);
         checkpoint.flag();
       });
-    })).send().onFailure(testContext::failNow);
+    }))
+      .send()
+      .await();
   }
 
   @Test
@@ -319,7 +337,9 @@ public class SseClientTest {
         assertTrue(exceptions.get(0).getCause() instanceof NumberFormatException, "Expected cause to be a NumberFormatException");
         checkpoint.flag();
       });
-    })).send().onFailure(testContext::failNow);
+    }))
+      .send()
+      .await();
   }
 
 }

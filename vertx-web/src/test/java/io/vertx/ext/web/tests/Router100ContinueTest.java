@@ -7,12 +7,14 @@ import io.vertx.ext.web.handler.*;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @VertxTest
 public class Router100ContinueTest {
@@ -35,7 +37,7 @@ public class Router100ContinueTest {
   }
 
   @Test
-  public void testContinue(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testContinue(Checkpoint checkpoint, Checkpoint checkpoint2, Checkpoint checkpoint3) {
     router.route()
       .handler(BodyHandler.create())
       .handler(ctx -> {
@@ -44,15 +46,11 @@ public class Router100ContinueTest {
       });
 
     client.request(HttpMethod.POST, "/")
-      .onFailure(testContext::failNow)
-      .onSuccess(req -> {
+      .onComplete(TestUtils.onSuccess(req -> {
         req
           .response()
-          .onFailure(testContext::failNow)
-          .onSuccess(res -> {
-            assertEquals(200, res.statusCode());
-            checkpoint.flag();
-          });
+          .expecting(HttpResponseExpectation.SC_OK)
+          .onComplete(checkpoint);
 
         req
           .putHeader(HttpHeaders.EXPECT, "100-continue")
@@ -60,14 +58,14 @@ public class Router100ContinueTest {
           .continueHandler(v ->
             req
               .end("DATA")
-              .onFailure(testContext::failNow))
+              .onComplete(checkpoint3))
           .sendHead()
-          .onFailure(testContext::failNow);
-      });
+          .onComplete(checkpoint2);
+      }));
   }
 
   @Test
-  public void testBadExpectation(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testBadExpectation(Checkpoint checkpoint, Checkpoint checkpoint2) {
     router.route()
       .handler(BodyHandler.create())
       .handler(ctx -> {
@@ -76,30 +74,22 @@ public class Router100ContinueTest {
       });
 
     client.request(HttpMethod.POST, "/")
-      .onFailure(testContext::failNow)
-      .onSuccess(req -> {
+      .onComplete(TestUtils.onSuccess2(req -> {
         req
           .response()
-          .onFailure(testContext::failNow)
-          .onSuccess(res -> {
-            assertEquals(417, res.statusCode());
-            checkpoint.flag();
-          });
+          .expecting(HttpResponseExpectation.SC_EXPECTATION_FAILED)
+          .onComplete(checkpoint);
 
         req
           .putHeader(HttpHeaders.EXPECT, "lets-go")
           .setChunked(true)
-          .continueHandler(v ->
-            req
-              .end("DATA")
-              .onFailure(testContext::failNow))
           .sendHead()
-          .onFailure(testContext::failNow);
-      });
+          .onComplete(checkpoint2);
+      }));
   }
 
   @Test
-  public void testExpectButTooLarge(VertxTestContext testContext, Checkpoint checkpoint) {
+  public void testExpectButTooLarge(VertxTestContext testContext, Checkpoint checkpoint, Checkpoint checkpoint2, Checkpoint checkpoint3) {
     router.route()
       .handler(BodyHandler.create().setBodyLimit(1))
       .handler(ctx -> {
@@ -108,16 +98,11 @@ public class Router100ContinueTest {
       });
 
     client.request(HttpMethod.POST, "/")
-      .onFailure(testContext::failNow)
-      .onSuccess(req -> {
+      .onComplete(TestUtils.onSuccess2(req -> {
         req
           .response()
-          .onFailure(testContext::failNow)
-          .onSuccess(res -> {
-            // entity too large
-            assertEquals(413, res.statusCode());
-            checkpoint.flag();
-          });
+          .expecting(HttpResponseExpectation.SC_REQUEST_ENTITY_TOO_LARGE)
+          .onComplete(checkpoint);
 
         req
           .putHeader(HttpHeaders.EXPECT, "100-continue")
@@ -125,9 +110,9 @@ public class Router100ContinueTest {
           .continueHandler(v ->
             req
               .end("DATA")
-              .onFailure(testContext::failNow))
+              .onComplete(checkpoint3))
           .sendHead()
-          .onFailure(testContext::failNow);
-      });
+          .onComplete(checkpoint2);
+      }));
   }
 }

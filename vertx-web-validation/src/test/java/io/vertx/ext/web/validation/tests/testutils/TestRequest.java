@@ -82,36 +82,33 @@ public class TestRequest {
   /**
    * Send and flag the provided checkpoint with {@link Checkpoint#flag()} when request is completed and no assertion fails
    *
-   * @param testContext
    * @param checkpoint
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
-  public Future<HttpResponse<Buffer>> send(VertxTestContext testContext, Checkpoint checkpoint) {
-    return internalSend(testContext, h -> req.send().onComplete(h), checkpoint::flag);
+  public Future<HttpResponse<Buffer>> send(Checkpoint checkpoint) {
+    return internalSend(h -> req.send().onComplete(h), checkpoint::flag);
   }
 
   /**
    * Send and execute {@code onEnd} code block wrapped in {@link VertxTestContext#verify(VertxTestContext.ExecutionBlock)}
    * when request is completed and no assertion fails
    *
-   * @param testContext
    * @param onEnd
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
-  public Future<HttpResponse<Buffer>> send(VertxTestContext testContext, VertxTestContext.ExecutionBlock onEnd) {
-    return internalSend(testContext, h -> req.send().onComplete(h), onEnd);
+  public Future<HttpResponse<Buffer>> send(Runnable onEnd) {
+    return internalSend(h -> req.send().onComplete(h), onEnd);
   }
 
   /**
    * Send a json and flag the provided checkpoint with {@link Checkpoint#flag()} when request is completed and no assertion fails
    *
    * @param json
-   * @param testContext
    * @param checkpoint
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
-  public Future<HttpResponse<Buffer>> sendJson(Object json, VertxTestContext testContext, Checkpoint checkpoint) {
-    return internalSend(testContext, h -> req.sendJson(json).onComplete(h), checkpoint::flag);
+  public Future<HttpResponse<Buffer>> sendJson(Object json, Checkpoint checkpoint) {
+    return internalSend(h -> req.sendJson(json).onComplete(h), checkpoint::flag);
   }
 
   /**
@@ -119,24 +116,22 @@ public class TestRequest {
    * when request is completed and no assertion fails
    *
    * @param json
-   * @param testContext
    * @param onEnd
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
-  public Future<HttpResponse<Buffer>> sendJson(Object json, VertxTestContext testContext, VertxTestContext.ExecutionBlock onEnd) {
-    return internalSend(testContext, h -> req.sendJson(json).onComplete(h), onEnd);
+  public Future<HttpResponse<Buffer>> sendJson(Object json, Runnable onEnd) {
+    return internalSend(h -> req.sendJson(json).onComplete(h), onEnd);
   }
 
   /**
    * Send a {@link Buffer} and flag the provided checkpoint with {@link Checkpoint#flag()} when request is completed and no assertion fails
    *
    * @param buf
-   * @param testContext
    * @param checkpoint
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
-  public Future<HttpResponse<Buffer>> sendBuffer(Buffer buf, VertxTestContext testContext, Checkpoint checkpoint) {
-    return internalSend(testContext, h -> req.sendBuffer(buf).onComplete(h), checkpoint::flag);
+  public Future<HttpResponse<Buffer>> sendBuffer(Buffer buf, Checkpoint checkpoint) {
+    return internalSend(h -> req.sendBuffer(buf).onComplete(h), checkpoint::flag);
   }
 
   /**
@@ -144,24 +139,22 @@ public class TestRequest {
    * when request is completed and no assertion fails
    *
    * @param buf
-   * @param testContext
    * @param onEnd
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
-  public Future<HttpResponse<Buffer>> sendBuffer(Buffer buf, VertxTestContext testContext, VertxTestContext.ExecutionBlock onEnd) {
-    return internalSend(testContext, h -> req.sendBuffer(buf).onComplete(h), onEnd);
+  public Future<HttpResponse<Buffer>> sendBuffer(Buffer buf, Runnable onEnd) {
+    return internalSend(h -> req.sendBuffer(buf).onComplete(h), onEnd);
   }
 
   /**
    * Send an URL Encoded form and flag the provided checkpoint with {@link Checkpoint#flag()} when request is completed and no assertion fails
    *
    * @param form
-   * @param testContext
    * @param checkpoint
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
-  public Future<HttpResponse<Buffer>> sendURLEncodedForm(MultiMap form, VertxTestContext testContext, Checkpoint checkpoint) {
-    return internalSend(testContext, h -> req.sendForm(form).onComplete(h), checkpoint::flag);
+  public Future<HttpResponse<Buffer>> sendURLEncodedForm(MultiMap form, Checkpoint checkpoint) {
+    return internalSend(h -> req.sendForm(form).onComplete(h), checkpoint::flag);
   }
 
   /**
@@ -169,24 +162,22 @@ public class TestRequest {
    * when request is completed and no assertion fails
    *
    * @param form
-   * @param testContext
    * @param onEnd
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
-  public Future<HttpResponse<Buffer>> sendURLEncodedForm(MultiMap form, VertxTestContext testContext, VertxTestContext.ExecutionBlock onEnd) {
-    return internalSend(testContext, h -> req.sendForm(form).onComplete(h), onEnd);
+  public Future<HttpResponse<Buffer>> sendURLEncodedForm(MultiMap form, Runnable onEnd) {
+    return internalSend(h -> req.sendForm(form).onComplete(h), onEnd);
   }
 
   /**
    * Send a multipart form and flag the provided checkpoint with {@link Checkpoint#flag()} when request is completed and no assertion fails
    *
    * @param form
-   * @param testContext
    * @param checkpoint
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
-  public Future<HttpResponse<Buffer>> sendMultipartForm(MultipartForm form, VertxTestContext testContext, Checkpoint checkpoint) {
-    return internalSend(testContext, h -> req.sendMultipartForm(form).onComplete(h), checkpoint::flag);
+  public Future<HttpResponse<Buffer>> sendMultipartForm(MultipartForm form, Checkpoint checkpoint) {
+    return internalSend(h -> req.sendMultipartForm(form).onComplete(h), checkpoint::flag);
   }
 
   /**
@@ -194,39 +185,36 @@ public class TestRequest {
    * when request is completed and no assertion fails
    *
    * @param form
-   * @param testContext
    * @param onEnd
    * @return a future that will be completed when the response is ready and no response assertion fails
    */
-  public Future<HttpResponse<Buffer>> sendMultipartForm(MultipartForm form, VertxTestContext testContext, VertxTestContext.ExecutionBlock onEnd) {
-    return internalSend(testContext, h -> req.sendMultipartForm(form).onComplete(h), onEnd);
+  public Future<HttpResponse<Buffer>> sendMultipartForm(MultipartForm form, Runnable onEnd) {
+    return internalSend(h -> req.sendMultipartForm(form).onComplete(h), onEnd);
   }
 
-  private Handler<AsyncResult<HttpResponse<Buffer>>> generateHandleResponse(VertxTestContext testContext, VertxTestContext.ExecutionBlock onEnd, Promise<HttpResponse<Buffer>> fut, StackTraceElement[] stackTrace) {
+  private Handler<AsyncResult<HttpResponse<Buffer>>> generateHandleResponse(Runnable onEnd, Promise<HttpResponse<Buffer>> fut, StackTraceElement[] stackTrace) {
     return ar -> {
       if (ar.failed()) {
-        testContext.failNow(ar.cause());
+        fail(ar.cause());
       } else {
-        testContext.verify(() -> {
-          try {
-            this.responseAsserts.forEach(c -> c.accept(ar.result()));
-          } catch (AssertionError e) {
-            AssertionError newE = new AssertionError("Assertion error in response: " + e.getMessage(), e);
-            newE.setStackTrace(stackTrace);
-            throw newE;
-          }
-          onEnd.apply();
-        });
+        try {
+          this.responseAsserts.forEach(c -> c.accept(ar.result()));
+        } catch (AssertionError e) {
+          AssertionError newE = new AssertionError("Assertion error in response: " + e.getMessage(), e);
+          newE.setStackTrace(stackTrace);
+          throw newE;
+        }
+        onEnd.run();
         fut.complete(ar.result());
       }
     };
   }
 
-  private Future<HttpResponse<Buffer>> internalSend(VertxTestContext testContext, Consumer<Handler<AsyncResult<HttpResponse<Buffer>>>> reqSendFunction, VertxTestContext.ExecutionBlock onEnd) {
+  private Future<HttpResponse<Buffer>> internalSend(Consumer<Handler<AsyncResult<HttpResponse<Buffer>>>> reqSendFunction, Runnable onEnd) {
     Promise<HttpResponse<Buffer>> promise = Promise.promise();
     this.requestTranformations.forEach(c -> c.accept(req));
     StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-    reqSendFunction.accept(generateHandleResponse(testContext, onEnd, promise, Arrays.copyOfRange(
+    reqSendFunction.accept(generateHandleResponse(onEnd, promise, Arrays.copyOfRange(
       stackTrace,
       3,
       stackTrace.length

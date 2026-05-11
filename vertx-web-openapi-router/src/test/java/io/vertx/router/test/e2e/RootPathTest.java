@@ -14,6 +14,7 @@ package io.vertx.router.test.e2e;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.junit5.Checkpoint;
@@ -22,6 +23,7 @@ import io.vertx.junit5.VertxTestContext;
 import io.vertx.openapi.validation.ValidatedRequest;
 import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
+import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -34,7 +36,7 @@ class RootPathTest extends RouterBuilderTestBase {
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.MINUTES)
-  void testRootPath(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testRootPath() {
     Path pathDereferencedContract = ResourceHelper.TEST_RESOURCE_PATH.resolve("e2e").resolve("root.json");
     createServer(pathDereferencedContract, rb -> {
       rb.getRoute("createPets")
@@ -46,12 +48,10 @@ class RootPathTest extends RouterBuilderTestBase {
       return Future.succeededFuture(rb);
     }).compose(v -> {
         JsonObject body = new JsonObject().put("id", 1).put("name", "FooBar");
-        return createRequest(POST, "/v1/").sendJsonObject(body)
-          .onSuccess(response -> testContext.verify(() -> {
-            assertThat(response.statusCode()).isEqualTo(HttpResponseStatus.CREATED.code());
-            checkpoint.flag();
-          }));
+        return createRequest(POST, "/v1/")
+          .sendJsonObject(body)
+          .expecting(HttpResponseExpectation.SC_CREATED);
       })
-      .onFailure(testContext::failNow);
+      .await();
   }
 }

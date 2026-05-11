@@ -37,7 +37,7 @@ class RouterBuilderSecurityOptionalCallbackawareTest extends RouterBuilderTestBa
 
   @Test
   @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
-  void testBuilderWithAuthn(VertxTestContext testContext, Checkpoint checkpoint) {
+  void testBuilderWithAuthn() {
 
     AuthenticationProvider authProvider = cred -> Future.succeededFuture(User.fromName(cred.toString()));
 
@@ -68,7 +68,6 @@ class RouterBuilderSecurityOptionalCallbackawareTest extends RouterBuilderTestBa
       }))
       // this test may seem useless but it proves that the chain auth properly sets up a chain when the a handler
       // can perform redirects (callback aware) and doesn't throw an exception at setup time.
-      .onSuccess(v -> checkpoint.flag())
-      .onFailure(testContext::failNow);
+      .await();
   }
 }

@@ -1,10 +1,10 @@
 package io.vertx.ext.web.client.tests;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,9 +18,9 @@ public class HttpContextTest extends WebClientTestBase {
 
   @Override
   @BeforeEach
-  public void setUp(io.vertx.core.Vertx vertx, VertxTestContext testContext) {
-    super.setUp(vertx, testContext);
-    webClientInternal = (WebClientInternal) webClient;
+  public void setUp(Vertx vertx) {
+    super.setUp(vertx);
+    webClientInternal = webClient;
   }
 
   @Test

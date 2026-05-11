@@ -19,6 +19,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelPromise;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
@@ -46,7 +47,6 @@ import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -77,8 +77,8 @@ public abstract class EventbusBridgeTest extends WebTestBase {
 
   @Override
   @BeforeEach
-  public void setUp(io.vertx.core.Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     sockJS = SockJSHandler.create(vertx);
   }
 

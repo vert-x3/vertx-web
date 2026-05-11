@@ -97,17 +97,17 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.POST, "/testE/123")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("id", 123).put("value", 1)))
-      .sendJson(new JsonObject().put("value", 1), testContext, latch::countDown);
+      .sendJson(new JsonObject().put("value", 1), latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testF/123")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonArray().add(1 + 123).add(2 + 123).add(3 + 123)))
-      .sendJson(new JsonArray().add(1).add(2).add(3), testContext, latch::countDown);
+      .sendJson(new JsonArray().add(1).add(2).add(3), latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testF/123")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("id", 123).put("value", 1)))
-      .sendJson(new JsonObject().put("value", 1), testContext, latch::countDown);
+      .sendJson(new JsonObject().put("value", 1), latch::countDown);
   }
 
   @Test
@@ -142,7 +142,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.POST, "/test")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(result))
-      .sendJson(data.toJson(), testContext, checkpoint);
+      .sendJson(data.toJson(), checkpoint);
   }
 
   @Test
@@ -163,7 +163,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.GET, "/test")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(emptyResponse())
-      .send(testContext, checkpoint);
+      .send(checkpoint);
   }
 
   @Test
@@ -188,7 +188,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.GET, "/test")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("result", "Hello slinkydeveloper!")))
-      .send(testContext, checkpoint);
+      .send(checkpoint);
   }
 
   @Test
@@ -211,7 +211,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.GET, "/test")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("result", "Hello slinkydeveloper!")))
-      .send(testContext, checkpoint);
+      .send(checkpoint);
   }
 
   @Test
@@ -258,11 +258,11 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
 
     testRequest(client, HttpMethod.POST, "/testFailure")
       .expect(statusCode(501), statusMessage("error for Francesco"))
-      .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, latch::countDown);
+      .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), latch::countDown);
 
     testRequest(client, HttpMethod.POST, "/testException")
       .expect(statusCode(500), statusMessage("Unknown failure: (RECIPIENT_FAILURE,-1)"))
-      .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), testContext, latch::countDown);
+      .sendJson(new JsonObject().put("hello", "Ciao").put("name", "Francesco"), latch::countDown);
   }
 
 
@@ -287,7 +287,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.GET, "/test")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(bodyResponse(Buffer.buffer(new byte[]{(byte) 0xb0}), "application/octet-stream"))
-      .send(testContext, checkpoint);
+      .send(checkpoint);
   }
 
   @Test
@@ -313,6 +313,6 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     testRequest(client, HttpMethod.GET, "/test")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(jsonBodyResponse(new JsonObject().put("result", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==")))
-      .send(testContext, checkpoint);
+      .send(checkpoint);
   }
 }

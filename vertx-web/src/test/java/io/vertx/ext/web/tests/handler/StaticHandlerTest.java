@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Assumptions;
 
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -85,8 +84,8 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Override
   @BeforeEach
-  public void setUp(io.vertx.core.Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     webRootTarget = Files.createTempDirectory(webRootSrc.getParent(), "webroot");
     copyWebRootFiles();
     stat = StaticHandler.create(webRootTarget.getFileName().toString());
@@ -115,8 +114,8 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Override
   @AfterEach
-  public void tearDown(VertxTestContext testContext) throws Exception {
-    super.tearDown(testContext);
+  public void tearDown() throws Exception {
+    super.tearDown();
     deleteWebRootFiles();
   }
 

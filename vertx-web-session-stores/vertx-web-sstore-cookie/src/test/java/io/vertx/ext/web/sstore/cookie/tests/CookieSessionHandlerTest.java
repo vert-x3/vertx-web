@@ -31,7 +31,6 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SimpleAuthenticationHandler;
 import io.vertx.ext.web.sstore.cookie.CookieSessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
-import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -47,8 +46,8 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
 
   @BeforeEach
   @Override
-  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     store = CookieSessionStore.create(vertx, "KeyboardCat!");
   }
 

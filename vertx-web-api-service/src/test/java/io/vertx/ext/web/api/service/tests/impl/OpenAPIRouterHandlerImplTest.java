@@ -16,6 +16,7 @@ import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.service.OpenAPIRouterHandler;
@@ -30,6 +31,7 @@ import io.vertx.openapi.validation.ResponseValidator;
 import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
 import io.vertx.serviceproxy.ServiceBinder;
+import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +44,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.google.common.truth.Truth.assertThat;
+import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
 import static io.vertx.ext.web.api.service.ServiceResponse.completedWithJson;
 
@@ -62,14 +65,10 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
     if (consumer != null) consumer.unregister();
   }
 
-  private Future<Void> createServer(VertxTestContext testContext) {
+  private Future<Void> createServer() {
     return createServer(rb -> {
       rb.rootHandler(rtx -> {
-        rtx.addEndHandler(v -> {
-          if (v.failed()) {
-            testContext.failNow(v.cause());
-          }
-        });
+        rtx.addEndHandler(TestUtils.onSuccess(v -> {}));
         rtx.next();
       });
       return rb;
@@ -112,12 +111,13 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
       }
     });
 
-    createServer(testContext).compose(v -> createRequest(HttpMethod.GET, "/v1/pets").send())
+    createServer()
+      .compose(v -> createRequest(HttpMethod.GET, "/v1/pets").send())
       .compose(v -> {
         JsonObject newPet = PetStoreService.buildPet(1, "foo");
         return createRequest(HttpMethod.POST, "/v1/pets").sendJsonObject(newPet);
       }).compose(v -> createRequest(HttpMethod.GET, "/v1/pets/123").send())
-      .onFailure(testContext::failNow);
+      .await();
   }
 
   @Test
@@ -132,31 +132,31 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
     registerService(new DummyPetStoreServiceImpl() {
       @Override
       public Future<ServiceResponse> listPets(Integer limit, ServiceRequest context) {
-        testContext.verify(() -> assertThat(limit).isEqualTo(expectedLimit));
+        assertThat(limit).isEqualTo(expectedLimit);
         cp.countDown();
         return super.listPets(limit, context);
       }
 
       @Override
       public Future<ServiceResponse> createPets(JsonObject body, ServiceRequest context) {
-        testContext.verify(() -> assertThat(body).isEqualTo(expectedPet));
+        assertThat(body).isEqualTo(expectedPet);
         cp.countDown();
         return super.createPets(body, context);
       }
 
       @Override
       public Future<ServiceResponse> getPetById(String petId, ServiceRequest context) {
-        testContext.verify(() -> assertThat(petId).isEqualTo(expectedPetId));
+        assertThat(petId).isEqualTo(expectedPetId);
         cp.countDown();
         return super.getPetById(petId, context);
       }
     });
 
-    createServer(testContext).compose(v -> createRequest(HttpMethod.GET, "/v1/pets").addQueryParam("limit",
+    createServer().compose(v -> createRequest(HttpMethod.GET, "/v1/pets").addQueryParam("limit",
         "" + expectedLimit).send())
       .compose(v -> createRequest(HttpMethod.POST, "/v1/pets").sendJsonObject(expectedPet))
       .compose(v -> createRequest(HttpMethod.GET, "/v1/pets/" + expectedPetId).send())
-      .onFailure(testContext::failNow);
+      .await();
   }
 
   @Test
@@ -178,7 +178,9 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
     });
 
     Supplier<Future<Void>> requestAndVerifyList =
-      () -> createRequest(HttpMethod.GET, "/v1/pets").send().onSuccess(resp -> testContext.verify(() -> {
+      () -> createRequest(HttpMethod.GET, "/v1/pets")
+        .send()
+        .onComplete(TestUtils.onSuccess2(resp ->  {
         assertThat(resp.statusCode()).isEqualTo(200);
         assertThat(resp.getHeader("X-Custom")).isEqualTo("1");
         assertThat(resp.bodyAsJsonArray()).isEqualTo(petsToReturn);
@@ -187,16 +189,18 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
 
     Supplier<Future<Void>> requestAndVerifyCreate = () -> {
       JsonObject expectedPet = PetStoreService.buildPet(1337, "Foo");
-      return createRequest(HttpMethod.POST, "/v1/pets").sendJsonObject(expectedPet).onSuccess(resp -> testContext.verify(() -> {
-        assertThat(resp.statusCode()).isEqualTo(201);
-        assertThat(resp.getHeader("X-Custom")).isEqualTo("2");
-        cp.countDown();
-      })).mapEmpty();
+      return createRequest(HttpMethod.POST, "/v1/pets")
+        .sendJsonObject(expectedPet)
+        .expecting(HttpResponseExpectation.SC_CREATED)
+        .andThen(TestUtils.onSuccess2(resp -> {
+          assertThat(resp.getHeader("X-Custom")).isEqualTo("2");
+          cp.countDown();
+        })).mapEmpty();
     };
 
-    createServer(testContext).compose(v -> requestAndVerifyList.get())
+    createServer().compose(v -> requestAndVerifyList.get())
       .compose(v -> requestAndVerifyCreate.get())
-      .onFailure(testContext::failNow);
+      .await();
   }
 
   @Test
@@ -212,25 +216,21 @@ class OpenAPIRouterHandlerImplTest extends RouterBuilderTestBase {
 
     CountDownLatch cp = checkpoint.asLatch(2);
     Supplier<Future<Void>> requestAndVerifyList =
-      () -> createRequest(HttpMethod.GET, "/v1/pets/1").send().onSuccess(resp -> testContext.verify(() -> {
-        assertThat(resp.statusCode()).isEqualTo(500);
-        cp.countDown();
-      })).mapEmpty();
+      () -> createRequest(HttpMethod.GET, "/v1/pets/1").send()
+        .expecting(HttpResponseExpectation.SC_INTERNAL_SERVER_ERROR)
+        .onComplete(TestUtils.onSuccess2(v -> cp.countDown()))
+        .mapEmpty();
 
     createServer(routerBuilder -> {
       return routerBuilder.rootHandler(rtx -> {
         rtx.addEndHandler(v -> {
-          if (rtx.failed()) {
-            testContext.verify(() -> {
-              String expectedMsg = "Content-Type header is required, when response contains a body.";
-              assertThat(rtx.failure()).hasMessageThat().isEqualTo(expectedMsg);
-              assertThat(rtx.failure()).isInstanceOf(IllegalArgumentException.class);
-              cp.countDown();
-            });
-          }
+          String expectedMsg = "Content-Type header is required, when response contains a body.";
+          assertThat(rtx.failure()).hasMessageThat().isEqualTo(expectedMsg);
+          assertThat(rtx.failure()).isInstanceOf(IllegalArgumentException.class);
+          cp.countDown();
         });
         rtx.next();
       });
-    }).compose(v -> requestAndVerifyList.get()).onFailure(testContext::failNow);
+    }).compose(v -> requestAndVerifyList.get()).await();
   }
 }

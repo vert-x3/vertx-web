@@ -15,7 +15,6 @@ import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.codec.BodyCodec;
 
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxTestContext;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -169,13 +168,12 @@ public class InterceptorTest extends WebClientTestBase {
   }
 
   @Test
-  public void testPhasesThreadFromVertxThread(VertxTestContext testContext, Checkpoint checkpoint) throws Exception {
+  public void testPhasesThreadFromVertxThread(Checkpoint checkpoint) throws Exception {
     server.requestHandler(req -> req.response().end());
     startServer();
     vertx.getOrCreateContext().runOnContext(v -> {
       testPhasesThread((t1, t2) -> Arrays.asList(t2, t2, t2, t2, t2))
-        .onSuccess(v2 -> checkpoint.flag())
-        .onFailure(testContext::failNow);
+        .onComplete(checkpoint);
     });
   }
 

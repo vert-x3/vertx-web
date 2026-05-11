@@ -33,7 +33,7 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.tests.WebTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
 import static org.junit.jupiter.api.Assertions.*;
-import io.vertx.junit5.VertxTestContext;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -61,8 +61,8 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
   @Override
   @AfterEach
-  public void tearDown(VertxTestContext testContext) throws Exception {
-    super.tearDown(testContext);
+  public void tearDown() throws Exception {
+    super.tearDown();
   }
 
   private String redirectURL = null;

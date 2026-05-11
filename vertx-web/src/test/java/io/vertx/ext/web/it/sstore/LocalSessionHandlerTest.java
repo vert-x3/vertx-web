@@ -21,7 +21,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.tests.handler.SessionHandlerTestBase;
-import io.vertx.junit5.VertxTestContext;
 import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,8 +34,8 @@ public class LocalSessionHandlerTest extends SessionHandlerTestBase {
 
   @BeforeEach
   @Override
-  public void setUp(Vertx vertx, VertxTestContext testContext) throws Exception {
-    super.setUp(vertx, testContext);
+  public void setUp(Vertx vertx) throws Exception {
+    super.setUp(vertx);
     store = LocalSessionStore.create(vertx);
   }
 
