@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@graphiql/toolkit": "0.11.3",
-    "graphiql": "^5.2.2",
-    "graphql": "^16.11.0",
-    "graphql-ws": "^6.0.6",
-    "lodash": "4.17.23",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "@graphiql/toolkit": "0.12.0",
+    "graphiql": "^5.2.3",
+    "graphql": "^16.14.0",
+    "graphql-ws": "^6.0.8",
+    "lodash": "4.18.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.2",
