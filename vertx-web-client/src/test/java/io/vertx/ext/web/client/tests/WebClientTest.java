@@ -61,11 +61,9 @@ public class WebClientTest extends WebClientTestBase {
   abstract class SendTestBase {
 
     boolean shutdownServer;
-    WebClient webClient;
     HttpServer server;
 
     public SendTestBase() {
-      this.webClient = null;
     }
 
     void init() throws Exception {
@@ -137,15 +135,13 @@ public class WebClientTest extends WebClientTestBase {
 
     @Test
     void run() throws Exception {
-      webClient = WebClientTest.this.webClient;
       server = WebClientTest.this.server;
       init();
       server.requestHandler(this::handleRequest);
       bind();
       HttpResponse<?> response;
       try {
-        WebClient client = this.webClient;
-        response = send(client).await();
+        response = send(webClient).await();
       } catch (Throwable err) {
         assertResponseFailure(err);
         return;

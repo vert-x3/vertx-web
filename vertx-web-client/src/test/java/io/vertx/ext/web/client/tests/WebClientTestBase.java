@@ -26,7 +26,6 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.junit5.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
@@ -64,7 +63,7 @@ public class WebClientTestBase {
   protected Vertx vertx;
   protected HttpServer server;
   protected HttpClient client;
-  protected WebClientInternal webClient;
+  protected WebClient webClient;
   protected SocketAddress testAddress;
 
   @BeforeEach
@@ -72,7 +71,7 @@ public class WebClientTestBase {
     this.vertx = vertx;
     server = vertx.createHttpServer(createBaseServerOptions());
     client = vertx.createHttpClient(createBaseClientOptions());
-    webClient = (WebClientInternal) WebClient.wrap(client);
+    webClient = WebClient.wrap(client);
     testAddress = SocketAddress.inetSocketAddress(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST);
   }
 

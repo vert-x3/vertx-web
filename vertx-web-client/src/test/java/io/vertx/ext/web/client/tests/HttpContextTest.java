@@ -20,7 +20,7 @@ public class HttpContextTest extends WebClientTestBase {
   @BeforeEach
   public void setUp(Vertx vertx) {
     super.setUp(vertx);
-    webClientInternal = webClient;
+    webClientInternal = (WebClientInternal)webClient;
   }
 
   @Test
