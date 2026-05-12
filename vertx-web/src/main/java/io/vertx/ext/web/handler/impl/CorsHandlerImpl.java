@@ -207,6 +207,10 @@ public class CorsHandlerImpl implements CorsHandler {
       if (request.method() == HttpMethod.OPTIONS && accessControlRequestMethod != null) {
         // Pre-flight request
         addCredentialsAndOriginHeader(response, origin);
+        // https://fetch.spec.whatwg.org/#cors-protocol-and-http-caches
+        if (!(starOrigin() && !allowCredentials) && !uniqueOrigin()) {
+          Utils.appendToMapIfAbsent(response.headers(), VARY, ",", ORIGIN);
+        }
         if (allowedMethodsString != null) {
           response.putHeader(ACCESS_CONTROL_ALLOW_METHODS, allowedMethodsString);
         }
