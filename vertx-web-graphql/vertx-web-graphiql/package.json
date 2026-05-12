@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.2",
-    "vite": "^7.2.7",
+    "vite": "^7.3.3",
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "scripts": {
