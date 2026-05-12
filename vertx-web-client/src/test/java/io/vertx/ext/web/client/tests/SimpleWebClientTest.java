@@ -67,7 +67,7 @@ public class SimpleWebClientTest extends WebClientTestBase {
     client.close().await();
     FakeAddressResolver<?> resolver = new FakeAddressResolver<>();
     client = vertx.httpClientBuilder().with(createBaseClientOptions()).withAddressResolver(resolver).build();
-    webClient = (WebClientInternal) WebClient.wrap(client);
+    webClient = WebClient.wrap(client);
 
     // This test verifies the address resolver is actually used by the WebClient
     Assertions.assertThatThrownBy(() ->
