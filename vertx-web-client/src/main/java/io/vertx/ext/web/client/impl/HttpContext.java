@@ -485,7 +485,11 @@ public class HttpContext<T> {
     } else {
       requestPromise.future().onSuccess(request -> {
         clientRequest = null;
-        request.end();
+        try {
+          request.end();
+        } catch (Exception e) {
+          fail(e);
+        }
       });
     }
     client.request(requestOptions)

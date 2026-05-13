@@ -1,16 +1,19 @@
 package io.vertx.ext.web.client;
 
-import io.vertx.core.Handler;
+import io.vertx.core.Future;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpTestBase;
+import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
+import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class HttpContextTest extends HttpTestBase {
@@ -69,4 +72,27 @@ public class HttpContextTest extends HttpTestBase {
     }));
     await();
   }
+
+  @Test
+  public void testSynchronousExceptionInDoSendRequestFailsTheContext() throws Exception {
+    server.requestHandler(req -> req.response().end());
+    startServer();
+
+    AtomicReference<Throwable> capturedFailure = new AtomicReference<>();
+
+    client.addInterceptor(ctx -> {
+      if (Objects.requireNonNull(ctx.phase()) == ClientPhase.FAILURE) {
+        capturedFailure.set(ctx.failure());
+        ctx.next();
+      } else {
+        ctx.next();
+      }
+    });
+
+    RuntimeException err = Assert.assertThrows(RuntimeException.class, () -> Future.await(client.get("/some illegal path").send()));
+    assertNotNull("The exception should have been captured in the FAILURE phase.", capturedFailure.get());
+    assertSame(err, capturedFailure.get());
+
+  }
+
 }
