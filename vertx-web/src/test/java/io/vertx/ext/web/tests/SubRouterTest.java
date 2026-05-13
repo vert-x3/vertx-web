@@ -517,6 +517,17 @@ public class SubRouterTest extends WebTestBase {
   }
 
   @Test
+  public void testEscapedColonInMountPathDoesNotDuplicateChildVariable() throws Exception {
+    Router subRouter = Router.router(vertx);
+    subRouter.get("/:id").handler(ctx -> {
+      assertEquals("123", ctx.pathParam("id"));
+      ctx.response().end(ctx.pathParam("id"));
+    });
+    router.route("/v\\:id*").subRouter(subRouter);
+    testRequest(HttpMethod.GET, "/v:id/123", 200, "OK", "123");
+  }
+
+  @Test
   public void testSubRouterDuplicateVariableLaterStage() {
     Router subRouter = Router.router(vertx);
     router.route("/v/:id*").subRouter(subRouter);

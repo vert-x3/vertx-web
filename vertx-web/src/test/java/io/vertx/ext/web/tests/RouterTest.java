@@ -808,6 +808,28 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testEscapedColonInPathWithParam() throws Exception {
+    router.route("/foo/\\:literal/:id").handler(rc -> {
+      assertEquals("123", rc.pathParam("id"));
+      rc.response().end(rc.pathParam("id"));
+    });
+    testRequest(HttpMethod.GET, "/foo/:literal/123", 200, "OK", "123");
+    testRequest(HttpMethod.GET, "/foo/not-literal/123", 404, "Not Found");
+  }
+
+  @Test
+  public void testEscapedColonPathClearsPreviousParamPattern() throws Exception {
+    Route route = router.route("/foo/:id").path("/foo/\\:id");
+    assertFalse(route.isRegexPath());
+    route.handler(rc -> {
+      assertNull(rc.pathParam("id"));
+      rc.response().end("literal");
+    });
+    testRequest(HttpMethod.GET, "/foo/:id", 200, "OK", "literal");
+    testRequest(HttpMethod.GET, "/foo/value", 404, "Not Found");
+  }
+
+  @Test
   public void testPattern1WithMethod() throws Exception {
     router.route(HttpMethod.GET, "/:abc").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/tim", "tim");
