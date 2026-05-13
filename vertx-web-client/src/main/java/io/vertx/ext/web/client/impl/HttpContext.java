@@ -531,7 +531,11 @@ public class HttpContext<T> {
         fail(ar.cause());
       }
     });
-    doSendRequest(clientRequest);
+    try {
+      doSendRequest(clientRequest);
+    } catch (Exception e) {
+      fail(e);
+    }
   }
 
   private void doSendRequest(HttpClientRequest request) {
