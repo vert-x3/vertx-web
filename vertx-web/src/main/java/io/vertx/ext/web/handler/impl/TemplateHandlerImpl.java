@@ -16,7 +16,6 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.impl.Utils;
