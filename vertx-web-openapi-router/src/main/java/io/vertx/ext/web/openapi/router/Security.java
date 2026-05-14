@@ -17,7 +17,6 @@ package io.vertx.ext.web.openapi.router;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.*;
 import io.vertx.openapi.contract.SecurityScheme;
 
