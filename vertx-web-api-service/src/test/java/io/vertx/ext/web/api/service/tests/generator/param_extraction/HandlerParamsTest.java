@@ -13,7 +13,6 @@ import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
 import io.vertx.ext.web.validation.impl.RequestParameterImpl;
 import io.vertx.ext.web.validation.impl.RequestParametersImpl;
-import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
 import io.vertx.serviceproxy.ServiceBinder;
 import org.junit.jupiter.api.AfterEach;
