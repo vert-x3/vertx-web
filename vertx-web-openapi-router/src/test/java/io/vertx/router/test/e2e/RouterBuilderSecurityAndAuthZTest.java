@@ -21,14 +21,12 @@ import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.APIKeyHandler;
 import io.vertx.ext.web.handler.AuthorizationHandler;
-import io.vertx.junit5.Checkpoint;
 import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 
-import static com.google.common.truth.Truth.assertThat;
 import static io.vertx.core.http.HttpMethod.GET;
 
 class RouterBuilderSecurityAndAuthZTest extends RouterBuilderTestBase {
