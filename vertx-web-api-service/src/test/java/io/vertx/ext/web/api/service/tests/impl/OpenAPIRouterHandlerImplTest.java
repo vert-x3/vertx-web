@@ -43,7 +43,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.google.common.truth.Truth.assertThat;
-import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
 import static io.vertx.ext.web.api.service.ServiceResponse.completedWithJson;
 

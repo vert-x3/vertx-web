@@ -27,7 +27,6 @@ import io.vertx.core.streams.Pipe;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientConfig;
-import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.spi.CacheStore;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;

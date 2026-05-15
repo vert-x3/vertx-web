@@ -22,7 +22,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.client.CachingWebClientConfig;
-import io.vertx.ext.web.client.CachingWebClientOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.impl.HttpContext;
