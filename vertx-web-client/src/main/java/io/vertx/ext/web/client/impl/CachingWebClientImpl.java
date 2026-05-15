@@ -16,7 +16,6 @@
 package io.vertx.ext.web.client.impl;
 
 import io.vertx.ext.web.client.CachingWebClientConfig;
-import io.vertx.ext.web.client.CachingWebClientOptions;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.impl.cache.CacheInterceptor;
 import io.vertx.ext.web.client.spi.CacheStore;

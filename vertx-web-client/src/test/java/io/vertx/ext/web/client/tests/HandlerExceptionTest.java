@@ -4,12 +4,10 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.concurrent.TimeUnit;
 
