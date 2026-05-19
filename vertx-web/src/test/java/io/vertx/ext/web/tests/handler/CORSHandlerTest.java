@@ -24,12 +24,12 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.tests.WebTestBase;
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.function.Consumer;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -290,6 +290,39 @@ public class CORSHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testPreflightOmitsVaryHeaderForStarOrigin() throws Exception {
+    router.route().handler(CorsHandler.create());
+    router.route().handler(context -> context.response().end());
+    HttpResponse<Buffer> resp = testRequest(webClient.request(HttpMethod.OPTIONS, "/")
+      .putHeader("origin", "http://example.com")
+      .putHeader("access-control-request-method", "GET")
+      .send(), 204, "No Content");
+    assertNull(resp.getHeader("Vary"));
+  }
+
+  @Test
+  public void testPreflightOmitsVaryHeaderForUniqueStaticOrigin() throws Exception {
+    router.route().handler(CorsHandler.create().addOrigin("http://example.com"));
+    router.route().handler(context -> context.response().end());
+    HttpResponse<Buffer> resp = testRequest(webClient.request(HttpMethod.OPTIONS, "/")
+      .putHeader("origin", "http://example.com")
+      .putHeader("access-control-request-method", "GET")
+      .send(), 204, "No Content");
+    assertNull(resp.getHeader("Vary"));
+  }
+
+  @Test
+  public void testPreflightIncludesVaryHeaderForSpecificOrigins() throws Exception {
+    router.route().handler(CorsHandler.create().addOriginWithRegex("http://example.com"));
+    router.route().handler(context -> context.response().end());
+    HttpResponse<Buffer> resp = testRequest(webClient.request(HttpMethod.OPTIONS, "/")
+      .putHeader("origin", "http://example.com")
+      .putHeader("access-control-request-method", "GET")
+      .send(), 204, "No Content");
+    assertEquals("origin", resp.getHeader("Vary"));
+  }
+
+  @Test
   public void testIncludesVaryHeaderForSpecificOrigins() throws Exception {
     router.route().handler(CorsHandler.create().addOriginWithRegex("http://example.com"));
     router.route().handler(context -> context.response().end());
@@ -319,7 +352,7 @@ public class CORSHandlerTest extends WebTestBase {
       .putHeader("access-control-request-headers", "x-header-1, x-header-2")
       .send(), 204, "No Content");
     assertEquals("header1,header2", resp.getHeader("Access-Control-Allow-Headers"));
-    assertNull(resp.getHeader("Vary"));
+    assertEquals("origin", resp.getHeader("Vary"));
   }
 
   @Test
@@ -332,7 +365,7 @@ public class CORSHandlerTest extends WebTestBase {
       .putHeader("access-control-request-headers", "x-header-1, x-header-2")
       .send(), 204, "No Content");
     assertEquals("x-header-1, x-header-2", resp.getHeader("Access-Control-Allow-Headers"));
-    assertEquals("access-control-request-headers", resp.getHeader("Vary"));
+    assertEquals("origin,access-control-request-headers", resp.getHeader("Vary"));
   }
 
   @Test
