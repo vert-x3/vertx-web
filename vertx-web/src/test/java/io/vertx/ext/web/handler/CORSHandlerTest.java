@@ -268,6 +268,51 @@ public class CORSHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testPreflightOmitsVaryHeaderForStarOrigin() throws Exception {
+    router.route().handler(CorsHandler.create());
+    router.route().handler(context -> context.response().end());
+    testRequest(
+      HttpMethod.OPTIONS,
+      "/",
+      req -> req.headers()
+        .add("origin", "http://example.com")
+        .add("access-control-request-method", "GET"),
+      resp -> {
+        assertNull(resp.getHeader("Vary"));
+      }, 204, "No Content", null);
+  }
+
+  @Test
+  public void testPreflightOmitsVaryHeaderForUniqueStaticOrigin() throws Exception {
+    router.route().handler(CorsHandler.create().addOrigin("http://example.com"));
+    router.route().handler(context -> context.response().end());
+    testRequest(
+      HttpMethod.OPTIONS,
+      "/",
+      req -> req.headers()
+        .add("origin", "http://example.com")
+        .add("access-control-request-method", "GET"),
+      resp -> {
+        assertNull(resp.getHeader("Vary"));
+      }, 204, "No Content", null);
+  }
+
+  @Test
+  public void testPreflightIncludesVaryHeaderForSpecificOrigins() throws Exception {
+    router.route().handler(CorsHandler.create().addOriginWithRegex("http://example.com"));
+    router.route().handler(context -> context.response().end());
+    testRequest(
+      HttpMethod.OPTIONS,
+      "/",
+      req -> req.headers()
+        .add("origin", "http://example.com")
+        .add("access-control-request-method", "GET"),
+      resp -> {
+        assertEquals("origin", resp.getHeader("Vary"));
+      }, 204, "No Content", null);
+  }
+
+  @Test
   public void testIncludesVaryHeaderForSpecificOrigins() throws Exception {
     router.route().handler(CorsHandler.create("http://example.com"));
     router.route().handler(context -> context.response().end());
@@ -310,7 +355,7 @@ public class CORSHandlerTest extends WebTestBase {
         .add("access-control-request-headers", "x-header-1, x-header-2"),
       resp -> {
         assertEquals("header1,header2", resp.getHeader("Access-Control-Allow-Headers"));
-        assertNull(resp.getHeader("Vary"));
+        assertEquals("origin", resp.getHeader("Vary"));
       }, 204, "No Content", null);
   }
 
@@ -327,7 +372,7 @@ public class CORSHandlerTest extends WebTestBase {
         .add("access-control-request-headers", "x-header-1, x-header-2"),
       resp -> {
         assertEquals("x-header-1, x-header-2", resp.getHeader("Access-Control-Allow-Headers"));
-        assertEquals("access-control-request-headers", resp.getHeader("Vary"));
+        assertEquals("origin,access-control-request-headers", resp.getHeader("Vary"));
       }, 204, "No Content", null);
   }
 
