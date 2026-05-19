@@ -42,6 +42,39 @@ jobs:
       - run: sh stop-graphql-ws-tests-server.sh
         working-directory: vertx-web-graphql
         if: ${{ always() }}
+  GraphiQL-Tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22.19.0]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+      - name: Install JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.jdk }}
+          distribution: temurin
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: sh vertx-web-graphql/start-graphiql-tests-server.sh
+      - run: npm install
+        working-directory: vertx-web-graphql/tests/graphiql
+      - run: npm run test
+        working-directory: vertx-web-graphql/tests/graphiql
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: GraphiQLTestsServer.log
+          path: ~/GraphiQLTestsServer.log
+      - run: sh stop-graphiql-tests-server.sh
+        working-directory: vertx-web-graphql
+        if: ${{ always() }}
   SockJS-WriteHandler-Tests:
     runs-on: ubuntu-latest
     strategy:
