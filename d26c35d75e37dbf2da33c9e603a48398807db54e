@@ -1,0 +1,4 @@
+{"id":"ada46893-d9f3-4ce3-90f4-aad5716e6889","ts":"2026-05-19T13:59:06.820Z","path":"/home/tsegismo/Projects/vert-x3/vertx-web/reproducer-plan.md","version":"1.0.0","taskID":"4fc3ee74-5208-4493-9da5-c28577f0daed"}
+{"id":"7465070b-4677-44f1-90be-d0e42ed78c84","ts":"2026-05-19T14:01:55.063Z","path":"/home/tsegismo/Projects/vert-x3/vertx-web/vertx-web/src/test/java/io/vertx/ext/web/tests/templ/TemplateHandlerWindowsPathTest.java","version":"1.0.0","taskID":"4fc3ee74-5208-4493-9da5-c28577f0daed"}
+{"id":"4c9934cc-1f37-4946-96e6-1de78c28c42c","ts":"2026-05-19T14:02:01.140Z","path":"/home/tsegismo/Projects/vert-x3/vertx-web/vertx-web/src/test/resources/templates/safe.html","version":"1.0.0","taskID":"4fc3ee74-5208-4493-9da5-c28577f0daed"}
+{"id":"39f99582-fc5b-4a74-98da-b107dfe72520","ts":"2026-05-19T14:02:06.453Z","path":"/home/tsegismo/Projects/vert-x3/vertx-web/vertx-web/src/test/resources/outside.html","version":"1.0.0","taskID":"4fc3ee74-5208-4493-9da5-c28577f0daed"}
