@@ -9,6 +9,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
+  <name>vertx-web-validation</name>
   <artifactId>vertx-web-validation</artifactId>
 
   <dependencies>

@@ -10,6 +10,7 @@
     <version>5.1.0-SNAPSHOT</version>
   </parent>
 
+  <name>vertx-web-templ-pug</name>
   <artifactId>vertx-web-templ-pug</artifactId>
 
   <dependencies>

@@ -11,6 +11,7 @@
 
   <modelVersion>4.0.0</modelVersion>
 
+  <name>vertx-web-client</name>
   <artifactId>vertx-web-client</artifactId>
 
   <dependencies>

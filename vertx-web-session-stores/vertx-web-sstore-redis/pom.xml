@@ -9,6 +9,7 @@
     <version>5.1.0-SNAPSHOT</version>
   </parent>
 
+  <name>vertx-web-sstore-redis</name>
   <artifactId>vertx-web-sstore-redis</artifactId>
 
   <licenses>

@@ -9,6 +9,7 @@
     <version>5.1.0-SNAPSHOT</version>
   </parent>
 
+  <anem>vertx-web-templ-jte</anem>
   <artifactId>vertx-web-templ-jte</artifactId>
 
   <properties>

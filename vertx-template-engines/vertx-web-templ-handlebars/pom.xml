@@ -10,6 +10,7 @@
     <version>5.1.0-SNAPSHOT</version>
   </parent>
 
+  <name>vertx-web-templ-handlebars</name>
   <artifactId>vertx-web-templ-handlebars</artifactId>
 
   <dependencies>

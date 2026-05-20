@@ -9,6 +9,7 @@
     <version>5.1.0-SNAPSHOT</version>
   </parent>
 
+  <name>vertx-web-templ-rocker</name>
   <artifactId>vertx-web-templ-rocker</artifactId>
 
   <properties>

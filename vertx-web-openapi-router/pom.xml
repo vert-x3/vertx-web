@@ -25,6 +25,7 @@
     <version>5.1.0-SNAPSHOT</version>
   </parent>
 
+  <name>vertx-web-openapi-router</name>
   <artifactId>vertx-web-openapi-router</artifactId>
 
   <properties>

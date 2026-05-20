@@ -10,6 +10,7 @@
     <version>5.1.0-SNAPSHOT</version>
   </parent>
 
+  <name>vertx-web-session-stores</name>
   <artifactId>vertx-web-session-stores</artifactId>
   <packaging>pom</packaging>
 

@@ -10,6 +10,7 @@
     <version>5.1.0-SNAPSHOT</version>
   </parent>
 
+  <name>vertx-template-engines</name>
   <artifactId>vertx-template-engines</artifactId>
   <packaging>pom</packaging>
 

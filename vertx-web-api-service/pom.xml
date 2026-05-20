@@ -9,6 +9,7 @@
     <version>5.1.0-SNAPSHOT</version>
   </parent>
 
+  <name>vertx-web-api-service</name>
   <artifactId>vertx-web-api-service</artifactId>
 
   <properties>
