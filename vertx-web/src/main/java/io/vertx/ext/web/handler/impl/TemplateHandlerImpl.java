@@ -16,12 +16,12 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.internal.net.RFC3986;
 import io.vertx.ext.web.LanguageHeader;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.impl.Utils;
-import io.vertx.ext.web.common.template.TemplateEngine;
-import io.vertx.ext.web.RoutingContext;
 
 import java.util.Locale;
 
@@ -45,13 +45,16 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
   @Override
   public void handle(RoutingContext context) {
-    String file = Utils.pathOffset(context.normalizedPath(), context);
+    String uriDecodedPath = RFC3986.decodeURIComponent(context.normalizedPath(), false);
+    String path = RFC3986.removeDotSegments(uriDecodedPath.replace('\\', '/'));
+
+    String file = Utils.pathOffset(path, context);
     if (file.endsWith("/") && null != indexTemplate) {
       file += indexTemplate;
     }
     // files are always normalized (start with /)
     // however if there's no base strip / to avoid making the path absolute
-    if (templateDirectory == null || "".equals(templateDirectory)) {
+    if (templateDirectory == null || templateDirectory.isEmpty()) {
       // strip the leading slash from the filename
       file = file.substring(1);
     }
