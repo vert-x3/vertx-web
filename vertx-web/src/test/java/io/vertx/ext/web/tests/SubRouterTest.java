@@ -17,6 +17,7 @@
 package io.vertx.ext.web.tests;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -24,13 +25,17 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
-import static org.junit.jupiter.api.Assertions.*;
+import io.vertx.ext.web.common.template.TemplateEngine;
+import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.TemplateHandler;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -838,5 +843,74 @@ public class SubRouterTest extends WebTestBase {
     assertNotNull(allowHeader);
     assertTrue(allowHeader.contains("POST"));
     assertTrue(allowHeader.contains("PUT"));
+  }
+
+  @Test
+  public void testStaticHandlerEncodedPathTraversalWithWildcardRoute() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.route("/sub/*").subRouter(subRouter);
+    subRouter.route("/*").handler(StaticHandler.create());
+    testRequest(HttpMethod.GET, "/sub/%2e%2e%2fotherpage.html", 200, "OK", "<html><body>Other page</body></html>");
+  }
+
+  @Test
+  public void testStaticHandlerEncodedPathTraversalWithRegexRoute() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.route("/sub/*").subRouter(subRouter);
+    subRouter.getWithRegex(".+\\.html").handler(StaticHandler.create());
+    testRequest(HttpMethod.GET, "/sub/%2e%2e%2fotherpage.html", 200, "OK", "<html><body>Other page</body></html>");
+  }
+
+  @Test
+  public void testStaticHandlerEncodedPathTraversalWithPathParamRoute() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.route("/sub/*").subRouter(subRouter);
+    subRouter.get("/:file").handler(StaticHandler.create());
+    testRequest(HttpMethod.GET, "/sub/%2e%2e%2fotherpage.html", 200, "OK", "<html><body>Other page</body></html>");
+  }
+
+  @Test
+  public void testTemplateHandlerEncodedPathTraversalWithWildcardRoute() {
+    RecordingTemplateFileNameEngine engine = new RecordingTemplateFileNameEngine();
+    Router subRouter = Router.router(vertx);
+    router.route("/sub/*").subRouter(subRouter);
+    subRouter.route("/*").handler(TemplateHandler.create(engine, "templates", "text/html"));
+    testRequest(HttpMethod.GET, "/sub/%2e%2e%2foutside.html", 200, "OK");
+    assertEquals("templates/outside.html", engine.lastTemplateFileName);
+  }
+
+  @Test
+  public void testTemplateHandlerEncodedPathTraversalWithRegexRoute() {
+    RecordingTemplateFileNameEngine engine = new RecordingTemplateFileNameEngine();
+    Router subRouter = Router.router(vertx);
+    router.route("/sub/*").subRouter(subRouter);
+    subRouter.getWithRegex(".+\\.html").handler(TemplateHandler.create(engine, "templates", "text/html"));
+    testRequest(HttpMethod.GET, "/sub/%2e%2e%2foutside.html", 200, "OK");
+    assertEquals("templates/outside.html", engine.lastTemplateFileName);
+  }
+
+  @Test
+  public void testTemplateHandlerEncodedPathTraversalWithPathParamRoute() {
+    RecordingTemplateFileNameEngine engine = new RecordingTemplateFileNameEngine();
+    Router subRouter = Router.router(vertx);
+    router.route("/sub/*").subRouter(subRouter);
+    subRouter.get("/:page").handler(TemplateHandler.create(engine, "templates", "text/html"));
+    testRequest(HttpMethod.GET, "/sub/%2e%2e%2foutside.html", 200, "OK");
+    assertEquals("templates/outside.html", engine.lastTemplateFileName);
+  }
+
+  private static class RecordingTemplateFileNameEngine implements TemplateEngine {
+
+    String lastTemplateFileName;
+
+    @Override
+    public Future<Buffer> render(Map<String, Object> context, String templateFileName) {
+      this.lastTemplateFileName = templateFileName;
+      return Future.succeededFuture(Buffer.buffer());
+    }
+
+    @Override
+    public void clearCache() {
+    }
   }
 }
