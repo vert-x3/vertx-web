@@ -45,10 +45,9 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
   @Override
   public void handle(RoutingContext context) {
-    String uriDecodedPath = RFC3986.decodeURIComponent(context.normalizedPath(), false);
-    String path = RFC3986.removeDotSegments(uriDecodedPath.replace('\\', '/'));
-
-    String file = Utils.pathOffset(path, context);
+    String file = Utils.pathOffset(context.normalizedPath(), context);
+    file = RFC3986.decodeURIComponent(file, false);
+    file = RFC3986.removeDotSegments(file.replace('\\', '/'));
     if (file.endsWith("/") && null != indexTemplate) {
       file += indexTemplate;
     }
