@@ -3022,6 +3022,28 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testDoNotUseSemicolonDelimiter() throws Exception {
+
+    HttpServerConfig config = new HttpServerConfig(getHttpServerOptions())
+      .setQueryParamConfig(new QueryParamDecoderConfig().setUseSemicolonAsDelimiter(false));
+
+    server.close().await();
+    server = vertx
+      .createHttpServer(config)
+      .requestHandler(router);
+    server.listen().await();
+
+    router
+      .route()
+      .handler(rc -> {
+        MultiMap params = rc.queryParams();
+        assertEquals("b;c", params.get("a"));
+        rc.end();
+      });
+    testRequest(HttpMethod.GET, "/?a=b;c", 200, "OK");
+  }
+
+  @Test
   public void testETag() throws Exception {
     router.route("/check/e-tag").handler(ctx -> {
       ctx.etag("1234");

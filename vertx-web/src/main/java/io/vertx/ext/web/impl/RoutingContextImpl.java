@@ -17,13 +17,13 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.http.HttpServerRequestInternal;
+import io.vertx.core.internal.http.QueryParamDecoder;
 import io.vertx.core.internal.net.RFC3986;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.HttpException;
@@ -449,19 +449,16 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     if (charset != null || queryParams == null) {
       try {
         // Decode query parameters and put inside context.queryParams
+        QueryParamDecoder decoder = ((HttpServerRequestInternal)request).queryParamDecoder();
         if (charset == null) {
-          queryParams = MultiMap.caseInsensitiveMultiMap();
-          Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
-          for (Map.Entry<String, List<String>> entry : decodedParams.entrySet()) {
-            queryParams.add(entry.getKey(), entry.getValue());
-          }
+          queryParams = decoder.decode(request.uri());
         } else {
-          MultiMap queryParams = MultiMap.caseInsensitiveMultiMap();
-          Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri(), charset).parameters();
-          for (Map.Entry<String, List<String>> entry : decodedParams.entrySet()) {
-            queryParams.add(entry.getKey(), entry.getValue());
-          }
-          return queryParams;
+          QueryParamDecoderConfig config = new QueryParamDecoderConfig()
+            .setUseSemicolonAsDelimiter(decoder.isUseSemiColonAsDelimiter())
+            .setMaxSize(decoder.maxParams())
+            .setCharset(charset);
+          decoder = new QueryParamDecoder(config);
+          return decoder.decode(request.uri());
         }
       } catch (IllegalArgumentException e) {
         throw new HttpException(400, "Error while decoding query params", e);
