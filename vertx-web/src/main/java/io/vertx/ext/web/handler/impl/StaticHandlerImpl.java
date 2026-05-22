@@ -166,10 +166,9 @@ public class StaticHandlerImpl implements StaticHandler {
    */
   private void sendStatic(RoutingContext context, FileSystem fileSystem, String path, boolean index) {
 
-    String file = null;
+    final String file = getFile(context);
 
     if (!includeHidden) {
-      file = getFile(context);
       for (int idx = file.indexOf('/'); idx >= 0; idx = file.indexOf('/', idx + 1)) {
         String name = file.substring(idx + 1);
         if (name.length() > 0 && name.charAt(0) == '.') {
@@ -184,7 +183,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     // Look in cache
-    final CacheEntry entry = cache.get(path);
+    final CacheEntry entry = cache.get(file);
 
     if (entry != null) {
       if ((filesReadOnly || !entry.isOutOfDate())) {
@@ -214,22 +213,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     final boolean dirty = cache.enabled() && entry != null;
-    final String localFile;
-
-    if (file == null) {
-      String ctxFile = getFile(context);
-      if (index) {
-        localFile = ctxFile + indexPage;
-      } else {
-        localFile = ctxFile;
-      }
-    } else {
-      if (index) {
-        localFile = file + indexPage;
-      } else {
-        localFile = file;
-      }
-    }
+    final String localFile = index ? file + indexPage : file;
 
     // verify if the file exists
     fileSystem
@@ -244,7 +228,7 @@ public class StaticHandlerImpl implements StaticHandler {
         // file does not exist, continue...
         if (!exists) {
           if (cache.enabled()) {
-            cache.put(path, null);
+            cache.put(file, null);
           }
           if (!context.request().isEnded()) {
             context.request().resume();
@@ -259,7 +243,7 @@ public class StaticHandlerImpl implements StaticHandler {
             if (fprops == null) {
               // File does not exist
               if (dirty) {
-                cache.remove(path);
+                cache.remove(file);
               }
               if (!context.request().isEnded()) {
                 context.request().resume();
@@ -269,7 +253,7 @@ public class StaticHandlerImpl implements StaticHandler {
               if (index) {
                 // file does not exist (well it exists but it's a directory), continue...
                 if (cache.enabled()) {
-                  cache.put(path, null);
+                  cache.put(file, null);
                 }
                 if (!context.request().isEnded()) {
                   context.request().resume();
@@ -277,13 +261,13 @@ public class StaticHandlerImpl implements StaticHandler {
                 context.next();
               } else {
                 if (dirty) {
-                  cache.remove(path);
+                  cache.remove(file);
                 }
                 sendDirectory(context, fileSystem, path, localFile);
               }
             } else {
               if (cache.enabled()) {
-                cache.put(path, fprops);
+                cache.put(file, fprops);
 
                 if (Utils.fresh(context, Utils.secondsFactor(fprops.lastModifiedTime()))) {
                   context.response().setStatusCode(NOT_MODIFIED.code()).end();
