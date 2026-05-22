@@ -20,10 +20,10 @@ import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.LanguageHeader;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.impl.Utils;
-import io.vertx.ext.web.common.template.TemplateEngine;
-import io.vertx.ext.web.RoutingContext;
 
 import java.util.Locale;
 
@@ -47,10 +47,9 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
   @Override
   public void handle(RoutingContext context) {
-    String uriDecodedPath = URIDecoder.decodeURIComponent(context.normalizedPath(), false);
-    String path = HttpUtils.removeDots(uriDecodedPath.replace('\\', '/'));
-
-    String file = Utils.pathOffset(path, context);
+    String file = Utils.pathOffset(context.normalizedPath(), context);
+    file = URIDecoder.decodeURIComponent(file, false);
+    file = HttpUtils.removeDots(file.replace('\\', '/'));
     if (file.endsWith("/") && null != indexTemplate) {
       file += indexTemplate;
     }

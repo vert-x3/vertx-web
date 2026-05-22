@@ -160,16 +160,7 @@ public class StaticHandlerImpl implements StaticHandler {
       if (!request.isEnded()) {
         request.pause();
       }
-      // decode URL path
-      String uriDecodedPath = URIDecoder.decodeURIComponent(context.normalizedPath(), false);
-      // if the normalized path is null it cannot be resolved
-      if (uriDecodedPath == null) {
-        LOG.warn("Invalid path: " + context.request().path());
-        context.next();
-        return;
-      }
-      // will normalize and handle all paths as UNIX paths
-      String path = HttpUtils.removeDots(uriDecodedPath.replace('\\', '/'));
+      String path = context.normalizedPath();
 
       // Access fileSystem once here to be safe
       FileSystem fs = context.vertx().fileSystem();
@@ -192,7 +183,7 @@ public class StaticHandlerImpl implements StaticHandler {
     String file = null;
 
     if (!includeHidden) {
-      file = getFile(path, context);
+      file = getFile(context);
       for (int idx = file.indexOf('/'); idx >= 0; idx = file.indexOf('/', idx + 1)) {
         String name = file.substring(idx + 1);
         if (name.length() > 0 && name.charAt(0) == '.') {
@@ -240,7 +231,7 @@ public class StaticHandlerImpl implements StaticHandler {
     final String localFile;
 
     if (file == null) {
-      String ctxFile = getFile(path, context);
+      String ctxFile = getFile(context);
       if (index) {
         localFile = ctxFile + indexPage;
       } else {
@@ -680,8 +671,10 @@ public class StaticHandlerImpl implements StaticHandler {
     return this;
   }
 
-  private String getFile(String path, RoutingContext context) {
-    String file = webRoot + Utils.pathOffset(path, context);
+  private String getFile(RoutingContext context) {
+    String offsetPath = Utils.pathOffset(context.normalizedPath(), context);
+    offsetPath = URIDecoder.decodeURIComponent(offsetPath, false);
+    String file = webRoot + HttpUtils.removeDots(offsetPath.replace('\\', '/'));
     if (LOG.isTraceEnabled()) {
       LOG.trace("File to serve is " + file);
     }
