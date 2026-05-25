@@ -32,9 +32,9 @@ public interface CookieSessionStore extends SessionStore {
 
   /**
    * @deprecated use {@link #create(Vertx, String)}
-   * 
+   *
    * Creates a CookieSessionStore.
-   * 
+   *
    * This factory method is deprecated and will be removed in a future version.
    * The salt value is ignored and should not be used. This was an artifact of
    * the original implementation which used a different encryption scheme.
@@ -55,7 +55,7 @@ public interface CookieSessionStore extends SessionStore {
    * Cookie data will be encrypted using the given secret. The secret as the name
    * reflects, should never leave the server, otherwise user agents could tamper
    * with the payload.
-   * 
+   *
    * The choice of GCM, ensures that no (IV, Key) is reusable, which means that
    * there is no need for a salt. Also encrypting the same session multiple times
    * will render different outputs, which prevents rainbow attacks.

@@ -264,4 +264,3 @@ public class SockJSImpl implements SockJSHandler {
       "</body>\n" +
       "</html>";
 }
-

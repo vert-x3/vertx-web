@@ -12,23 +12,19 @@
 
 package io.vertx.router.test.e2e;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
-import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.Timeout;
 import io.vertx.openapi.validation.ValidatedRequest;
 import io.vertx.router.test.ResourceHelper;
 import io.vertx.router.test.base.RouterBuilderTestBase;
-import io.vertx.test.core.TestUtils;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.truth.Truth.assertThat;
 import static io.vertx.core.http.HttpMethod.POST;
 
 class RootPathTest extends RouterBuilderTestBase {

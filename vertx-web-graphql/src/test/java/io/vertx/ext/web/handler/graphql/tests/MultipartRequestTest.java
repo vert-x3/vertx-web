@@ -150,4 +150,3 @@ public class MultipartRequestTest extends WebTestBase {
     return new Result(files.get(0).fileName() + " " + files.get(1).fileName());
   }
 }
-

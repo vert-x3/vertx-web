@@ -37,4 +37,3 @@ public interface LanguageHeader extends ParsedHeaderValue {
    */
   int subtagCount();
 }
-

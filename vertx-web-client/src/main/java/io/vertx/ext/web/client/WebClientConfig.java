@@ -19,9 +19,7 @@ package io.vertx.ext.web.client;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.http.*;
-import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.net.*;
-import io.vertx.core.tracing.TracingPolicy;
 import io.vertx.uritemplate.ExpandOptions;
 
 import java.time.Duration;

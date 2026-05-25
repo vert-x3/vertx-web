@@ -38,7 +38,7 @@ public class CookieSessionStoreImpl implements CookieSessionStore {
 
   private static final String SHA_CRYPT = "SHA-256";
   private static final String AES_ALGORITHM = "AES";
- 
+
   public CookieSessionStoreImpl() {
     // required for the service loader
   }

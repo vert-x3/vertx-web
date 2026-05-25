@@ -19,9 +19,9 @@ import io.vertx.codegen.annotations.VertxGen;
 
 /**
  * Enumaration of FileSystem access permissions, used in
- * 
+ *
  * @see "StaticHandler"
- * 
+ *
  * @author <a href="https://wissel.net">Stephan Wissel</a>
  */
 @VertxGen

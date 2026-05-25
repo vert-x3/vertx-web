@@ -470,4 +470,3 @@ public abstract class AbstractSession implements Session, SessionInternal {
     readDataFromBuffer(0, buffer);
   }
 }
-

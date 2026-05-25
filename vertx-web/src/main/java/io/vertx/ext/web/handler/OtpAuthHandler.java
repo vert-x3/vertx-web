@@ -21,7 +21,6 @@ import io.vertx.ext.auth.otp.OtpKeyGenerator;
 import io.vertx.ext.auth.otp.hotp.HotpAuth;
 import io.vertx.ext.auth.otp.totp.TotpAuth;
 import io.vertx.ext.web.Route;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.UserContext;
 import io.vertx.ext.web.handler.impl.HotpAuthHandlerImpl;
 import io.vertx.ext.web.handler.impl.TotpAuthHandlerImpl;

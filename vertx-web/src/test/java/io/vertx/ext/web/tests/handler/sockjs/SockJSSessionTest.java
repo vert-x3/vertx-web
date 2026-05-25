@@ -17,7 +17,6 @@ package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.netty.util.internal.PlatformDependent;
 import io.vertx.core.Context;
-import io.vertx.core.Future;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;

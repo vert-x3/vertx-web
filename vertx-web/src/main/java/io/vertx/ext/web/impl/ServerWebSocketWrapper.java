@@ -16,7 +16,6 @@ import javax.net.ssl.SSLSession;
 import java.security.cert.Certificate;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class ServerWebSocketWrapper implements ServerWebSocket {
   private final ServerWebSocket delegate;

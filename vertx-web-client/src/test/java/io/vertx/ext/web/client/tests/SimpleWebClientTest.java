@@ -8,7 +8,6 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.test.fakeresolver.FakeAddress;
 import io.vertx.test.fakeresolver.FakeAddressResolver;
 import org.assertj.core.api.Assertions;

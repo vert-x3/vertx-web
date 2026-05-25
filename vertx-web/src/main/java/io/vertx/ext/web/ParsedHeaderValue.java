@@ -84,4 +84,3 @@ public interface ParsedHeaderValue {
    */
   int weightedOrder();
 }
-

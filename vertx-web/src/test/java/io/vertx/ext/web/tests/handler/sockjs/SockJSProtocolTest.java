@@ -79,7 +79,7 @@ public class SockJSProtocolTest {
   @AfterClass
   public static void after() {
     //Ignoring tests if docker is not configured
-    if (isDockerAvailable()) { 
+    if (isDockerAvailable()) {
       server.close();
       vertx.close();
     }

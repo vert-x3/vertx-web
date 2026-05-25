@@ -19,4 +19,3 @@ module io.vertx.web.apiservice {
   provides io.vertx.codegen.processor.GeneratorLoader with io.vertx.ext.web.api.service.generator.WebApiProxyGenLoader;
 
 }
-

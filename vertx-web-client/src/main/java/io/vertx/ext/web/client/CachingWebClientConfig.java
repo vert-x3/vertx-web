@@ -17,12 +17,8 @@ package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.json.annotations.JsonGen;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.*;
-import io.vertx.core.tracing.TracingPolicy;
 import io.vertx.uritemplate.ExpandOptions;
 
 import java.time.Duration;
@@ -30,7 +26,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>

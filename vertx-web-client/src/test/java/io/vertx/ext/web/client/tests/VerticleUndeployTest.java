@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import static io.vertx.core.Future.all;
 import static io.vertx.core.Future.await;
 import static java.util.concurrent.ThreadLocalRandom.current;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class VerticleUndeployTest {
 

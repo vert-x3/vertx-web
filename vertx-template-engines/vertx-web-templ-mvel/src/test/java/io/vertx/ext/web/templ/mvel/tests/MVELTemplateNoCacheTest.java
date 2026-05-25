@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 
 import static org.junit.jupiter.api.Assertions.*;

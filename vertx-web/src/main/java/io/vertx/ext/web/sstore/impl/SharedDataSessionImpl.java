@@ -75,4 +75,3 @@ public class SharedDataSessionImpl extends AbstractSession implements ClusterSer
     return pos;
   }
 }
-
