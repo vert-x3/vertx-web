@@ -31,4 +31,4 @@ jobs:
       - name: Set JAVA_HOME
         run: echo "JAVA_HOME=$JAVA_HOME_${{ inputs.jdk }}_X64" >> $GITHUB_ENV
       - name: Run tests
-        run: mvn -s .github/maven-ci-settings.xml clean verify -B
+        run: mvn -s .github/maven-ci-settings.xml clean verify -B -Pcheckstyle
