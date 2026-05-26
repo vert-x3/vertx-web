@@ -2409,7 +2409,7 @@ Expected it to be ${r}.`;
   function Vo(e, t2) {
     let u = e.node;
     if (!u) return {};
-    let r = t2[Symbol.for("printedComments")];
+    let r = t2[/* @__PURE__ */ Symbol.for("printedComments")];
     if ((u.comments || []).filter((i) => !r.has(i)).length === 0) return { leading: "", trailing: "" };
     let n = [], a = [], s;
     return e.each(() => {
@@ -2424,7 +2424,7 @@ Expected it to be ${r}.`;
     return !r && !o ? t2 : Ee(t2, (n) => [r, n, o]);
   }
   function Tr(e) {
-    let { [Symbol.for("comments")]: t2, [Symbol.for("printedComments")]: u } = e;
+    let { [/* @__PURE__ */ Symbol.for("comments")]: t2, [/* @__PURE__ */ Symbol.for("printedComments")]: u } = e;
     for (let r of t2) {
       if (!r.printed && !u.has(r)) throw new Error('Comment "' + r.value.trim() + '" was not printed. Please report this error!');
       delete r.printed;
@@ -2873,7 +2873,7 @@ ${d}`), d;
     return qe(a);
   }
   function Sa(e, t2, u, r) {
-    let { originalText: o, [Symbol.for("comments")]: n, locStart: a, locEnd: s, [Symbol.for("printedComments")]: i } = t2, { node: D } = e, f = a(D), l = s(D);
+    let { originalText: o, [/* @__PURE__ */ Symbol.for("comments")]: n, locStart: a, locEnd: s, [/* @__PURE__ */ Symbol.for("printedComments")]: i } = t2, { node: D } = e, f = a(D), l = s(D);
     for (let c of n) a(c) >= f && s(c) <= l && i.add(c);
     let { printPrettierIgnored: d } = t2.printer;
     return d ? d(e, t2, u, r) : o.slice(f, l);
@@ -2918,7 +2918,7 @@ ${d}`), d;
   }
   async function xu(e, t2) {
     let u = e.comments ?? [];
-    t2[Symbol.for("comments")] = u, t2[Symbol.for("printedComments")] = /* @__PURE__ */ new Set(), Ar(e, t2);
+    t2[/* @__PURE__ */ Symbol.for("comments")] = u, t2[/* @__PURE__ */ Symbol.for("printedComments")] = /* @__PURE__ */ new Set(), Ar(e, t2);
     let { printer: { preprocess: r } } = t2;
     return e = r ? await r(e, t2) : e, { ast: e, comments: u };
   }
@@ -3046,7 +3046,7 @@ ${d}`), d;
       let i = a.formatted.trim();
       a.cursorNodeStart !== void 0 && (a.cursorNodeStart -= a.formatted.indexOf(i), a.cursorNodeStart < 0 && (a.cursorNodeStart = 0, a.cursorNodeText = a.cursorNodeText.trimStart()), a.cursorNodeStart + a.cursorNodeText.length > i.length && (a.cursorNodeText = a.cursorNodeText.trimEnd())), a.formatted = i + Se(t2.endOfLine);
     }
-    let s = t2[Symbol.for("comments")];
+    let s = t2[/* @__PURE__ */ Symbol.for("comments")];
     if (t2.cursorOffset >= 0) {
       let i, D, f, l;
       if ((t2.cursorNode || t2.nodeBeforeCursor || t2.nodeAfterCursor) && a.cursorNodeText) if (f = a.cursorNodeStart, l = a.cursorNodeText, t2.cursorNode) i = t2.locStart(t2.cursorNode), D = o.slice(i, t2.locEnd(t2.cursorNode));
@@ -3221,7 +3221,7 @@ ${d}`), d;
   async function ci(e, t2) {
     return await Jn(e, t2) === e;
   }
-  var Zn, Mt, eo, to, uo, ro, no, Yt, oo, ao, dn, Hn, X, io, so, oe, Ne, jt, ku, Do, P, Ru, Lu, co, fo, Wt, Mu, Je, lo, po, Fo, Eo, b, G, j, U, I, k, v, x, w, B, R, L, M, _, O, T, He, H, ho, Vt, Z, Wu, we, N, Ze, Xu, qu, ce, ee, ut, or, ke, V, Gt, Qe, ar, ir, Dr, cr, To, No, Re, wo, Oo, Ht, W, q, qt, he, Qt, pr, ge, Fr, Y, nt, ot, mr, K, z, Er, at, uu, eu, _r, Le, Nr, Me, Ye, Sr, zo, Jo, wr, Xo, Pr, Ir, ea, st, ie, nu, $, ou, Rr, Dt, Ae, Lr, Yr, _e, au, ft, ua, S, lt, dt, pt, Ft, Et, Ct, ht, je, Qr, Zr, en, tn, gt, lu, un, ca, fa, du, rn, pu, de, nn, Ue, mu, Eu, on, Fa, Cu, hu, q0, Ca, ha, Dn, se, pf, Au, pn, af, sf, _u, Df, cf, ff, It, hf, gf, Fn, Fe, hn, Bu, yn, Pa, Ia, bn, ka, xn, Ma, wn, Tn, wu, Wa, $a, Va, Mn, Pu, xe, Be, ze, kt, Yn, jn, Un, Wn, $n, Qa, Za, Vn, Kn, Gn, zn, fi, li;
+  var Zn, Mt, eo, to, uo, ro, no, Yt, oo, ao, dn, Hn, X, io, so, oe, Ne, jt, ku, Do, P, Ru, Lu, co, fo, Wt, Mu, Je, lo, po, Fo, Eo, b, G, j, U, I, k, v, x, w, B, R, L, M, _, O, T, He, H, ho, Vt, Z, Wu, we, N, Ze, Xu, qu, ce, ee, ut, or, ke, V, Gt, Qe, ar, ir, Dr, cr, To, No, Re, wo, Oo, Ht, W, q, qt, he, Qt, pr, ge, Fr, Y, nt, ot, mr, K, z, Er, at, uu, eu, _r, Le, Nr, Me, Ye, Sr, zo, Jo, wr, Xo, Pr, Ir, ea, st, ie, nu, $, ou, Rr, Dt, Ae, Lr, Yr, _e, au, ft, ua, S, lt, dt, pt, Ft, Et, Ct, ht, je, Qr, Zr, en, tn, gt, lu, un, ca, fa, du, rn, pu, de, nn, Ue, mu, Eu, on, Fa, Cu, hu, Ca, ha, Dn, se, pf, Au, pn, af, sf, _u, Df, cf, ff, It, hf, gf, Fn, Fe, hn, Bu, yn, Pa, Ia, bn, ka, xn, Ma, wn, Tn, wu, Wa, $a, Va, Mn, Pu, xe, Be, ze, kt, Yn, jn, Un, Wn, $n, Qa, Za, Vn, Kn, Gn, zn, fi, li;
   var init_standalone = __esm({
     "node_modules/prettier/standalone.mjs"() {
       Zn = Object.create;
@@ -3601,9 +3601,9 @@ ${d}`), d;
       Ht = { value: "", length: 0, queue: [], get root() {
         return Ht;
       } };
-      W = Symbol("MODE_BREAK");
-      q = Symbol("MODE_FLAT");
-      qt = Symbol("DOC_FILL_PRINTED_LENGTH");
+      W = /* @__PURE__ */ Symbol("MODE_BREAK");
+      q = /* @__PURE__ */ Symbol("MODE_FLAT");
+      qt = /* @__PURE__ */ Symbol("DOC_FILL_PRINTED_LENGTH");
       he = Io;
       Qt = class {
         constructor(t2) {
@@ -3784,8 +3784,8 @@ The range will extend backwards to the start of the first line containing the se
         let r = [`${$.yellow(typeof e == "string" ? u.key(e) : u.pair(e))} is deprecated`];
         return t2 && r.push(`we now treat it as ${$.blue(typeof t2 == "string" ? u.key(t2) : u.pair(t2))}`), r.join("; ") + ".";
       };
-      Dt = Symbol.for("vnopts.VALUE_NOT_EXIST");
-      Ae = Symbol.for("vnopts.VALUE_UNCHANGED");
+      Dt = /* @__PURE__ */ Symbol.for("vnopts.VALUE_NOT_EXIST");
+      Ae = /* @__PURE__ */ Symbol.for("vnopts.VALUE_UNCHANGED");
       Lr = " ".repeat(2);
       Yr = (e, t2, u) => {
         let { text: r, list: o } = u.normalizeExpectedResult(u.schemas[e].expected(u)), n = [];
@@ -4075,7 +4075,7 @@ The range will extend backwards to the start of the first line containing the se
         if (Array.isArray(this)) return ca;
       });
       du = fa;
-      rn = Symbol.for("PRETTIER_IS_FRONT_MATTER");
+      rn = /* @__PURE__ */ Symbol.for("PRETTIER_IS_FRONT_MATTER");
       pu = [];
       de = la;
       nn = /* @__PURE__ */ new Set(["yaml", "toml"]);
@@ -4086,7 +4086,6 @@ The range will extend backwards to the start of the first line containing the se
       Fa = (e) => Object.keys(e).filter((t2) => !on.has(t2));
       Cu = ma;
       hu = /* @__PURE__ */ new WeakMap();
-      q0 = Symbol("PRINTER_NORMALIZED_MARK");
       Ca = ["clean", "embed", "print"];
       ha = Object.fromEntries(Ca.map((e) => [e, false]));
       Dn = { astFormat: "estree", printer: {}, originalText: void 0, locStart: null, locEnd: null, getVisitorKeys: null };
@@ -4124,13 +4123,13 @@ The range will extend backwards to the start of the first line containing the se
       xn = /* @__PURE__ */ new Set(["JsonRoot", "ObjectExpression", "ArrayExpression", "StringLiteral", "NumericLiteral", "BooleanLiteral", "NullLiteral", "UnaryExpression", "TemplateLiteral"]);
       Ma = /* @__PURE__ */ new Set(["OperationDefinition", "FragmentDefinition", "VariableDefinition", "TypeExtensionDefinition", "ObjectTypeDefinition", "FieldDefinition", "DirectiveDefinition", "EnumTypeDefinition", "EnumValueDefinition", "InputValueDefinition", "InputObjectTypeDefinition", "SchemaDefinition", "OperationTypeDefinition", "InterfaceTypeDefinition", "UnionTypeDefinition", "ScalarTypeDefinition"]);
       wn = "\uFEFF";
-      Tn = Symbol("cursor");
+      Tn = /* @__PURE__ */ Symbol("cursor");
       wu = {};
       Yt(wu, { builders: () => Wa, printer: () => $a, utils: () => Va });
       Wa = { join: Ie, line: ut, softline: or, hardline: V, literalline: Qe, group: Kt, conditionalGroup: tr, fill: er, lineSuffix: ve, lineSuffixBoundary: ar, cursor: ee, breakParent: ce, ifBreak: ur, trim: ir, indent: ae, indentIfBreak: rr, align: De, addAlignmentToDoc: tt, markAsRoot: et, dedentToRoot: Qu, dedent: Zu, hardlineWithoutBreakParent: ke, literallineWithoutBreakParent: Gt, label: nr, concat: (e) => e };
       $a = { printDocToString: Ce };
       Va = { willBreak: Ku, traverseDoc: we, findInDoc: Xe, mapDoc: Pe, removeLines: zu, stripTrailingHardline: qe, replaceEndOfLine: Ju, canBreak: Hu };
-      Mn = "3.7.4";
+      Mn = "3.8.3";
       Pu = {};
       Yt(Pu, { addDanglingComment: () => ue, addLeadingComment: () => fe, addTrailingComment: () => le, getAlignmentSize: () => he, getIndentSize: () => Yn, getMaxContinuousCount: () => jn, getNextNonSpaceNonCommentCharacter: () => Un, getNextNonSpaceNonCommentCharacterIndex: () => ni, getPreferredQuote: () => Vn, getStringWidth: () => Re, hasNewline: () => z, hasNewlineInRange: () => Kn, hasSpaces: () => Gn, isNextLineEmpty: () => Di, isNextLineEmptyAfterIndex: () => kt, isPreviousLineEmpty: () => ai, makeString: () => si, skip: () => ye, skipEverythingButNewLine: () => ot, skipInlineComment: () => xe, skipNewline: () => K, skipSpaces: () => Y, skipToLineEnd: () => nt, skipTrailingComment: () => Be, skipWhitespace: () => Fr });
       xe = Ka;
@@ -6243,7 +6242,7 @@ spurious results.`);
       return fn;
     }
     Event2.chain = chain;
-    const HaltChainable = Symbol("HaltChainable");
+    const HaltChainable = /* @__PURE__ */ Symbol("HaltChainable");
     class ChainableSynthesis {
       constructor() {
         this.steps = [];
@@ -17927,9 +17926,6 @@ spurious results.`);
     return { text: text3, hasSeparatorLine };
   }
 
-  // node_modules/monaco-editor/esm/vs/base/common/symbols.js
-  var MicrotaskDelay = Symbol("MicrotaskDelay");
-
   // node_modules/monaco-editor/esm/vs/base/common/async.js
   var runWhenGlobalIdle;
   var _runWhenIdle;
@@ -19328,8 +19324,15 @@ spurious results.`);
     EnumTypeDefinition: ["description", "name", "directives", "values"],
     EnumValueDefinition: ["description", "name", "directives"],
     InputObjectTypeDefinition: ["description", "name", "directives", "fields"],
-    DirectiveDefinition: ["description", "name", "arguments", "locations"],
+    DirectiveDefinition: [
+      "description",
+      "name",
+      "arguments",
+      "directives",
+      "locations"
+    ],
     SchemaExtension: ["directives", "operationTypes"],
+    DirectiveExtension: ["name", "directives"],
     ScalarTypeExtension: ["name", "directives"],
     ObjectTypeExtension: ["name", "interfaces", "directives", "fields"],
     InterfaceTypeExtension: ["name", "interfaces", "directives", "fields"],
@@ -19376,6 +19379,7 @@ spurious results.`);
     DirectiveLocation2["ENUM_VALUE"] = "ENUM_VALUE";
     DirectiveLocation2["INPUT_OBJECT"] = "INPUT_OBJECT";
     DirectiveLocation2["INPUT_FIELD_DEFINITION"] = "INPUT_FIELD_DEFINITION";
+    DirectiveLocation2["DIRECTIVE_DEFINITION"] = "DIRECTIVE_DEFINITION";
   })(DirectiveLocation || (DirectiveLocation = {}));
 
   // node_modules/graphql/language/kinds.mjs
@@ -19418,6 +19422,7 @@ spurious results.`);
     Kind2["INPUT_OBJECT_TYPE_DEFINITION"] = "InputObjectTypeDefinition";
     Kind2["DIRECTIVE_DEFINITION"] = "DirectiveDefinition";
     Kind2["SCHEMA_EXTENSION"] = "SchemaExtension";
+    Kind2["DIRECTIVE_EXTENSION"] = "DirectiveExtension";
     Kind2["SCALAR_TYPE_EXTENSION"] = "ScalarTypeExtension";
     Kind2["OBJECT_TYPE_EXTENSION"] = "ObjectTypeExtension";
     Kind2["INTERFACE_TYPE_EXTENSION"] = "InterfaceTypeExtension";
@@ -21078,6 +21083,7 @@ spurious results.`);
      *   - UnionTypeExtension
      *   - EnumTypeExtension
      *   - InputObjectTypeDefinition
+     *   - DirectiveDefinitionExtension
      */
     parseTypeSystemExtension() {
       const keywordToken = this._lexer.lookahead();
@@ -21097,6 +21103,11 @@ spurious results.`);
             return this.parseEnumTypeExtension();
           case "input":
             return this.parseInputObjectTypeExtension();
+          case "directive":
+            if (this._options.experimentalDirectivesOnDirectiveDefinitions) {
+              return this.parseDirectiveDefinitionExtension();
+            }
+            break;
         }
       }
       throw this.unexpected(keywordToken);
@@ -21262,6 +21273,22 @@ spurious results.`);
         fields
       });
     }
+    parseDirectiveDefinitionExtension() {
+      const start = this._lexer.token;
+      this.expectKeyword("extend");
+      this.expectKeyword("directive");
+      this.expectToken(TokenKind.AT);
+      const name2 = this.parseName();
+      const directives = this.parseConstDirectives();
+      if (directives.length === 0) {
+        throw this.unexpected();
+      }
+      return this.node(start, {
+        kind: Kind.DIRECTIVE_EXTENSION,
+        name: name2,
+        directives
+      });
+    }
     /**
      * ```
      * DirectiveDefinition :
@@ -21275,6 +21302,7 @@ spurious results.`);
       this.expectToken(TokenKind.AT);
       const name2 = this.parseName();
       const args = this.parseArgumentDefs();
+      const directives = this._options.experimentalDirectivesOnDirectiveDefinitions ? this.parseConstDirectives() : [];
       const repeatable = this.expectOptionalKeyword("repeatable");
       this.expectKeyword("on");
       const locations = this.parseDirectiveLocations();
@@ -21283,6 +21311,7 @@ spurious results.`);
         description,
         name: name2,
         arguments: args,
+        directives,
         repeatable,
         locations
       });
@@ -21321,6 +21350,7 @@ spurious results.`);
      *   `ENUM_VALUE`
      *   `INPUT_OBJECT`
      *   `INPUT_FIELD_DEFINITION`
+     *   `DIRECTIVE_DEFINITION`
      */
     parseDirectiveLocation() {
       const start = this._lexer.token;
@@ -22293,7 +22323,14 @@ spurious results.`);
       leave: ({ description, name: name2, directives, fields }) => wrap("", description, "\n") + join2(["input", name2, join2(directives, " "), block(fields)], " ")
     },
     DirectiveDefinition: {
-      leave: ({ description, name: name2, arguments: args, repeatable, locations }) => wrap("", description, "\n") + "directive @" + name2 + (hasMultilineItems(args) ? wrap("(\n", indent(join2(args, "\n")), "\n)") : wrap("(", join2(args, ", "), ")")) + (repeatable ? " repeatable" : "") + " on " + join2(locations, " | ")
+      leave: ({
+        description,
+        name: name2,
+        arguments: args,
+        directives,
+        repeatable,
+        locations
+      }) => wrap("", description, "\n") + "directive @" + name2 + (hasMultilineItems(args) ? wrap("(\n", indent(join2(args, "\n")), "\n)") : wrap("(", join2(args, ", "), ")")) + wrap(" ", join2(directives, " ")) + (repeatable ? " repeatable" : "") + " on " + join2(locations, " | ")
     },
     SchemaExtension: {
       leave: ({ directives, operationTypes }) => join2(
@@ -22344,6 +22381,9 @@ spurious results.`);
     },
     InputObjectTypeExtension: {
       leave: ({ name: name2, directives, fields }) => join2(["extend input", name2, join2(directives, " "), block(fields)], " ")
+    },
+    DirectiveExtension: {
+      leave: ({ name: name2, directives }) => join2(["extend directive @" + name2, join2(directives, " ")], " ")
     },
     // Schema Coordinates
     TypeCoordinate: {
@@ -23351,13 +23391,15 @@ spurious results.`);
   }
   var GraphQLDirective = class {
     constructor(config) {
-      var _config$isRepeatable, _config$args;
+      var _config$isRepeatable, _config$extensionASTN, _config$args;
       this.name = assertName(config.name);
       this.description = config.description;
       this.locations = config.locations;
       this.isRepeatable = (_config$isRepeatable = config.isRepeatable) !== null && _config$isRepeatable !== void 0 ? _config$isRepeatable : false;
+      this.deprecationReason = config.deprecationReason;
       this.extensions = toObjMap(config.extensions);
       this.astNode = config.astNode;
+      this.extensionASTNodes = (_config$extensionASTN = config.extensionASTNodes) !== null && _config$extensionASTN !== void 0 ? _config$extensionASTN : [];
       Array.isArray(config.locations) || devAssert(false, `@${config.name} locations must be an Array.`);
       const args = (_config$args = config.args) !== null && _config$args !== void 0 ? _config$args : {};
       isObjectLike(args) && !Array.isArray(args) || devAssert(
@@ -23376,8 +23418,10 @@ spurious results.`);
         locations: this.locations,
         args: argsToArgsConfig(this.args),
         isRepeatable: this.isRepeatable,
+        deprecationReason: this.deprecationReason,
         extensions: this.extensions,
-        astNode: this.astNode
+        astNode: this.astNode,
+        extensionASTNodes: this.extensionASTNodes
       };
     }
     toString() {
@@ -23425,7 +23469,8 @@ spurious results.`);
       DirectiveLocation.FIELD_DEFINITION,
       DirectiveLocation.ARGUMENT_DEFINITION,
       DirectiveLocation.INPUT_FIELD_DEFINITION,
-      DirectiveLocation.ENUM_VALUE
+      DirectiveLocation.ENUM_VALUE,
+      DirectiveLocation.DIRECTIVE_DEFINITION
     ],
     args: {
       reason: {
@@ -23603,7 +23648,13 @@ spurious results.`);
         type: new GraphQLNonNull(
           new GraphQLList(new GraphQLNonNull(__Directive))
         ),
-        resolve: (schema) => schema.getDirectives()
+        args: {
+          includeDeprecated: {
+            type: new GraphQLNonNull(GraphQLBoolean),
+            defaultValue: false
+          }
+        },
+        resolve: (schema, { includeDeprecated }) => includeDeprecated ? schema.getDirectives() : schema.getDirectives().filter((directive) => directive.deprecationReason == null)
       }
     })
   });
@@ -23642,6 +23693,14 @@ spurious results.`);
         resolve(field, { includeDeprecated }) {
           return includeDeprecated ? field.args : field.args.filter((arg) => arg.deprecationReason == null);
         }
+      },
+      isDeprecated: {
+        type: new GraphQLNonNull(GraphQLBoolean),
+        resolve: (directive) => directive.deprecationReason != null
+      },
+      deprecationReason: {
+        type: GraphQLString,
+        resolve: (directive) => directive.deprecationReason
       }
     })
   });
@@ -23724,6 +23783,10 @@ spurious results.`);
       INPUT_FIELD_DEFINITION: {
         value: DirectiveLocation.INPUT_FIELD_DEFINITION,
         description: "Location adjacent to an input object field definition."
+      },
+      DIRECTIVE_DEFINITION: {
+        value: DirectiveLocation.DIRECTIVE_DEFINITION,
+        description: "Location adjacent to a directive definition."
       }
     }
   });
@@ -24988,7 +25051,7 @@ spurious results.`);
     return node.kind === Kind.SCALAR_TYPE_DEFINITION || node.kind === Kind.OBJECT_TYPE_DEFINITION || node.kind === Kind.INTERFACE_TYPE_DEFINITION || node.kind === Kind.UNION_TYPE_DEFINITION || node.kind === Kind.ENUM_TYPE_DEFINITION || node.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION;
   }
   function isTypeSystemExtensionNode(node) {
-    return node.kind === Kind.SCHEMA_EXTENSION || isTypeExtensionNode(node);
+    return node.kind === Kind.SCHEMA_EXTENSION || node.kind === Kind.DIRECTIVE_EXTENSION || isTypeExtensionNode(node);
   }
   function isTypeExtensionNode(node) {
     return node.kind === Kind.SCALAR_TYPE_EXTENSION || node.kind === Kind.OBJECT_TYPE_EXTENSION || node.kind === Kind.INTERFACE_TYPE_EXTENSION || node.kind === Kind.UNION_TYPE_EXTENSION || node.kind === Kind.ENUM_TYPE_EXTENSION || node.kind === Kind.INPUT_OBJECT_TYPE_EXTENSION;
@@ -25274,6 +25337,9 @@ spurious results.`);
         "kind" in parentNode || invariant(false);
         return parentNode.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION ? DirectiveLocation.INPUT_FIELD_DEFINITION : DirectiveLocation.ARGUMENT_DEFINITION;
       }
+      case Kind.DIRECTIVE_DEFINITION:
+      case Kind.DIRECTIVE_EXTENSION:
+        return DirectiveLocation.DIRECTIVE_DEFINITION;
       // Not reachable, all possible types have been considered.
       /* c8 ignore next */
       default:
@@ -26447,7 +26513,7 @@ spurious results.`);
     }
     if (valueNode.kind === Kind.VARIABLE) {
       const variableName = valueNode.name.value;
-      if (variables == null || variables[variableName] === void 0) {
+      if (variables == null || variables[variableName] === void 0 || !hasOwnProperty(variables, variableName)) {
         return;
       }
       const variableValue = variables[variableName];
@@ -26539,13 +26605,16 @@ spurious results.`);
     invariant(false, "Unexpected input type: " + inspect(type2));
   }
   function isMissingVariable(valueNode, variables) {
-    return valueNode.kind === Kind.VARIABLE && (variables == null || variables[valueNode.name.value] === void 0);
+    return valueNode.kind === Kind.VARIABLE && (variables == null || variables[valueNode.name.value] === void 0 || !hasOwnProperty(variables, valueNode.name.value));
+  }
+  function hasOwnProperty(obj, prop) {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
   }
 
   // node_modules/graphql/execution/values.mjs
   function getArgumentValues(def, node, variableValues) {
     var _node$arguments;
-    const coercedValues = {};
+    const coercedValues = /* @__PURE__ */ Object.create(null);
     const argumentNodes = (_node$arguments = node.arguments) !== null && _node$arguments !== void 0 ? _node$arguments : [];
     const argNodeMap = keyMap(argumentNodes, (arg) => arg.name.value);
     for (const argDef of def.args) {
@@ -26569,7 +26638,7 @@ spurious results.`);
       let isNull = valueNode.kind === Kind.NULL;
       if (valueNode.kind === Kind.VARIABLE) {
         const variableName = valueNode.name.value;
-        if (variableValues == null || !hasOwnProperty(variableValues, variableName)) {
+        if (variableValues == null || !hasOwnProperty2(variableValues, variableName)) {
           if (argDef.defaultValue !== void 0) {
             coercedValues[name2] = argDef.defaultValue;
           } else if (isNonNullType(argType)) {
@@ -26603,7 +26672,7 @@ spurious results.`);
       }
       coercedValues[name2] = coercedValue;
     }
-    return coercedValues;
+    return { ...coercedValues };
   }
   function getDirectiveValues(directiveDef, node, variableValues) {
     var _node$directives;
@@ -26614,7 +26683,7 @@ spurious results.`);
       return getArgumentValues(directiveDef, directiveNode, variableValues);
     }
   }
-  function hasOwnProperty(obj, prop) {
+  function hasOwnProperty2(obj, prop) {
     return Object.prototype.hasOwnProperty.call(obj, prop);
   }
 
@@ -26911,6 +26980,7 @@ spurious results.`);
     }
     const schemaDirectives = /* @__PURE__ */ Object.create(null);
     const typeDirectivesMap = /* @__PURE__ */ Object.create(null);
+    const directiveDirectivesMap = /* @__PURE__ */ Object.create(null);
     return {
       // Many different AST nodes may contain directives. Rather than listing
       // them all, just listen for entering any node, and check to see if it
@@ -26927,6 +26997,12 @@ spurious results.`);
           seenDirectives = typeDirectivesMap[typeName];
           if (seenDirectives === void 0) {
             typeDirectivesMap[typeName] = seenDirectives = /* @__PURE__ */ Object.create(null);
+          }
+        } else if (node.kind === Kind.DIRECTIVE_DEFINITION || node.kind === Kind.DIRECTIVE_EXTENSION) {
+          const directiveName = node.name.value;
+          seenDirectives = directiveDirectivesMap[directiveName];
+          if (seenDirectives === void 0) {
+            directiveDirectivesMap[directiveName] = seenDirectives = /* @__PURE__ */ Object.create(null);
           }
         } else {
           seenDirectives = /* @__PURE__ */ Object.create(null);
@@ -27251,16 +27327,7 @@ spurious results.`);
 
   // node_modules/graphql/validation/rules/ValuesOfCorrectTypeRule.mjs
   function ValuesOfCorrectTypeRule(context) {
-    let variableDefinitions = {};
     return {
-      OperationDefinition: {
-        enter() {
-          variableDefinitions = {};
-        }
-      },
-      VariableDefinition(definition) {
-        variableDefinitions[definition.variable.name.value] = definition;
-      },
       ListValue(node) {
         const type2 = getNullableType(context.getParentInputType());
         if (!isListType(type2)) {
@@ -27327,6 +27394,11 @@ spurious results.`);
       EnumValue: (node) => isValidValueNode(context, node),
       IntValue: (node) => isValidValueNode(context, node),
       FloatValue: (node) => isValidValueNode(context, node),
+      // Descriptions are string values that would not validate according
+      // to the below logic, but since (per the specification) descriptions must
+      // not affect validation, they are ignored entirely when visiting the AST
+      // and do not require special handling.
+      // See https://spec.graphql.org/draft/#sec-Descriptions
       StringValue: (node) => isValidValueNode(context, node),
       BooleanValue: (node) => isValidValueNode(context, node)
     };
@@ -27710,6 +27782,10 @@ spurious results.`);
   };
 
   // node_modules/graphql/validation/validate.mjs
+  var QueryDocumentKeysToValidate = mapValue(
+    QueryDocumentKeys,
+    (keys) => keys.filter((key) => key !== "description")
+  );
   function validate(schema, documentAST, rules = specifiedRules, options, typeInfo = new TypeInfo(schema)) {
     var _options$maxErrors;
     const maxErrors = (_options$maxErrors = options === null || options === void 0 ? void 0 : options.maxErrors) !== null && _options$maxErrors !== void 0 ? _options$maxErrors : 100;
@@ -27735,7 +27811,11 @@ spurious results.`);
     );
     const visitor = visitInParallel(rules.map((rule) => rule(context)));
     try {
-      visit(documentAST, visitWithTypeInfo(typeInfo, visitor));
+      visit(
+        documentAST,
+        visitWithTypeInfo(typeInfo, visitor),
+        QueryDocumentKeysToValidate
+      );
     } catch (e) {
       if (e !== abortObj) {
         throw e;
@@ -28093,6 +28173,7 @@ spurious results.`);
         name: directiveIntrospection.name,
         description: directiveIntrospection.description,
         isRepeatable: directiveIntrospection.isRepeatable,
+        deprecationReason: directiveIntrospection.deprecationReason,
         locations: directiveIntrospection.locations.slice(),
         args: buildInputValueDefMap(directiveIntrospection.args)
       });
@@ -28104,6 +28185,7 @@ spurious results.`);
     var _schemaDef, _schemaDef$descriptio, _schemaDef2, _options$assumeValid;
     const typeDefs = [];
     const typeExtensionsMap = /* @__PURE__ */ Object.create(null);
+    const directiveExtensionsMap = /* @__PURE__ */ Object.create(null);
     const directiveDefs = [];
     let schemaDef;
     const schemaExtensions = [];
@@ -28120,9 +28202,13 @@ spurious results.`);
         typeExtensionsMap[extendedTypeName] = existingTypeExtensions ? existingTypeExtensions.concat([def]) : [def];
       } else if (def.kind === Kind.DIRECTIVE_DEFINITION) {
         directiveDefs.push(def);
+      } else if (def.kind === Kind.DIRECTIVE_EXTENSION) {
+        const extendedDirectiveName = def.name.value;
+        const existingDirectiveExtensions = directiveExtensionsMap[extendedDirectiveName];
+        directiveExtensionsMap[extendedDirectiveName] = existingDirectiveExtensions ? existingDirectiveExtensions.concat([def]) : [def];
       }
     }
-    if (Object.keys(typeExtensionsMap).length === 0 && typeDefs.length === 0 && directiveDefs.length === 0 && schemaExtensions.length === 0 && schemaDef == null) {
+    if (Object.keys(typeExtensionsMap).length === 0 && typeDefs.length === 0 && Object.keys(directiveExtensionsMap).length === 0 && directiveDefs.length === 0 && schemaExtensions.length === 0 && schemaDef == null) {
       return schemaConfig;
     }
     const typeMap = /* @__PURE__ */ Object.create(null);
@@ -28134,6 +28220,10 @@ spurious results.`);
       const name2 = typeNode.name.value;
       typeMap[name2] = (_stdTypeMap$name = stdTypeMap[name2]) !== null && _stdTypeMap$name !== void 0 ? _stdTypeMap$name : buildType(typeNode);
     }
+    const directiveMap = /* @__PURE__ */ Object.create(null);
+    for (const existingDirective of schemaConfig.directives) {
+      directiveMap[existingDirective.name] = extendDirective(existingDirective);
+    }
     const operationTypes = {
       // Get the extended root operation types.
       query: schemaConfig.query && replaceNamedType(schemaConfig.query),
@@ -28143,12 +28233,13 @@ spurious results.`);
       ...schemaDef && getOperationTypes([schemaDef]),
       ...getOperationTypes(schemaExtensions)
     };
+    const directives = Object.values(directiveMap);
     return {
       description: (_schemaDef = schemaDef) === null || _schemaDef === void 0 ? void 0 : (_schemaDef$descriptio = _schemaDef.description) === null || _schemaDef$descriptio === void 0 ? void 0 : _schemaDef$descriptio.value,
       ...operationTypes,
       types: Object.values(typeMap),
       directives: [
-        ...schemaConfig.directives.map(replaceDirective),
+        ...directives.map(replaceDirective),
         ...directiveDefs.map(buildDirective)
       ],
       extensions: /* @__PURE__ */ Object.create(null),
@@ -28311,6 +28402,17 @@ spurious results.`);
       }
       return opTypes;
     }
+    function extendDirective(directive) {
+      var _directiveExtensionsM, _config$deprecationRe;
+      const config = directive.toConfig();
+      const extensions = (_directiveExtensionsM = directiveExtensionsMap[config.name]) !== null && _directiveExtensionsM !== void 0 ? _directiveExtensionsM : [];
+      const deprecationReason = (_config$deprecationRe = config.deprecationReason) !== null && _config$deprecationRe !== void 0 ? _config$deprecationRe : extensions.map((ext) => getDeprecationReason(ext)).find((reason) => reason != null);
+      return new GraphQLDirective({
+        ...config,
+        deprecationReason,
+        extensionASTNodes: config.extensionASTNodes.concat(extensions)
+      });
+    }
     function getNamedType2(node) {
       var _stdTypeMap$name2;
       const name2 = node.name.value;
@@ -28330,7 +28432,9 @@ spurious results.`);
       return getNamedType2(node);
     }
     function buildDirective(node) {
-      var _node$description;
+      var _directiveExtensionsM2, _getDeprecationReason, _node$description;
+      const extensions = (_directiveExtensionsM2 = directiveExtensionsMap[node.name.value]) !== null && _directiveExtensionsM2 !== void 0 ? _directiveExtensionsM2 : [];
+      const deprecationReason = (_getDeprecationReason = getDeprecationReason(node)) !== null && _getDeprecationReason !== void 0 ? _getDeprecationReason : extensions.map((ext) => getDeprecationReason(ext)).find((reason) => reason != null);
       return new GraphQLDirective({
         name: node.name.value,
         description: (_node$description = node.description) === null || _node$description === void 0 ? void 0 : _node$description.value,
@@ -28338,7 +28442,9 @@ spurious results.`);
         locations: node.locations.map(({ value }) => value),
         isRepeatable: node.repeatable,
         args: buildArgumentMap(node.arguments),
-        astNode: node
+        deprecationReason,
+        astNode: node,
+        extensionASTNodes: extensions
       });
     }
     function buildFieldMap(nodes) {
@@ -30582,8 +30688,8 @@ spurious results.`);
       style: styleAtCursor || token.style
     };
   }
-  function getContextAtPosition(queryText, cursor, schema, contextToken, options) {
-    const token = contextToken || getTokenAtPosition(queryText, cursor, 1);
+  function getContextAtPosition(queryText, cursor, schema, contextToken, options, offset = 0) {
+    const token = contextToken || getTokenAtPosition(queryText, cursor, offset);
     if (!token) {
       return null;
     }
@@ -30884,7 +30990,7 @@ spurious results.`);
   function getAutocompleteSuggestions(schema, queryText, cursor, contextToken, fragmentDefs, options) {
     var _a3;
     const opts = Object.assign(Object.assign({}, options), { schema });
-    const context = getContextAtPosition(queryText, cursor, schema, contextToken, options);
+    const context = getContextAtPosition(queryText, cursor, schema, contextToken, options, 1);
     if (!context) {
       return [];
     }
@@ -32277,13 +32383,10 @@ ${this._externalFragmentDefinitionsString}`);
         }
         const graphQLPosition = toGraphQLPosition(position);
         const hover = this._languageService.getHover(uri, document2, graphQLPosition);
-        const location = {
-          column: graphQLPosition.character,
-          line: graphQLPosition.line
-        };
+        const token = getTokenAtPosition(document2, graphQLPosition);
         return {
           content: hover,
-          range: toMonacoRange(getRange(location, document2))
+          range: toMonacoRange(new Range3(new Position3(graphQLPosition.line, token.start), new Position3(graphQLPosition.line, token.end)))
         };
       } catch (err) {
         console.error(err);
