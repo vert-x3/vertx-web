@@ -43,6 +43,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -3039,6 +3040,37 @@ public class RouterTest extends WebTestBase {
       });
 
     testRequest(HttpMethod.GET, "/?u=" + utf8 + "&l=" + latin1, 200, "OK");
+  }
+
+  @Test
+  public void testDoNotUseSemicolonDelimiter() throws Exception {
+
+    HttpServerOptions options = new HttpServerOptions(getHttpServerOptions()).setUseSemicolonAsQueryParamDelimiter(false);
+
+    server
+      .close()
+      .toCompletionStage()
+      .toCompletableFuture()
+      .get(10, TimeUnit.SECONDS);
+    server = vertx
+      .createHttpServer(options)
+      .requestHandler(router);
+    server
+      .listen()
+      .toCompletionStage()
+      .toCompletableFuture()
+      .get(10, TimeUnit.SECONDS);
+
+    router
+      .route()
+      .handler(rc -> {
+        MultiMap params = rc.queryParams();
+        assertEquals("b;c", params.get("a"));
+        params = rc.queryParams(StandardCharsets.UTF_8);
+        assertEquals("b;c", params.get("a"));
+        rc.end();
+      });
+    testRequest(HttpMethod.GET, "/?a=b;c", 200, "OK");
   }
 
   @Test

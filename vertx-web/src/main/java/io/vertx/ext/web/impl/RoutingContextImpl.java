@@ -471,17 +471,22 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private MultiMap getQueryParams(Charset charset) {
     // Check if query params are already parsed
     if (charset != null || queryParams == null) {
+      HttpServerRequestInternal request = (HttpServerRequestInternal) this.request;
+      QueryStringDecoder.Builder builder = QueryStringDecoder.builder()
+        .semicolonIsNormalChar(!request.isUseSemicolonAsQueryParamDelimiter());
       try {
         // Decode query parameters and put inside context.queryParams
         if (charset == null) {
           queryParams = MultiMap.caseInsensitiveMultiMap();
-          Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+          Map<String, List<String>> decodedParams = builder
+            .build(request.uri())
+            .parameters();
           for (Map.Entry<String, List<String>> entry : decodedParams.entrySet()) {
             queryParams.add(entry.getKey(), entry.getValue());
           }
         } else {
           MultiMap queryParams = MultiMap.caseInsensitiveMultiMap();
-          Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri(), charset).parameters();
+          Map<String, List<String>> decodedParams = builder.charset(charset).build(request.uri()).parameters();
           for (Map.Entry<String, List<String>> entry : decodedParams.entrySet()) {
             queryParams.add(entry.getKey(), entry.getValue());
           }
