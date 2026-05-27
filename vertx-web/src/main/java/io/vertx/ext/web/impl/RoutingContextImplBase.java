@@ -298,8 +298,9 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
         response()
           .setStatusMessage(HttpResponseStatus.valueOf(code).reasonPhrase())
           .setStatusCode(code);
-      }
-      response().end(response().getStatusMessage());
+      } finally {
+        response().end(response().getStatusMessage());
+      }  
     }
   }
 
