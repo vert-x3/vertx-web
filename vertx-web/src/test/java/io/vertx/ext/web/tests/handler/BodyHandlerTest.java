@@ -406,6 +406,32 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testRoutingContextFailedBeforeDownloaded() throws TimeoutException {
+    router.get("/failed-download")
+      .handler((e) -> {
+        HttpServerResponse response = e.response();
+        response.setChunked(true);
+        response.putHeader(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+        AtomicInteger count = new AtomicInteger();
+        vertx.setPeriodic(200, id -> {
+          response.write(Buffer.buffer(new byte[1024]));  
+          if (count.incrementAndGet() == 5){
+              vertx.cancelTimer(id);
+              e.fail(500, new RuntimeException("Download exception"));
+          }
+        });
+ 
+      });
+
+      try{
+        HttpResponse<Buffer> resp = webClient.get("/failed-download").send().await(2, TimeUnit.SECONDS);
+        fail("Connection should have been closed");
+      } catch (HttpClosedException ex){
+
+      }
+  }
+
+  @Test
   public void testRoutingContextFailedBeforeFileIsFullyUploaded() {
     String uploadsDirectory = new File(tempUploads, "failUpload").getPath();
     new File(uploadsDirectory).mkdirs();
