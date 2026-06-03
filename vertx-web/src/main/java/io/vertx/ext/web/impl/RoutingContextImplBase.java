@@ -292,20 +292,20 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
 
     if (!response().ended() && !response().closed()) {
       try {
-        response().setStatusCode(code);
+        if (response().headWritten()){
+          response().reset(code);
+        } else {
+          response().setStatusCode(code);
+        }  
       } catch (IllegalArgumentException e) {
         // means that there are invalid chars in the status message
         response()
           .setStatusMessage(HttpResponseStatus.valueOf(code).reasonPhrase())
           .setStatusCode(code);
-      } catch (Exception e) {
-        LOG.warn("Unable to set status code. Response headers must have already been written.", failure);
       } finally {
-          if (response().headWritten()){
-            response().reset(code);
-          } else {
-            response().end(response().getStatusMessage());
-          }
+        if (!response().headWritten()) {
+          response().end(response().getStatusMessage());
+        }
       }  
     }
   }
