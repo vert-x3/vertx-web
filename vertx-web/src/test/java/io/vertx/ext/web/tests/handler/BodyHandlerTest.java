@@ -423,10 +423,10 @@ public class BodyHandlerTest extends WebTestBase {
  
       });
 
-      try{
+      try {
         HttpResponse<Buffer> resp = webClient.get("/failed-download").send().await(2, TimeUnit.SECONDS);
         fail("Connection should have been closed");
-      } catch (HttpClosedException ex){
+      } catch (HttpClosedException expected) {
 
       }
   }
