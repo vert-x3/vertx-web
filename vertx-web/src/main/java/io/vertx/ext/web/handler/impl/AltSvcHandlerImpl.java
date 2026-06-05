@@ -17,7 +17,7 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.http.HttpConnection;
-import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AltSvcHandler;
@@ -36,8 +36,6 @@ import java.util.WeakHashMap;
  */
 public class AltSvcHandlerImpl implements AltSvcHandler {
 
-  private static final CharSequence HEADER_NAME = HttpHeaders.createOptimized("Alt-Svc");
-
   private final Map<String, String> origins;
   private final Map<HttpConnection, Set<String>> announcedOrigins = new WeakHashMap<>();
 
@@ -53,7 +51,11 @@ public class AltSvcHandlerImpl implements AltSvcHandler {
     String origin = origin(ctx);
     String header = origin == null ? null : origins.get(origin);
     if (header != null && announce(ctx.request().connection(), origin)) {
-      ctx.addHeadersEndHandler(v -> ctx.response().putHeader(HEADER_NAME, header));
+      if (ctx.request().version() == HttpVersion.HTTP_2) {
+        ctx.response().writeAltSvc(header);
+      } else {
+        ctx.addHeadersEndHandler(v -> ctx.response().writeAltSvc(header));
+      }
     }
     ctx.next();
   }

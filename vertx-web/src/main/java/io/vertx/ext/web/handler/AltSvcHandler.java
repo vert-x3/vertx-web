@@ -20,7 +20,8 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.handler.impl.AltSvcHandlerImpl;
 
 /**
- * Handler which adds an {@code Alt-Svc} header in the response of matching requests.
+ * Handler which announces alternative services in the response of matching requests, using the {@code Alt-Svc}
+ * header for HTTP/1.x and ALTSVC frames for HTTP/2.
  */
 @VertxGen
 public interface AltSvcHandler extends PlatformHandler {
