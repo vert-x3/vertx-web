@@ -6,7 +6,7 @@
   <parent>
     <artifactId>vertx-web-session-stores</artifactId>
     <groupId>io.vertx</groupId>
-    <version>5.1.2-SNAPSHOT</version>
+    <version>5.1.2</version>
   </parent>
 
   <name>vertx-web-sstore-cafeinne</name>
