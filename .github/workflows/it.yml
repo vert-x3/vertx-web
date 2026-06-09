@@ -20,7 +20,7 @@ jobs:
         node-version: [22.19.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.branch }}
       - name: Install JDK
@@ -54,7 +54,7 @@ jobs:
         node-version: [22.19.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.branch }}
       - name: Install JDK
@@ -87,7 +87,7 @@ jobs:
         node-version: [22.19.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.branch }}
       - name: Install JDK
