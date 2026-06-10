@@ -1034,6 +1034,14 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testInvalidTypeAfterLiteralIsAParam() throws Exception {
+    // ":foo" is not a known type, it is a regular param following the literal prefix "id"
+    router.route("/id:foo").handler(rc -> rc.response().setStatusMessage(rc.pathParam("foo")).end());
+    testRequest(HttpMethod.GET, "/idbar", 200, "bar");
+    testRequest(HttpMethod.GET, "/id", 404, "Not Found");
+  }
+
+  @Test
   public void testTypedParamNameClash() throws Exception {
     assertThrows(IllegalArgumentException.class, () -> router.route("/blah/:id:int/:id"));
   }

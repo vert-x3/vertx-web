@@ -333,14 +333,11 @@ public class RouteImpl implements Route {
 
   // Known path parameter types, mapped to the regex a path value must match, e.g.: ":id:int" only matches integers.
   // A second token that is not a known type is parsed as another parameter, like any other ":<token name>" in the path
-  private static final Map<String, String> TYPE_PATTERNS = new HashMap<>();
-
-  static {
-    TYPE_PATTERNS.put("int", "-?\\d+");
-    TYPE_PATTERNS.put("number", "-?\\d+(?:\\.\\d+)?");
-    TYPE_PATTERNS.put("bool", "true|false");
-    TYPE_PATTERNS.put("uuid", "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
-  }
+  private static final Map<String, String> TYPE_PATTERNS = Map.of(
+    "int", "-?\\d+",
+    "number", "-?\\d+(?:\\.\\d+)?",
+    "bool", "true|false",
+    "uuid", "\\p{XDigit}{8}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{12}");
 
   // Pattern for (?<token name>) in path
   private static final Pattern RE_TOKEN_NAME_SEARCH = Pattern.compile("\\(\\?<(" + RE_VAR_NAME + ")>");
