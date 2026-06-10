@@ -975,6 +975,77 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testTypedParamInt() throws Exception {
+    router.route("/blah/:id:int").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id")).end());
+    testPattern("/blah/123", "123");
+    testRequest(HttpMethod.GET, "/blah/-5", 200, "-5");
+    testRequest(HttpMethod.GET, "/blah/abc", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/blah/12abc", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/blah/1.5", 404, "Not Found");
+  }
+
+  @Test
+  public void testTypedParamNumber() throws Exception {
+    router.route("/blah/:val:number").handler(rc -> rc.response().setStatusMessage(rc.pathParam("val")).end());
+    testRequest(HttpMethod.GET, "/blah/3.14", 200, "3.14");
+    testRequest(HttpMethod.GET, "/blah/10", 200, "10");
+    testRequest(HttpMethod.GET, "/blah/-2.5", 200, "-2.5");
+    testRequest(HttpMethod.GET, "/blah/3.", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/blah/abc", 404, "Not Found");
+  }
+
+  @Test
+  public void testTypedParamBool() throws Exception {
+    router.route("/flag/:enabled:bool").handler(rc -> rc.response().setStatusMessage(rc.pathParam("enabled")).end());
+    testRequest(HttpMethod.GET, "/flag/true", 200, "true");
+    testRequest(HttpMethod.GET, "/flag/false", 200, "false");
+    testRequest(HttpMethod.GET, "/flag/TRUE", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/flag/yes", 404, "Not Found");
+  }
+
+  @Test
+  public void testTypedParamUUID() throws Exception {
+    router.route("/blah/:id:uuid").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id")).end());
+    testRequest(HttpMethod.GET, "/blah/123e4567-e89b-12d3-a456-426614174000", 200, "123e4567-e89b-12d3-a456-426614174000");
+    testRequest(HttpMethod.GET, "/blah/123E4567-E89B-12D3-A456-426614174000", 200, "123E4567-E89B-12D3-A456-426614174000");
+    testRequest(HttpMethod.GET, "/blah/123e4567-e89b-12d3-a456", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/blah/zzze4567-e89b-12d3-a456-426614174000", 404, "Not Found");
+  }
+
+  @Test
+  public void testTypedParamMixedWithUntypedParams() throws Exception {
+    router.route("/cat/:type/:id:int").handler(rc -> rc.response().setStatusMessage(rc.pathParam("type") + "|" + rc.pathParam("id")).end());
+    testRequest(HttpMethod.GET, "/cat/tools/42", 200, "tools|42");
+    testRequest(HttpMethod.GET, "/cat/tools/drill", 404, "Not Found");
+  }
+
+  @Test
+  public void testTypedParamWithWildcard() throws Exception {
+    router.route("/blah/:id:int/*").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id") + "|" + rc.pathParam("*")).end());
+    testRequest(HttpMethod.GET, "/blah/42/sub/path", 200, "42|sub/path");
+    testRequest(HttpMethod.GET, "/blah/abc/sub", 404, "Not Found");
+  }
+
+  @Test
+  public void testTypedParamUnknownTypeIsAnotherParam() throws Exception {
+    // ":foo" is not a known type, so it is parsed as a second adjacent param, as it always was
+    router.route("/blah/:a:foo").handler(rc -> rc.response().setStatusMessage(rc.pathParam("a") + "|" + rc.pathParam("foo")).end());
+    testRequest(HttpMethod.GET, "/blah/xy", 200, "x|y");
+  }
+
+  @Test
+  public void testTypedParamNameClash() throws Exception {
+    assertThrows(IllegalArgumentException.class, () -> router.route("/blah/:id:int/:id"));
+  }
+
+  @Test
+  public void testParamNamedLikeType() throws Exception {
+    // a param simply named "int" is still a regular untyped param
+    router.route("/blah/:int").handler(rc -> rc.response().setStatusMessage(rc.pathParam("int")).end());
+    testRequest(HttpMethod.GET, "/blah/abc", 200, "abc");
+  }
+
+  @Test
   public void testRegex1() throws Exception {
     router.routeWithRegex("\\/([^\\/]+)\\/([^\\/]+)").handler(rc -> {
       MultiMap params = rc.request().params();
