@@ -292,11 +292,11 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
 
     if (!response().ended() && !response().closed()) {
       try {
-        if (response().headWritten()){
+        if (response().headWritten()) {
           response().reset(code);
         } else {
           response().setStatusCode(code);
-        }  
+        }
       } catch (IllegalArgumentException e) {
         // means that there are invalid chars in the status message
         response()
@@ -306,7 +306,7 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
         if (!response().headWritten()) {
           response().end(response().getStatusMessage());
         }
-      }  
+      }
     }
   }
 
