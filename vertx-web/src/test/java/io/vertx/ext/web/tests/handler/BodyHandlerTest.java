@@ -420,7 +420,7 @@ public class BodyHandlerTest extends WebTestBase {
         response.putHeader(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
         AtomicInteger count = new AtomicInteger();
         vertx.setPeriodic(200, id -> {
-          response.write(Buffer.buffer(new byte[1024]));  
+          response.write(Buffer.buffer(new byte[1024]));
           if (count.incrementAndGet() == 5){
               vertx.cancelTimer(id);
               e.fail(500, new RuntimeException("Download exception"));
