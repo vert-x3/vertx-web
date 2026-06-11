@@ -357,17 +357,17 @@ The route only matches when the captured value matches the declared type, otherw
 remaining routes (which usually results in a `404` response). The parameter value is still accessed as a `String`
 with {@link io.vertx.ext.web.RoutingContext#pathParam}.
 
-The known types are:
+Known types are:
 
-* `int` - an integer number, e.g.: `42`, `-7`. Note that the value is not bound to a Java type,
+* `integer` - an integer number, e.g.: `42`, `-7`. Note that the value is not bound to a Java type,
   so it may overflow e.g.: an `Integer`, it is up to the application to convert it appropriately.
 * `number` - an integer or decimal number, e.g.: `3.14`
-* `bool` - `true` or `false` (lower case)
+* `boolean` - `true` or `false` (lower case)
 * `uuid` - a UUID, e.g.: `123e4567-e89b-12d3-a456-426614174000`
 
 A second token that is not a known type is parsed as another parameter, e.g.: `/:from:to` declares the two adjacent
 parameters `from` and `to`, not a parameter with an unknown type. This also means that a parameter named like a type,
-e.g.: `/:int`, is just a regular parameter that matches anything.
+e.g.: `/:integer`, is just a regular parameter that matches anything.
 
 For validation beyond these simple types use a regular expression route or the `vertx-web-validation` module.
 

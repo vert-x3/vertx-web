@@ -187,7 +187,7 @@ public class WebExamples {
   public void example4_3(Router router) {
 
     router
-      .route(HttpMethod.GET, "/users/:id:int")
+      .route(HttpMethod.GET, "/users/:id:integer")
       .handler(ctx -> {
         // the route only matches when the "id" parameter is an integer, so
         // requests like /users/abc do not match and are answered with a 404

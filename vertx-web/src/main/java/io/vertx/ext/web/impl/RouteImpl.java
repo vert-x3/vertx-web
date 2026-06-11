@@ -328,15 +328,15 @@ public class RouteImpl implements Route {
     "[A-Za-z_$][A-Za-z0-9_$-]*" :
     "[A-Za-z0-9_]+";
 
-  // Pattern for :<token name> in path, optionally followed by a :<type> annotation, e.g.: ":id:int"
+  // Pattern for :<token name> in path, optionally followed by a :<type> annotation, e.g.: ":id:integer"
   private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":(" + RE_VAR_NAME + ")(?::(" + RE_VAR_NAME + "))?");
 
-  // Known path parameter types, mapped to the regex a path value must match, e.g.: ":id:int" only matches integers.
+  // Known path parameter types, mapped to the regex a path value must match, e.g.: ":id:integer" only matches integers.
   // A second token that is not a known type is parsed as another parameter, like any other ":<token name>" in the path
   private static final Map<String, String> TYPE_PATTERNS = Map.of(
-    "int", "-?\\d+",
+    "integer", "-?\\d+",
     "number", "-?\\d+(?:\\.\\d+)?",
-    "bool", "true|false",
+    "boolean", "true|false",
     "uuid", "\\p{XDigit}{8}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{12}");
 
   // Pattern for (?<token name>) in path
@@ -366,7 +366,7 @@ public class RouteImpl implements Route {
       String type = m.group(2);
       StringBuilder replacement = new StringBuilder();
       if (type == null || TYPE_PATTERNS.containsKey(type)) {
-        // a single param, optionally restricted to a known type, e.g.: ":id:int"
+        // a single param, optionally restricted to a known type, e.g.: ":id:integer"
         appendNamedGroup(replacement, groups, name, type == null ? "[^/]+" : TYPE_PATTERNS.get(type));
         colons += type == null ? 1 : 2;
       } else {

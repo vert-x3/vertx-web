@@ -976,7 +976,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testTypedParamInt() throws Exception {
-    router.route("/blah/:id:int").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id")).end());
+    router.route("/blah/:id:integer").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id")).end());
     testPattern("/blah/123", "123");
     testRequest(HttpMethod.GET, "/blah/-5", 200, "-5");
     testRequest(HttpMethod.GET, "/blah/abc", 404, "Not Found");
@@ -996,7 +996,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testTypedParamBool() throws Exception {
-    router.route("/flag/:enabled:bool").handler(rc -> rc.response().setStatusMessage(rc.pathParam("enabled")).end());
+    router.route("/flag/:enabled:boolean").handler(rc -> rc.response().setStatusMessage(rc.pathParam("enabled")).end());
     testRequest(HttpMethod.GET, "/flag/true", 200, "true");
     testRequest(HttpMethod.GET, "/flag/false", 200, "false");
     testRequest(HttpMethod.GET, "/flag/TRUE", 404, "Not Found");
@@ -1014,14 +1014,14 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testTypedParamMixedWithUntypedParams() throws Exception {
-    router.route("/cat/:type/:id:int").handler(rc -> rc.response().setStatusMessage(rc.pathParam("type") + "|" + rc.pathParam("id")).end());
+    router.route("/cat/:type/:id:integer").handler(rc -> rc.response().setStatusMessage(rc.pathParam("type") + "|" + rc.pathParam("id")).end());
     testRequest(HttpMethod.GET, "/cat/tools/42", 200, "tools|42");
     testRequest(HttpMethod.GET, "/cat/tools/drill", 404, "Not Found");
   }
 
   @Test
   public void testTypedParamWithWildcard() throws Exception {
-    router.route("/blah/:id:int/*").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id") + "|" + rc.pathParam("*")).end());
+    router.route("/blah/:id:integer/*").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id") + "|" + rc.pathParam("*")).end());
     testRequest(HttpMethod.GET, "/blah/42/sub/path", 200, "42|sub/path");
     testRequest(HttpMethod.GET, "/blah/abc/sub", 404, "Not Found");
   }
@@ -1043,13 +1043,13 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testTypedParamNameClash() throws Exception {
-    assertThrows(IllegalArgumentException.class, () -> router.route("/blah/:id:int/:id"));
+    assertThrows(IllegalArgumentException.class, () -> router.route("/blah/:id:integer/:id"));
   }
 
   @Test
   public void testParamNamedLikeType() throws Exception {
-    // a param simply named "int" is still a regular untyped param
-    router.route("/blah/:int").handler(rc -> rc.response().setStatusMessage(rc.pathParam("int")).end());
+    // a param simply named "integer" is still a regular untyped param
+    router.route("/blah/:integer").handler(rc -> rc.response().setStatusMessage(rc.pathParam("integer")).end());
     testRequest(HttpMethod.GET, "/blah/abc", 200, "abc");
   }
 
