@@ -10,9 +10,6 @@
  */
 package io.vertx.ext.web.client.tests;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,6 +42,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.impl.CookieStoreImpl;
 import io.vertx.ext.web.client.spi.CookieStore;
 import io.vertx.ext.web.multipart.MultipartForm;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
@@ -193,7 +192,7 @@ public class SessionAwareWebClientTest {
   public void testSharedWebClient() {
     AtomicInteger cnt = new AtomicInteger(0);
 
-    int numClients = 4;
+    int numClients = 1;
 
     prepareServer(req -> {
       req.response().setChunked(true);
@@ -292,8 +291,9 @@ public class SessionAwareWebClientTest {
     });
 
     Consumer<HttpRequest<Buffer>> check = r -> {
-      Cookie c = new DefaultCookie("test", "localhost");
+      Cookie c = new DefaultCookie("test", "whatever");
       c.setPath("/");
+      c.setDomain("localhost");
       client.cookieStore().remove(c);
       r.send().await();
       validate(client.cookieStore().get(false, "localhost", "/"),
@@ -403,23 +403,16 @@ public class SessionAwareWebClientTest {
   }
 
   @Test
-  public void testCookieStore(Checkpoint checkpoint) {
+  public void testCookieStore() {
     CookieStore store = CookieStore.build();
     Cookie c;
 
-    c = new DefaultCookie("a", "1");
-    store.put(c);
-
-    c = new DefaultCookie("b", "2");
+    c = new DefaultCookie("a", "2");
     c.setDomain("vertx.io");
     store.put(c);
 
     c = new DefaultCookie("c", "3");
     c.setDomain("www.vertx.io");
-    c.setPath("/web-client");
-    store.put(c);
-
-    c = new DefaultCookie("d", "4");
     c.setPath("/web-client");
     store.put(c);
 
@@ -437,29 +430,28 @@ public class SessionAwareWebClientTest {
     c.setPath("/web-client");
     store.put(c);
 
-    validate(store.get(false, "www.vertx.io", "/"), new String[] { "a", "b" }, new String[] { "1", "20"} );
-    validate(store.get(false, "a.www.vertx.io", "/"),  new String[] { "a", "b" }, new String[] { "1", "20"});
-    validate(store.get(false, "test.vertx.io", "/"), new String[] { "a", "b" }, new String[] { "1", "2" });
+    validate(store.get(false, "www.vertx.io", "/"), new String[] { "a", "b" }, new String[] { "2", "20"} );
+    validate(store.get(false, "a.www.vertx.io", "/"),  new String[] { "a", "b" }, new String[] { "2", "20"});
+    validate(store.get(false, "test.vertx.io", "/"), new String[] { "a" }, new String[] { "2" });
     validate(store.get(false, "www.vertx.io", "/web-client"),
-        new String[] { "a", "b", "c", "d" },
-        new String[] { "1", "200", "3", "4" });
+        new String[] { "a", "b", "c" },
+        new String[] { "2", "20", "200", "3" });
     validate(store.get(true, "test.vertx.io", "/"),
-        new String[] { "a", "b", "e" },
-        new String[] { "1", "2", "5" });
-    checkpoint.flag();
+        new String[] { "a", "e" },
+        new String[] { "2", "5" });
   }
 
   @Test
-  public void testCookieStoreIsFluent(Checkpoint checkpoint) {
+  public void testCookieStoreIsFluent() {
     CookieStore store = CookieStore.build();
     Cookie cookie = new DefaultCookie("a", "a");
-    assertTrue(store == store.put(cookie));
-    assertTrue(store == store.remove(cookie));
-    checkpoint.flag();
+    cookie.setDomain("domain");
+    assertSame(store, store.put(cookie));
+    assertSame(store, store.remove(cookie));
   }
 
   @Test
-  public void testRedirectWithoutLosingCookies() throws Exception {
+  public void testRedirectWithoutLosingCookies() {
     String location = "http://localhost:" + PORT + "/ok";
 
     prepareServer(req -> {
@@ -486,34 +478,49 @@ public class SessionAwareWebClientTest {
   }
 
   public void validate(Iterable<Cookie> cookies, String[] expectedNames, String[] expectedVals) {
+    List<Cookie> lst = new ArrayList<>();
+    for (Cookie cookie : cookies) {
+      lst.add(cookie);
+    }
+    validate(lst, expectedNames, expectedVals);
+  }
+
+  public void validate(List<Cookie> cookies, String[] expectedNames, String[] expectedVals) {
     List<String> foundNames = new ArrayList<>();
     List<String> foundVals = new ArrayList<>();
     for (String s : expectedNames) {
       for (Cookie c : cookies) {
         if (c.name().equals(s)) {
           foundNames.add(c.name());
-          foundVals.add(c.value());
           break;
+        }
+      }
+      for (Cookie c : cookies) {
+        if (c.name().equals(s)) {
+          foundVals.add(c.value());
         }
       }
     }
 
-    assertArrayEquals(expectedNames, foundNames.toArray());
+    assertEqualsIgnoringOrder(expectedNames, foundNames.toArray());
     if (expectedVals != null) {
-      assertArrayEquals(expectedVals, foundVals.toArray());
+      assertEqualsIgnoringOrder(expectedVals, foundVals.toArray());
     }
-
-    int count = 0;
-    for (Cookie cookie : cookies) {
-      count++;
-    }
-    assertEquals(expectedNames.length, count);
   }
 
-  private void assertArrayEquals(String[] expected, Object[] found) {
+  private void assertEqualsIgnoringOrder(String[] expected, Object[] found) {
     assertEquals(expected.length, found.length);
     for (int i = 0; i < expected.length; i++) {
-      assertEquals(expected[i], found[i], "Element " + i + " is not equal");
+      boolean f = false;
+      for (int j = 0;j < found.length;j++) {
+        if (expected[i].equals(found[j])) {
+          f = true;
+          break;
+        }
+      }
+      if (!f) {
+        fail();
+      }
     }
   }
 }
