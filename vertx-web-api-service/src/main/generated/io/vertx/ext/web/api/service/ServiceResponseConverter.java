@@ -27,6 +27,11 @@ public class ServiceResponseConverter {
             obj.setPayload(io.vertx.core.buffer.Buffer.fromJson((String)member.getValue()));
           }
           break;
+        case "payloadFile":
+          if (member.getValue() instanceof String) {
+            obj.setPayloadFile((String)member.getValue());
+          }
+          break;
       }
     }
   }
@@ -44,6 +49,9 @@ public class ServiceResponseConverter {
     }
     if (obj.getPayload() != null) {
       json.put("payload", obj.getPayload().toJson());
+    }
+    if (obj.getPayloadFile() != null) {
+      json.put("payloadFile", obj.getPayloadFile());
     }
   }
 }
