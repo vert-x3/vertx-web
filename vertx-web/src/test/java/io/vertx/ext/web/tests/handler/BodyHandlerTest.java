@@ -21,13 +21,16 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClosedException;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.tests.WebTestBase;
@@ -43,7 +46,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -403,6 +409,32 @@ public class BodyHandlerTest extends WebTestBase {
     String footer = "\r\n--" + boundary + "--\r\n";
     buffer.appendString(footer);
     testRequest(webClient.post("/").putHeader("content-type", "multipart/form-data; boundary=" + boundary).sendBuffer(buffer), statusCode, statusMessage);
+  }
+
+  @Test
+  public void testRoutingContextFailedBeforeDownloaded() throws TimeoutException {
+    router.get("/failed-download")
+      .handler((e) -> {
+        HttpServerResponse response = e.response();
+        response.setChunked(true);
+        response.putHeader(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+        AtomicInteger count = new AtomicInteger();
+        vertx.setPeriodic(200, id -> {
+          response.write(Buffer.buffer(new byte[1024]));
+          if (count.incrementAndGet() == 5){
+              vertx.cancelTimer(id);
+              e.fail(500, new RuntimeException("Download exception"));
+          }
+        });
+
+      });
+
+      try {
+        HttpResponse<Buffer> resp = webClient.get("/failed-download").send().await(2, TimeUnit.SECONDS);
+        fail("Connection should have been closed");
+      } catch (HttpClosedException expected) {
+
+      }
   }
 
   @Test
