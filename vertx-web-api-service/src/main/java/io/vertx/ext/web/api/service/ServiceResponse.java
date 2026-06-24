@@ -24,6 +24,7 @@ public class ServiceResponse {
   private Integer statusCode;
   private String statusMessage;
   private Buffer payload;
+  private String payloadFile;
   private MultiMap headers;
 
   public ServiceResponse() {
@@ -56,6 +57,7 @@ public class ServiceResponse {
     this.statusCode = other.getStatusCode();
     this.statusMessage = other.getStatusMessage();
     this.payload = other.getPayload();
+    this.payloadFile = other.getPayloadFile();
     this.headers = other.getHeaders();
   }
 
@@ -92,6 +94,10 @@ public class ServiceResponse {
     return headers;
   }
 
+  public String getPayloadFile() {
+    return payloadFile;
+  }
+
   @Fluent public ServiceResponse setHeaders(MultiMap headers) {
     this.headers = headers;
     return this;
@@ -109,6 +115,11 @@ public class ServiceResponse {
 
   @Fluent public ServiceResponse setPayload(Buffer payload) {
     this.payload = payload;
+    return this;
+  }
+
+  @Fluent public ServiceResponse setPayloadFile(String payloadFile) {
+    this.payloadFile = payloadFile;
     return this;
   }
 
