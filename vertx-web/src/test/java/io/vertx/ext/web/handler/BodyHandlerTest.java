@@ -21,6 +21,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
@@ -39,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
@@ -430,6 +432,42 @@ public class BodyHandlerTest extends WebTestBase {
       req.setChunked(true);
       req.write(buffer);
     }, statusCode, statusMessage, null);
+  }
+
+  @Test
+  public void testRoutingContextFailedBeforeDownloaded() throws Exception {
+    router.get("/failed-download")
+      .handler((e) -> {
+        HttpServerResponse response = e.response();
+        response.setChunked(true);
+        response.putHeader(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+        AtomicInteger count = new AtomicInteger();
+        vertx.setPeriodic(200, id -> {
+          response.write(Buffer.buffer(new byte[1024]));
+          if (count.incrementAndGet() == 5) {
+            vertx.cancelTimer(id);
+            e.fail(500, new RuntimeException("Download exception"));
+          }
+        });
+      });
+
+    RequestOptions requestOptions = new RequestOptions()
+      .setHost("localhost")
+      .setPort(8080)
+      .setMethod(HttpMethod.GET)
+      .setURI("/failed-download");
+
+    client.request(requestOptions).onComplete(onSuccess(req -> {
+      req.response(onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        resp.exceptionHandler(t -> {
+          testComplete();
+        });
+      }));
+      req.end();
+    }));
+
+    await();
   }
 
   @Test
