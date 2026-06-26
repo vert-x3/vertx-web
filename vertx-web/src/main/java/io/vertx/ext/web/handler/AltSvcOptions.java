@@ -17,7 +17,6 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.codegen.json.annotations.JsonGen;
 import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
@@ -27,7 +26,6 @@ import java.util.Map;
  * Options for configuring {@link AltSvcHandler}.
  */
 @DataObject
-@JsonGen(publicConverter = false)
 public class AltSvcOptions {
 
   private Map<String, String> origins;
@@ -55,16 +53,10 @@ public class AltSvcOptions {
    */
   public AltSvcOptions(JsonObject json) {
     this();
-    AltSvcOptionsConverter.fromJson(json, this);
-  }
-
-  /**
-   * @return a JSON representation of these options
-   */
-  public JsonObject toJson() {
-    JsonObject json = new JsonObject();
-    AltSvcOptionsConverter.toJson(this, json);
-    return json;
+    JsonObject origins = json.getJsonObject("origins");
+    if (origins != null) {
+      origins.forEach(entry -> addOrigin(entry.getKey(), (String) entry.getValue()));
+    }
   }
 
   /**

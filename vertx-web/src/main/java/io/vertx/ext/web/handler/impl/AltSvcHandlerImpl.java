@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
@@ -37,7 +36,7 @@ import java.util.WeakHashMap;
 public class AltSvcHandlerImpl implements AltSvcHandler {
 
   private final Map<String, String> origins;
-  private final Map<HttpConnection, Set<String>> announcedOrigins = new WeakHashMap<>();
+  private final Map<HttpConnection, Set<String>> announcedOrigins = new HashMap<>();
 
   public AltSvcHandlerImpl(AltSvcOptions options) {
     if (options == null) {
@@ -66,6 +65,12 @@ public class AltSvcHandlerImpl implements AltSvcHandler {
       if (origins == null) {
         origins = new HashSet<>();
         announcedOrigins.put(connection, origins);
+        // Drop the entry when the connection closes, so the map does not retain stale connections.
+        connection.closeHandler(v -> {
+          synchronized (announcedOrigins) {
+            announcedOrigins.remove(connection);
+          }
+        });
       }
       return origins.add(origin);
     }
