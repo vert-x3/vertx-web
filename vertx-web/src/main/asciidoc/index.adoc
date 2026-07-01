@@ -346,7 +346,7 @@ Note: You can also capture `*` as path param `*`.
 
 === Typed path parameters
 
-A path parameter can be restricted to a known type by appending `:` followed by the type name to the parameter:
+A path parameter can be restricted to a known type by appending `::` followed by the type name to the parameter:
 
 [source,$lang]
 ----
@@ -365,9 +365,9 @@ Known types are:
 * `boolean` - `true` or `false` (lower case)
 * `uuid` - a UUID, e.g.: `123e4567-e89b-12d3-a456-426614174000`
 
-A second token that is not a known type is parsed as another parameter, e.g.: `/:from:to` declares the two adjacent
-parameters `from` and `to`, not a parameter with an unknown type. This also means that a parameter named like a type,
-e.g.: `/:integer`, is just a regular parameter that matches anything.
+Adjacent parameters with single colons, e.g.: `/:from:to`, declare two separate parameters `from` and `to`.
+A parameter named like a type, e.g.: `/:integer`, is just a regular parameter that matches anything.
+Using `::` with an unknown type name, e.g.: `/:id::foo`, throws an `IllegalArgumentException`.
 
 For validation beyond these simple types use a regular expression route or the `vertx-web-validation` module.
 

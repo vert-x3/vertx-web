@@ -328,11 +328,10 @@ public class RouteImpl implements Route {
     "[A-Za-z_$][A-Za-z0-9_$-]*" :
     "[A-Za-z0-9_]+";
 
-  // Pattern for :<token name> in path, optionally followed by a :<type> annotation, e.g.: ":id:integer"
-  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":(" + RE_VAR_NAME + ")(?::(" + RE_VAR_NAME + "))?");
+  // Pattern for :<token name> in path, optionally followed by a ::<type> annotation, e.g.: ":id::integer"
+  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":(" + RE_VAR_NAME + ")(?:::(" + RE_VAR_NAME + "))?");
 
-  // Known path parameter types, mapped to the regex a path value must match, e.g.: ":id:integer" only matches integers.
-  // A second token that is not a known type is parsed as another parameter, like any other ":<token name>" in the path
+  // Known path parameter types, mapped to the regex a path value must match, e.g.: ":id::integer" only matches integers.
   private static final Map<String, String> TYPE_PATTERNS = Map.of(
     "integer", "-?\\d+",
     "number", "-?\\d+(?:\\.\\d+)?",
@@ -365,15 +364,17 @@ public class RouteImpl implements Route {
       String name = m.group(1);
       String type = m.group(2);
       StringBuilder replacement = new StringBuilder();
-      if (type == null || TYPE_PATTERNS.containsKey(type)) {
-        // a single param, optionally restricted to a known type, e.g.: ":id:integer"
-        appendNamedGroup(replacement, groups, name, type == null ? "[^/]+" : TYPE_PATTERNS.get(type));
-        colons += type == null ? 1 : 2;
-      } else {
-        // the second token is not a known type, parse it as another param, e.g.: ":from:to"
+      if (type == null) {
         appendNamedGroup(replacement, groups, name, "[^/]+");
-        appendNamedGroup(replacement, groups, type, "[^/]+");
-        colons += 2;
+        colons += 1;
+      } else {
+        String typePattern = TYPE_PATTERNS.get(type);
+        if (typePattern == null) {
+          throw new IllegalArgumentException("Unknown path parameter type: " + type + ". Known types: " + TYPE_PATTERNS.keySet());
+        }
+        // a typed param, e.g.: ":id::integer"
+        appendNamedGroup(replacement, groups, name, typePattern);
+        colons += 3; // 1 for :name, 2 for ::type
       }
       m.appendReplacement(sb, Matcher.quoteReplacement(replacement.toString()));
     }
@@ -442,13 +443,8 @@ public class RouteImpl implements Route {
       Set<String> groups = new HashSet<>();
       while (m.find()) {
         String name = m.group(1);
-        String type = m.group(2);
         if (!groups.add(name)) {
           throw new IllegalStateException("Cannot use identifier :" + name + " more than once in pattern string");
-        }
-        // a second token that is not a known type is another parameter
-        if (type != null && !TYPE_PATTERNS.containsKey(type) && !groups.add(type)) {
-          throw new IllegalStateException("Cannot use identifier :" + type + " more than once in pattern string");
         }
       }
     }

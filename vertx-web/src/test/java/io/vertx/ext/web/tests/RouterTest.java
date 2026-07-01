@@ -976,7 +976,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testTypedParamInt() throws Exception {
-    router.route("/blah/:id:integer").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id")).end());
+    router.route("/blah/:id::integer").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id")).end());
     testPattern("/blah/123", "123");
     testRequest(HttpMethod.GET, "/blah/-5", 200, "-5");
     testRequest(HttpMethod.GET, "/blah/abc", 404, "Not Found");
@@ -986,7 +986,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testTypedParamNumber() throws Exception {
-    router.route("/blah/:val:number").handler(rc -> rc.response().setStatusMessage(rc.pathParam("val")).end());
+    router.route("/blah/:val::number").handler(rc -> rc.response().setStatusMessage(rc.pathParam("val")).end());
     testRequest(HttpMethod.GET, "/blah/3.14", 200, "3.14");
     testRequest(HttpMethod.GET, "/blah/10", 200, "10");
     testRequest(HttpMethod.GET, "/blah/-2.5", 200, "-2.5");
@@ -996,7 +996,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testTypedParamBool() throws Exception {
-    router.route("/flag/:enabled:boolean").handler(rc -> rc.response().setStatusMessage(rc.pathParam("enabled")).end());
+    router.route("/flag/:enabled::boolean").handler(rc -> rc.response().setStatusMessage(rc.pathParam("enabled")).end());
     testRequest(HttpMethod.GET, "/flag/true", 200, "true");
     testRequest(HttpMethod.GET, "/flag/false", 200, "false");
     testRequest(HttpMethod.GET, "/flag/TRUE", 404, "Not Found");
@@ -1005,7 +1005,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testTypedParamUUID() throws Exception {
-    router.route("/blah/:id:uuid").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id")).end());
+    router.route("/blah/:id::uuid").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id")).end());
     testRequest(HttpMethod.GET, "/blah/123e4567-e89b-12d3-a456-426614174000", 200, "123e4567-e89b-12d3-a456-426614174000");
     testRequest(HttpMethod.GET, "/blah/123E4567-E89B-12D3-A456-426614174000", 200, "123E4567-E89B-12D3-A456-426614174000");
     testRequest(HttpMethod.GET, "/blah/123e4567-e89b-12d3-a456", 404, "Not Found");
@@ -1014,21 +1014,21 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testTypedParamMixedWithUntypedParams() throws Exception {
-    router.route("/cat/:type/:id:integer").handler(rc -> rc.response().setStatusMessage(rc.pathParam("type") + "|" + rc.pathParam("id")).end());
+    router.route("/cat/:type/:id::integer").handler(rc -> rc.response().setStatusMessage(rc.pathParam("type") + "|" + rc.pathParam("id")).end());
     testRequest(HttpMethod.GET, "/cat/tools/42", 200, "tools|42");
     testRequest(HttpMethod.GET, "/cat/tools/drill", 404, "Not Found");
   }
 
   @Test
   public void testTypedParamWithWildcard() throws Exception {
-    router.route("/blah/:id:integer/*").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id") + "|" + rc.pathParam("*")).end());
+    router.route("/blah/:id::integer/*").handler(rc -> rc.response().setStatusMessage(rc.pathParam("id") + "|" + rc.pathParam("*")).end());
     testRequest(HttpMethod.GET, "/blah/42/sub/path", 200, "42|sub/path");
     testRequest(HttpMethod.GET, "/blah/abc/sub", 404, "Not Found");
   }
 
   @Test
   public void testTypedParamUnknownTypeIsAnotherParam() throws Exception {
-    // ":foo" is not a known type, so it is parsed as a second adjacent param, as it always was
+    // ":foo" after a single colon is a separate adjacent param, not a type annotation (which requires "::")
     router.route("/blah/:a:foo").handler(rc -> rc.response().setStatusMessage(rc.pathParam("a") + "|" + rc.pathParam("foo")).end());
     testRequest(HttpMethod.GET, "/blah/xy", 200, "x|y");
   }
@@ -1043,7 +1043,12 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testTypedParamNameClash() throws Exception {
-    assertThrows(IllegalArgumentException.class, () -> router.route("/blah/:id:integer/:id"));
+    assertThrows(IllegalArgumentException.class, () -> router.route("/blah/:id::integer/:id"));
+  }
+
+  @Test
+  public void testTypedParamUnknownTypeThrows() throws Exception {
+    assertThrows(IllegalArgumentException.class, () -> router.route("/blah/:id::foo"));
   }
 
   @Test
