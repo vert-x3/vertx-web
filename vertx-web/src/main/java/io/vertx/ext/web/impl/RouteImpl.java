@@ -328,8 +328,16 @@ public class RouteImpl implements Route {
     "[A-Za-z_$][A-Za-z0-9_$-]*" :
     "[A-Za-z0-9_]+";
 
-  // Pattern for :<token name> in path
-  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":(" + RE_VAR_NAME + ")");
+  // Pattern for :<token name> in path, optionally followed by a ::<type> annotation, e.g.: ":id::integer"
+  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":(" + RE_VAR_NAME + ")(?:::(" + RE_VAR_NAME + "))?");
+
+  // Known path parameter types, mapped to the regex a path value must match, e.g.: ":id::integer" only matches integers.
+  private static final Map<String, String> TYPE_PATTERNS = Map.of(
+    "integer", "-?\\d+",
+    "number", "-?\\d+(?:\\.\\d+)?",
+    "boolean", "true|false",
+    "uuid", "\\p{XDigit}{8}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{12}");
+
   // Pattern for (?<token name>) in path
   private static final Pattern RE_TOKEN_NAME_SEARCH = Pattern.compile("\\(\\?<(" + RE_VAR_NAME + ")>");
 
@@ -351,16 +359,24 @@ public class RouteImpl implements Route {
     Matcher m = RE_TOKEN_SEARCH.matcher(path);
     StringBuffer sb = new StringBuffer();
     List<String> groups = new ArrayList<>();
-    int index = 0;
+    int colons = 0;
     while (m.find()) {
-      String param = "p" + index;
-      String group = m.group().substring(1);
-      if (groups.contains(group)) {
-        throw new IllegalArgumentException("Cannot use identifier " + group + " more than once in pattern string");
+      String name = m.group(1);
+      String type = m.group(2);
+      StringBuilder replacement = new StringBuilder();
+      if (type == null) {
+        appendNamedGroup(replacement, groups, name, "[^/]+");
+        colons += 1;
+      } else {
+        String typePattern = TYPE_PATTERNS.get(type);
+        if (typePattern == null) {
+          throw new IllegalArgumentException("Unknown path parameter type: " + type + ". Known types: " + TYPE_PATTERNS.keySet());
+        }
+        // a typed param, e.g.: ":id::integer"
+        appendNamedGroup(replacement, groups, name, typePattern);
+        colons += 3; // 1 for :name, 2 for ::type
       }
-      m.appendReplacement(sb, "(?<" + param + ">[^/]+)");
-      groups.add(group);
-      index++;
+      m.appendReplacement(sb, Matcher.quoteReplacement(replacement.toString()));
     }
     m.appendTail(sb);
     if (state.isExactPath() && !state.isPathEndsWithSlash()) {
@@ -370,7 +386,15 @@ public class RouteImpl implements Route {
 
     state = state.setGroups(groups);
     state = state.setPattern(Pattern.compile(path));
-    return index;
+    return colons;
+  }
+
+  private static void appendNamedGroup(StringBuilder sb, List<String> groups, String name, String pattern) {
+    if (groups.contains(name)) {
+      throw new IllegalArgumentException("Cannot use identifier " + name + " more than once in pattern string");
+    }
+    sb.append("(?<p").append(groups.size()).append('>').append(pattern).append(')');
+    groups.add(name);
   }
 
   private void checkPath(String path) {
@@ -418,11 +442,10 @@ public class RouteImpl implements Route {
       Matcher m = RE_TOKEN_SEARCH.matcher(combinedPath);
       Set<String> groups = new HashSet<>();
       while (m.find()) {
-        String group = m.group();
-        if (groups.contains(group)) {
-          throw new IllegalStateException("Cannot use identifier " + group + " more than once in pattern string");
+        String name = m.group(1);
+        if (!groups.add(name)) {
+          throw new IllegalStateException("Cannot use identifier :" + name + " more than once in pattern string");
         }
-        groups.add(group);
       }
     }
   }
