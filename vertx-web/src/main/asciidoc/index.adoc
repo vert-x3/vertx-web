@@ -353,9 +353,10 @@ A path parameter can be restricted to a known type by appending `::` followed by
 {@link examples.WebExamples#example4_3}
 ----
 
-The route only matches when the captured value matches the declared type, otherwise the router carries on with the
-remaining routes (which usually results in a `404` response). The parameter value is still accessed as a `String`
-with {@link io.vertx.ext.web.RoutingContext#pathParam}.
+Typed path parameters only validate the captured value when matching a route. They do not convert the value to a Java
+object: the primary source of interaction in the API remains the `String` value returned by
+{@link io.vertx.ext.web.RoutingContext#pathParam}. When the captured value does not match the declared type, the router
+carries on with the remaining routes (which usually results in a `404` response).
 
 Known types are:
 
@@ -365,8 +366,6 @@ Known types are:
 * `boolean` - `true` or `false` (lower case)
 * `uuid` - a UUID, e.g.: `123e4567-e89b-12d3-a456-426614174000`
 
-Adjacent parameters with single colons, e.g.: `/:from:to`, declare two separate parameters `from` and `to`.
-A parameter named like a type, e.g.: `/:integer`, is just a regular parameter that matches anything.
 Using `::` with an unknown type name, e.g.: `/:id::foo`, throws an `IllegalArgumentException`.
 
 For validation beyond these simple types use a regular expression route or the `vertx-web-validation` module.
