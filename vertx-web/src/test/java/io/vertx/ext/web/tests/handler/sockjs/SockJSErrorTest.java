@@ -17,10 +17,14 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTest;
 import io.vertx.test.core.TestUtils;
+import org.junit.Assert;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 /**
@@ -40,7 +44,8 @@ public class SockJSErrorTest {
   private static final Logger log = LoggerFactory.getLogger(SockJSErrorTest.class);
   public static final int PORT = 8080;
   public static final String LOCALHOST = "localhost";
-  private static int counter = 0;
+  private int counter = 0;
+  private long timerId;
   HttpServer server;
 
   @BeforeEach
@@ -59,14 +64,19 @@ public class SockJSErrorTest {
     server.requestHandler(router);
     server.listen(PORT).await();
 
-    vertx.setPeriodic(100, id -> {
+    timerId = vertx.setPeriodic(100, id -> {
       log.info("server sending number: " + ++counter);
       vertx.eventBus().send(EVENTBUS_ADDRESS, counter);
     });
   }
 
+  @AfterEach
+  public void tearDown() {
+    vertx.cancelTimer(timerId);
+  }
+
   @Test
-  public void testEventBusBridgeLeakingConsumers(Checkpoint checkpoint) throws InterruptedException {
+  public void testEventBusBridgeLeakingConsumers(Checkpoint checkpoint) {
     Promise<Void> firstClientDone = Promise.promise();
     // initial connection - double registration and unregistration
     WebSocketClient client = vertx.createWebSocketClient();
@@ -79,7 +89,7 @@ public class SockJSErrorTest {
         ws.writeTextMessage(EVENTBUS_UNREGISTER_MESSAGE);
         ws.writeTextMessage(EVENTBUS_UNREGISTER_MESSAGE); // this does not do anything actually, just to match 2 registrations
         ws.close();
-        firstClientDone.complete();
+        firstClientDone.tryComplete();
       });
 
     }));
@@ -87,7 +97,7 @@ public class SockJSErrorTest {
     //make sure 1st client has completed
     firstClientDone.future().await();
 
-    final int[] counter = {-1};
+    AtomicInteger counter = new AtomicInteger(-1);
     WebSocketClient client2 = vertx.createWebSocketClient();
     client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(TestUtils.onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
@@ -98,24 +108,21 @@ public class SockJSErrorTest {
         int number = jsonObject.getInteger("body");
         log.info("websocket client 2 received number: " + number);
         // initialize - some messages might have already been handled by 1st client
-        if (counter[0] == -1) {
-          counter[0] = number;
-        } else {
-          ++counter[0];
+        if (counter.get() == -1) {
+          counter.set(number);
+        } else if (counter.incrementAndGet() != number) {
+          Assert.fail("Message was lost, next id not matching. Expected " + counter.get() + " but got " + number);
+          return;
         }
-        // new number in message should be always be increased by 1
-        assertEquals(counter[0], number, "Message was lost, next id not matching.");
-
         if (number % 20 == 0) {
           checkpoint.flag();
         }
       });
-
     }));
   }
 
   @Test
-  public void testEventBusBridgeLeakingConsumersClean(Checkpoint checkpoint) throws InterruptedException {
+  public void testEventBusBridgeLeakingConsumersClean(Checkpoint checkpoint) {
     Promise<Void> firstClientDone = Promise.promise();
     // initial connection - single registration and unregistration
     WebSocketClient client = vertx.createWebSocketClient();
@@ -126,14 +133,14 @@ public class SockJSErrorTest {
         log.info("websocket client 1 received raw message: " + buff.toString("UTF-8"));
         ws.writeTextMessage(EVENTBUS_UNREGISTER_MESSAGE);
         ws.close();
-        firstClientDone.complete();
+        firstClientDone.tryComplete();
       });
     }));
 
     //make sure 1st client has completed
     firstClientDone.future().await();
 
-    final int[] counter = {-1};
+    AtomicInteger counter = new AtomicInteger(-1);
     WebSocketClient client2 = vertx.createWebSocketClient();
     client2.connect(PORT, LOCALHOST, WEBSOCKET_PATH).onComplete(TestUtils.onSuccess(ws -> {
       ws.writeTextMessage(EVENTBUS_REGISTER_MESSAGE);
@@ -144,19 +151,16 @@ public class SockJSErrorTest {
         int number = jsonObject.getInteger("body");
         log.info("websocket client 2 received number: " + number);
         // initialize - some messages might have already been handled by 1st client
-        if (counter[0] == -1) {
-          counter[0] = number;
-        } else {
-          ++counter[0];
+        if (counter.get() == -1) {
+          counter.set(number);
+        } else if (counter.incrementAndGet() != number) {
+          fail("Message was lost, next id not matching. Expected " + counter.get() + " but got " + number);
+          return;
         }
-        // new number in message should be always be increased by 1
-        assertEquals(counter[0], number, "Message was lost, next id not matching.");
-
         if (number % 20 == 0) {
           checkpoint.flag();
         }
       });
-
     }));
   }
 
@@ -172,7 +176,7 @@ public class SockJSErrorTest {
   }
 
 
-  class TestBridgeEventHandler implements Handler<BridgeEvent> {
+  static class TestBridgeEventHandler implements Handler<BridgeEvent> {
     @Override
     public void handle(BridgeEvent event) {
       JsonObject rawMessage = event.getRawMessage();
