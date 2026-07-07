@@ -22,6 +22,7 @@ import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AltSvcHandler;
 import io.vertx.ext.web.handler.AltSvcOptions;
+import io.vertx.ext.web.impl.HttpConnectionLocal;
 import io.vertx.ext.web.impl.Origin;
 
 import java.util.Collections;
@@ -36,7 +37,7 @@ import java.util.Set;
 public class AltSvcHandlerImpl implements AltSvcHandler {
 
   private final Map<String, String> origins;
-  private final Map<HttpConnection, Set<String>> announcedOrigins = new HashMap<>();
+  private final HttpConnectionLocal<Set<String>> announcedOrigins = new HttpConnectionLocal<>();
 
   public AltSvcHandlerImpl(AltSvcOptions options) {
     if (options == null) {
@@ -50,7 +51,7 @@ public class AltSvcHandlerImpl implements AltSvcHandler {
     String origin = origin(ctx);
     String header = origin == null ? null : origins.get(origin);
     if (header != null && announce(ctx.request().connection(), origin)) {
-      if (ctx.request().version() == HttpVersion.HTTP_2) {
+      if (requiresImmediateWrite(ctx.request().version())) {
         ctx.response().writeAltSvc(header);
       } else {
         ctx.addHeadersEndHandler(v -> ctx.response().writeAltSvc(header));
@@ -60,20 +61,14 @@ public class AltSvcHandlerImpl implements AltSvcHandler {
   }
 
   private boolean announce(HttpConnection connection, String origin) {
-    synchronized (announcedOrigins) {
-      Set<String> origins = announcedOrigins.get(connection);
-      if (origins == null) {
-        origins = new HashSet<>();
-        announcedOrigins.put(connection, origins);
-        // Drop the entry when the connection closes, so the map does not retain stale connections.
-        connection.closeHandler(v -> {
-          synchronized (announcedOrigins) {
-            announcedOrigins.remove(connection);
-          }
-        });
-      }
+    Set<String> origins = announcedOrigins.getOrCreate(connection, HashSet::new);
+    synchronized (origins) {
       return origins.add(origin);
     }
+  }
+
+  private static boolean requiresImmediateWrite(HttpVersion version) {
+    return version == HttpVersion.HTTP_2 || version == HttpVersion.HTTP_3;
   }
 
   private static Map<String, String> normalizeOrigins(Map<String, String> origins) {

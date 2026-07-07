@@ -19,6 +19,7 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
@@ -32,12 +33,14 @@ import io.vertx.core.http.HttpVersion;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.HostAndPort;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.AltSvcHandler;
 import io.vertx.ext.web.handler.AltSvcOptions;
 import io.vertx.ext.web.tests.WebTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -45,17 +48,34 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AltSvcHandlerTest extends WebTestBase {
 
+  @BeforeEach
+  @Override
+  public void setUp(Vertx vertx) throws Exception {
+    this.vertx = vertx;
+    router = Router.router(vertx);
+    server = vertx.createHttpServer(getHttpServerOptions().setPort(0).setMaxFormFields(2048));
+    server
+      .requestHandler(router)
+      .listen()
+      .await();
+    client = vertx.createHttpClient(getHttpClientOptions().setDefaultPort(server.actualPort()));
+    webClient = WebClient.wrap(client);
+    wsClient = vertx.createWebSocketClient(getWebSocketClientOptions().setDefaultPort(server.actualPort()));
+  }
+
   @Test
   public void testAddsAltSvcHeaderForMatchingOrigin() {
     router.route().handler(
-      AltSvcHandler.create(new AltSvcOptions().addOrigin("http://localhost:8080", "h3:localhost:8443")));
+      AltSvcHandler.create(new AltSvcOptions().addOrigin(origin(), "h3:localhost:8443")));
     router.route().handler(context -> context.response().end());
 
     HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
@@ -66,14 +86,14 @@ public class AltSvcHandlerTest extends WebTestBase {
   @Test
   public void testAddsAltSvcHeaderOnlyOncePerConnectionForMatchingOrigin() {
     router.route().handler(
-      AltSvcHandler.create(new AltSvcOptions().addOrigin("http://localhost:8080", "h3:localhost:8443")));
+      AltSvcHandler.create(new AltSvcOptions().addOrigin(origin(), "h3:localhost:8443")));
     router.route().handler(context -> context.response().end());
 
     HttpResponse<Buffer> first = testRequest(webClient.get("/").send(), 200, "OK");
     HttpResponse<Buffer> second = testRequest(webClient.get("/").send(), 200, "OK");
     HttpResponse<Buffer> third;
 
-    HttpClient otherClient = vertx.createHttpClient(getHttpClientOptions());
+    HttpClient otherClient = vertx.createHttpClient(getHttpClientOptions().setDefaultPort(server.actualPort()));
     try {
       WebClient otherWebClient = WebClient.wrap(otherClient);
       third = testRequest(otherWebClient.get("/").send(), 200, "OK");
@@ -89,16 +109,16 @@ public class AltSvcHandlerTest extends WebTestBase {
   @Test
   public void testWritesAltSvcFrameForHttp2() throws Exception {
     router.route().handler(
-      AltSvcHandler.create(new AltSvcOptions().addOrigin("http://localhost:8080", "h3:localhost:8443")));
+      AltSvcHandler.create(new AltSvcOptions().addOrigin(origin(), "h3:localhost:8443")));
     router.route().handler(context -> context.response().end());
 
     client.close().await();
     client = vertx.createHttpClient(new HttpClientOptions()
-      .setDefaultPort(8080)
+      .setDefaultPort(server.actualPort())
       .setProtocolVersion(HttpVersion.HTTP_2)
       .setHttp2ClearTextUpgrade(false));
 
-    HttpClientRequest request = client.request(HttpMethod.GET, 8080, "localhost", "/").await();
+    HttpClientRequest request = client.request(HttpMethod.GET, server.actualPort(), "localhost", "/").await();
     Future<HttpClientResponse> responseFuture = request.response();
     request.end().await();
 
@@ -147,11 +167,12 @@ public class AltSvcHandlerTest extends WebTestBase {
     when(context.response()).thenReturn(response);
     when(context.addHeadersEndHandler(headersEndHandler.capture())).thenReturn(1);
     when(request.scheme()).thenReturn("http");
-    when(request.authority()).thenReturn(HostAndPort.create("localhost", 8080));
+    when(request.authority()).thenReturn(authority());
     when(request.connection()).thenReturn(connection);
+    when(request.version()).thenReturn(HttpVersion.HTTP_1_1);
     when(response.writeAltSvc(anyString())).thenReturn(Future.succeededFuture());
 
-    AltSvcHandler.create(new AltSvcOptions().addOrigin("http://localhost:8080", "h3:localhost:8443"))
+    AltSvcHandler.create(new AltSvcOptions().addOrigin(origin(), "h3:localhost:8443"))
       .handle(context);
     headersEndHandler.getValue().handle(null);
 
@@ -160,14 +181,63 @@ public class AltSvcHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testOptionsJsonRoundTrip() {
-    AltSvcOptions options = new AltSvcOptions()
-      .addOrigin("http://localhost:8080", "h3:localhost:8443");
+  public void testDoesNotInstallConnectionCloseHandler() {
+    RoutingContext context = mock(RoutingContext.class);
+    HttpServerRequest request = mock(HttpServerRequest.class);
+    HttpServerResponse response = mock(HttpServerResponse.class);
+    HttpConnection connection = mock(HttpConnection.class);
 
-    JsonObject json = options.toJson();
+    when(context.request()).thenReturn(request);
+    when(context.response()).thenReturn(response);
+    when(request.scheme()).thenReturn("http");
+    when(request.authority()).thenReturn(authority());
+    when(request.connection()).thenReturn(connection);
+    when(request.version()).thenReturn(HttpVersion.HTTP_1_1);
+
+    AltSvcHandler.create(new AltSvcOptions().addOrigin(origin(), "h3:localhost:8443"))
+      .handle(context);
+
+    verify(connection, never()).closeHandler(any());
+  }
+
+  @Test
+  public void testUsesAltSvcResponseApiImmediatelyForHttp3() {
+    RoutingContext context = mock(RoutingContext.class);
+    HttpServerRequest request = mock(HttpServerRequest.class);
+    HttpServerResponse response = mock(HttpServerResponse.class);
+    HttpConnection connection = mock(HttpConnection.class);
+
+    when(context.request()).thenReturn(request);
+    when(context.response()).thenReturn(response);
+    when(request.scheme()).thenReturn("http");
+    when(request.authority()).thenReturn(authority());
+    when(request.connection()).thenReturn(connection);
+    when(request.version()).thenReturn(HttpVersion.HTTP_3);
+    when(response.writeAltSvc(anyString())).thenReturn(Future.succeededFuture());
+
+    AltSvcHandler.create(new AltSvcOptions().addOrigin(origin(), "h3:localhost:8443"))
+      .handle(context);
+
+    verify(response).writeAltSvc("h3=\"localhost:8443\"");
+    verify(context, never()).addHeadersEndHandler(any());
+    verify(context).next();
+  }
+
+  @Test
+  public void testOptionsFromJson() {
+    JsonObject json = new JsonObject()
+      .put("origins", new JsonObject().put("http://localhost:8080", "h3:localhost:8443"));
     AltSvcOptions copy = new AltSvcOptions(json);
 
     assertEquals("h3:localhost:8443", json.getJsonObject("origins").getString("http://localhost:8080"));
-    assertEquals(options.getOrigins(), copy.getOrigins());
+    assertEquals("h3:localhost:8443", copy.getOrigins().get("http://localhost:8080"));
+  }
+
+  private String origin() {
+    return "http://localhost:" + server.actualPort();
+  }
+
+  private HostAndPort authority() {
+    return HostAndPort.create("localhost", server.actualPort());
   }
 }
