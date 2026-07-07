@@ -14,7 +14,7 @@
  * under the License.
  */
 
-import fetch from 'node-fetch';
+import { test, expect } from '@playwright/test'
 
 async function fetchTransports() {
   let response = await fetch('http://localhost:8080/transports', {});
@@ -22,33 +22,31 @@ async function fetchTransports() {
   return response.json();
 }
 
-async function runTest(transport, registered, local, expected) {
-  await page.goto('http://localhost:8080/sockjs/writeHandler.html');
-  await page.evaluate((transport, registered, local) => {
+async function runTest(page, transport, registered, local, expected) {
+  await page.goto('/sockjs/writeHandler.html');
+  await page.evaluate(({ transport, registered, local }) => {
     doTest(transport, registered, local);
-  }, transport, registered, local);
-  let element = await page.waitForSelector('div');
-  let text = await page.evaluate(element => element.textContent, element);
-  expect(text).toBe(expected);
+  }, { transport, registered, local });
+  await expect(page.locator('div').first()).toHaveText(expected);
 }
 
-test('unregistered', async () => {
+test('unregistered', async ({ page }) => {
   let transports = await fetchTransports();
   for (let transport of transports) {
-    await runTest(transport, false, true, '');
+    await runTest(page, transport, false, true, '');
   }
-}, 1000 * 60);
+});
 
-test('registered_local', async () => {
+test('registered_local', async ({ page }) => {
   let transports = await fetchTransports();
   for (let transport of transports) {
-    await runTest(transport, true, true, 'foo');
+    await runTest(page, transport, true, true, 'foo');
   }
-}, 1000 * 60);
+});
 
-test('registered_clustered', async () => {
+test('registered_clustered', async ({ page }) => {
   let transports = await fetchTransports();
   for (let transport of transports) {
-    await runTest(transport, true, false, 'foobar');
+    await runTest(page, transport, true, false, 'foobar');
   }
-}, 1000 * 60);
+});

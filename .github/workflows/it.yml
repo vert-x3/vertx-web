@@ -69,6 +69,9 @@ jobs:
       - run: sh vertx-web-graphql/start-graphiql-tests-server.sh
       - run: npm install
         working-directory: vertx-web-graphql/tests/graphiql
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+        working-directory: vertx-web-graphql/tests/graphiql
       - run: npm run test
         working-directory: vertx-web-graphql/tests/graphiql
       - uses: actions/upload-artifact@v4
@@ -101,6 +104,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: sh vertx-web/start-sockjs-write-handler-tests-server.sh
       - run: npm install
+        working-directory: vertx-web/tests/sockjs
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
         working-directory: vertx-web/tests/sockjs
       - run: npm run test
         working-directory: vertx-web/tests/sockjs
