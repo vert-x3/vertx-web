@@ -19,14 +19,8 @@ package io.vertx.ext.web.tests.handler;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.core.http.RequestOptions;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.webauthn4j.RelyingParty;
@@ -35,12 +29,12 @@ import io.vertx.ext.auth.webauthn4j.CredentialStorage;
 import io.vertx.ext.auth.webauthn4j.WebAuthn4J;
 import io.vertx.ext.auth.webauthn4j.WebAuthn4JOptions;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.WebAuthn4JHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.tests.WebTestBase;
-import io.vertx.test.core.TestUtils;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,7 +78,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class WebAuthn4JHandlerTest extends WebTestBase {
@@ -227,22 +220,15 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 	}
 
 	private String testRegistration(ClientPlatform clientPlatform) throws Exception {
-
-		String[] obtainedChallenge = new String[1];
-		String[] obtainedCookie = new String[1];
 		JsonObject registerRequest = new JsonObject()
 				.put("name", username);
-		testRequestBuffer(HttpMethod.POST, "/webauthn/register", req -> {
-			req.send(registerRequest.encode());
-		}, resp -> {
-			String cookie = resp.getHeader(HttpHeaders.SET_COOKIE);
-			obtainedCookie[0] = extractVertxSessionCookie(cookie);
-		}, 200, "OK", buffer -> {
-			JsonObject jsonObject = buffer.toJsonObject();
-			obtainedChallenge[0] = jsonObject.getString("challenge");
-		});
+		HttpResponse<Buffer> regResp = testRequest(
+				webClient.post("/webauthn/register").sendBuffer(Buffer.buffer(registerRequest.encode())),
+				200, "OK");
+		String obtainedCookie = extractVertxSessionCookie(regResp.getHeader(HttpHeaders.SET_COOKIE.toString()));
+		String obtainedChallenge = regResp.body().toJsonObject().getString("challenge");
 
-		DefaultChallenge challenge = new DefaultChallenge(obtainedChallenge[0]);
+		DefaultChallenge challenge = new DefaultChallenge(obtainedChallenge);
 		RegistrationRequest registrationRequest = createRegistrationRequest(clientPlatform, origin.getHost(), challenge, username, displayName);
 		// dummy request
 		JsonObject request = new JsonObject()
@@ -253,26 +239,21 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 						.put("attestationObject", Base64UrlUtil.encodeToString(registrationRequest.getAttestationObject()))
 						.put("clientDataJSON", Base64UrlUtil.encodeToString(registrationRequest.getClientDataJSON())));
 
-		HttpResponse<Buffer> resp = testRequest(webClient.post("/webauthn/callback")
-			.putHeader(HttpHeaders.COOKIE.toString(), obtainedCookie[0])
+		HttpResponse<Buffer> callbackResp = testRequest(webClient.post("/webauthn/callback")
+			.putHeader(HttpHeaders.COOKIE.toString(), obtainedCookie)
 			.sendBuffer(Buffer.buffer(request.encode())), 204, "No Content");
-		String cookie = resp.getHeader(HttpHeaders.SET_COOKIE.toString());
-		obtainedCookie[0] = extractVertxSessionCookie(cookie);
+		obtainedCookie = extractVertxSessionCookie(callbackResp.getHeader(HttpHeaders.SET_COOKIE.toString()));
 
-		testStorage.find(username, null)
-		.onSuccess(authenticators -> {
-			assertNotNull(authenticators);
-			assertEquals(1, authenticators.size());
-			Authenticator authenticator = authenticators.get(0);
-			// Check username, credid, counter, publicKey
-			assertEquals(username, authenticator.getUsername());
-			assertEquals(credId, authenticator.getCredID());
-			assertEquals(1, authenticator.getCounter());
-			assertEquals(publicKey, authenticator.getPublicKey());
-		})
-		.onFailure(x -> fail("Well that did not work"));
+		List<Authenticator> authenticators = testStorage.find(username, null).await();
+		assertNotNull(authenticators);
+		assertEquals(1, authenticators.size());
+		Authenticator authenticator = authenticators.get(0);
+		assertEquals(username, authenticator.getUsername());
+		assertEquals(credId, authenticator.getCredID());
+		assertEquals(1, authenticator.getCounter());
+		assertEquals(publicKey, authenticator.getPublicKey());
 
-		return obtainedCookie[0];
+		return obtainedCookie;
 	}
 
 	private String extractVertxSessionCookie(String cookie) {
@@ -332,21 +313,15 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 	}
 
 	private String testAuthentication(ClientPlatform clientPlatform) throws Exception {
-		String[] obtainedChallenge = new String[1];
-		String[] obtainedCookie = new String[1];
-		JsonObject registerRequest = new JsonObject()
+		JsonObject loginRequest = new JsonObject()
 				.put("name", username);
-		testRequestBuffer(HttpMethod.POST, "/webauthn/login", req -> {
-			req.send(registerRequest.encode());
-		}, resp -> {
-			String cookie = resp.getHeader(HttpHeaders.SET_COOKIE);
-			obtainedCookie[0] = extractVertxSessionCookie(cookie);
-		}, 200, "OK", buffer -> {
-			JsonObject jsonObject = buffer.toJsonObject();
-			obtainedChallenge[0] = jsonObject.getString("challenge");
-		});
+		HttpResponse<Buffer> loginResp = testRequest(
+				webClient.post("/webauthn/login").sendBuffer(Buffer.buffer(loginRequest.encode())),
+				200, "OK");
+		String obtainedCookie = extractVertxSessionCookie(loginResp.getHeader(HttpHeaders.SET_COOKIE.toString()));
+		String obtainedChallenge = loginResp.body().toJsonObject().getString("challenge");
 
-		DefaultChallenge challenge = new DefaultChallenge(obtainedChallenge[0]);
+		DefaultChallenge challenge = new DefaultChallenge(obtainedChallenge);
 		AuthenticationRequest authenticationRequest = createAuthenticationRequest(clientPlatform, origin.getHost(), challenge, username, displayName);
 		// dummy request
 		JsonObject request = new JsonObject()
@@ -358,26 +333,21 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 						.put("authenticatorData", Base64UrlUtil.encodeToString(authenticationRequest.getAuthenticatorData()))
 						.put("clientDataJSON", Base64UrlUtil.encodeToString(authenticationRequest.getClientDataJSON())));
 
-		HttpResponse<Buffer> resp = testRequest(webClient.post("/webauthn/callback")
-			.putHeader(HttpHeaders.COOKIE.toString(), obtainedCookie[0])
+		HttpResponse<Buffer> callbackResp = testRequest(webClient.post("/webauthn/callback")
+			.putHeader(HttpHeaders.COOKIE.toString(), obtainedCookie)
 			.sendBuffer(Buffer.buffer(request.encode())), 204, "No Content");
-		String cookie = resp.getHeader(HttpHeaders.SET_COOKIE.toString());
-		obtainedCookie[0] = extractVertxSessionCookie(cookie);
+		obtainedCookie = extractVertxSessionCookie(callbackResp.getHeader(HttpHeaders.SET_COOKIE.toString()));
 
-		testStorage.find(username, null)
-		.onSuccess(authenticators -> {
-			assertNotNull(authenticators);
-			assertEquals(1, authenticators.size());
-			Authenticator authenticator = authenticators.get(0);
-			// Check username, credid, counter, publicKey
-			assertEquals(username, authenticator.getUsername());
-			assertEquals(credId, authenticator.getCredID());
-			assertEquals(2, authenticator.getCounter());
-			assertEquals(publicKey, authenticator.getPublicKey());
-		})
-		.onFailure(x -> fail("Well that did not work"));
+		List<Authenticator> authenticators = testStorage.find(username, null).await();
+		assertNotNull(authenticators);
+		assertEquals(1, authenticators.size());
+		Authenticator authenticator = authenticators.get(0);
+		assertEquals(username, authenticator.getUsername());
+		assertEquals(credId, authenticator.getCredID());
+		assertEquals(2, authenticator.getCounter());
+		assertEquals(publicKey, authenticator.getPublicKey());
 
-		return obtainedCookie[0];
+		return obtainedCookie;
 	}
 
 	private AuthenticationRequest createAuthenticationRequest(ClientPlatform clientPlatform, String rpId, Challenge challenge, String username, String displayName) {
@@ -406,31 +376,4 @@ public class WebAuthn4JHandlerTest extends WebTestBase {
 
 	}
 
-	protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
-			int statusCode, String statusMessage,
-			Consumer<Buffer> responseBodyBufferAction) throws Exception {
-		RequestOptions requestOptions = new RequestOptions().setMethod(method).setPort(8080).setURI(path).setHost("localhost");
-		Promise<Void> promise = Promise.promise();
-		client.request(requestOptions).compose(req -> {
-			if (requestAction != null) {
-				requestAction.accept(req);
-			}
-			return req.send();
-		}).onComplete(TestUtils.onSuccess(resp -> {
-			assertEquals(statusCode, resp.statusCode());
-			assertEquals(statusMessage, resp.statusMessage());
-			if (responseAction != null) {
-				responseAction.accept(resp);
-			}
-			if (responseBodyBufferAction == null) {
-				promise.complete();
-			} else {
-				resp.bodyHandler(buff -> {
-					responseBodyBufferAction.accept(buff);
-					promise.complete();
-				});
-			}
-		}));
-		promise.future().await();
-	}
 }
