@@ -25,11 +25,22 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.test.core.TestUtils;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static io.vertx.ext.web.AllowForwardHeaders.*;
 
 public class ForwardedTest extends WebTestBase {
+
+  private NetClient netClient;
+
+  @AfterEach
+  void cleanup() {
+    if (netClient != null) {
+      netClient.close().await();
+    }
+  }
 
   @Test
   public void testXForwardSSL() {
@@ -432,14 +443,12 @@ public class ForwardedTest extends WebTestBase {
   }
 
   private void testMissingHostHeader(Checkpoint done, Route route) {
-
     route.handler(rc -> {
       assertNull(rc.request().authority());
       rc.end();
     });
-
-    NetClient tcpClient = vertx.createNetClient();
-    tcpClient.connect(8080, "localhost").onComplete(TestUtils.onSuccess(so -> {
+    netClient = vertx.createNetClient();
+    netClient.connect(8080, "localhost").onComplete(TestUtils.onSuccess(so -> {
       so.write("GET / HTTP/1.1\r\n\r\n");
       so.handler(buff -> {
         done.flag();
