@@ -26,6 +26,8 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.spi.CacheStore;
+import io.netty.util.internal.StringUtil;
+import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -84,6 +86,10 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
 
   private void handleCreateRequest(HttpContext<Buffer> context) {
     RequestOptions request = context.requestOptions();
+    if (options.getCachedMethods().contains(request.getMethod())) {
+      context.set("cache.body_fingerprint", getBodyFingerprint(context.body()));
+    }
+
     Vary variation;
 
     if (!options.getCachedMethods().contains(request.getMethod()) || (variation = selectVariation(request)) == null) {
@@ -92,7 +98,7 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     }
 
     Promise<CachedHttpResponse> promise = Promise.promise();
-    CacheKey key = new CacheKey(request, variation);
+    CacheKey key = new CacheKey(request, variation, context.get("cache.body_fingerprint"));
 
     if (context.privateCacheStore() != null) {
       // Check the local private store first
@@ -238,7 +244,8 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     Vary variation = new Vary(request.headers(), response.headers());
     registerVariation(variationsKey, variation);
 
-    CacheKey key = new CacheKey(context.requestOptions(), variation);
+    String bodyFingerprint = context.get("cache.body_fingerprint");
+    CacheKey key = new CacheKey(context.requestOptions(), variation, bodyFingerprint != null ? bodyFingerprint : "");
     CachedHttpResponse cachedResponse = CachedHttpResponse.wrap(response, cacheControl);
 
     if (cacheControl.isPrivate()) {
@@ -254,5 +261,21 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
 
     updated.add(variation);
     variationsRegistry.put(variationsKey, updated);
+  }
+
+  private static String getBodyFingerprint(Object body) {
+    if (body == null) {
+      return "";
+    }
+    if (body instanceof Buffer) {
+      try {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(((Buffer) body).getBytes());
+        return StringUtil.toHexString(hash);
+      } catch (Exception e) {
+        return body.toString();
+      }
+    }
+    return body.toString();
   }
 }

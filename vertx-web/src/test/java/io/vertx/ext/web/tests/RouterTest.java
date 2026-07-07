@@ -85,6 +85,21 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testQueryRoute() throws Exception {
+    router.query("/contacts").handler(rc -> {
+      String contentType = rc.request().getHeader(HttpHeaders.CONTENT_TYPE);
+      assertEquals("application/x-www-form-urlencoded", contentType);
+      rc.response().setStatusCode(200).end("Query Success");
+    });
+
+    testRequest(
+      webClient.request(HttpMethod.QUERY, "/contacts")
+        .putHeader(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded"),
+      200, "OK", "Query Success"
+    );
+  }
+
+  @Test
   public void testSimpleFunction() throws Exception {
     router.route()
       .respond(rc -> vertx.fileSystem().readFile(rc.queryParams().get("file")));
