@@ -22,7 +22,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-web-parent</artifactId>
-    <version>5.1.4</version>
+    <version>5.1.5-SNAPSHOT</version>
   </parent>
 
   <name>vertx-web-proxy</name>
