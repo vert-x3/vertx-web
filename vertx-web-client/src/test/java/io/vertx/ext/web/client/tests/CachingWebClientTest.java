@@ -154,6 +154,42 @@ public class CachingWebClientTest {
     assertNotCached(defaultClient);
   }
 
+  @Test
+  public void testQueryCaching() throws Exception {
+    CachingWebClientOptions cacheOpts = new CachingWebClientOptions()
+      .addCachedMethod(HttpMethod.QUERY);
+    WebClient queryClient = CachingWebClient.create(buildBaseWebClient(), new TestCacheStore(), cacheOpts);
+
+    server.requestHandler(req -> {
+      req.response().headers().set("Cache-Control", "public, max-age=60");
+      req.bodyHandler(body -> {
+        req.response().end(body.toString() + "|" + UUID.randomUUID().toString());
+      });
+    });
+    server.listen().await();
+
+    Buffer body1 = Buffer.buffer("q=apples");
+    Buffer body2 = Buffer.buffer("q=pears");
+
+    // First request with body1 -> stores cache
+    HttpResponse<Buffer> res1_1 = queryClient.request(HttpMethod.QUERY, "/contacts").sendBuffer(body1).await();
+    // Second request with body1 -> should hit cache (same body, same response)
+    HttpResponse<Buffer> res1_2 = queryClient.request(HttpMethod.QUERY, "/contacts").sendBuffer(body1).await();
+
+    assertEquals(res1_1.bodyAsString(), res1_2.bodyAsString());
+    assertNotNull(res1_2.headers().get(HttpHeaders.AGE));
+
+    // Request with body2 -> should NOT hit cache of body1, should call server and get new response
+    HttpResponse<Buffer> res2_1 = queryClient.request(HttpMethod.QUERY, "/contacts").sendBuffer(body2).await();
+    assertNotEquals(res1_1.bodyAsString(), res2_1.bodyAsString());
+    assertNull(res2_1.headers().get(HttpHeaders.AGE));
+
+    // Second request with body2 -> should hit cache of body2
+    HttpResponse<Buffer> res2_2 = queryClient.request(HttpMethod.QUERY, "/contacts").sendBuffer(body2).await();
+    assertEquals(res2_1.bodyAsString(), res2_2.bodyAsString());
+    assertNotNull(res2_2.headers().get(HttpHeaders.AGE));
+  }
+
   // Non-GET methods that we shouldn't cache
 
   @Test

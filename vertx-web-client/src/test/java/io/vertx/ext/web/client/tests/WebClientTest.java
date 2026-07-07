@@ -2523,6 +2523,72 @@ public class WebClientTest extends WebClientTestBase {
     }
   }
 
+  @Nested
+  class QueryRedirectTest extends SendTestBase {
+
+    private static final String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
+
+    @Override
+    void requestEnd(HttpServerRequest req, Buffer body) {
+      if (req.path().equals("/redirect")) {
+        assertEquals("q=apples", body.toString());
+        req.response().setStatusCode(301).putHeader("Location", location).end();
+      } else {
+        assertEquals(HttpMethod.QUERY, req.method());
+        assertEquals("q=apples", body.toString());
+        req.response().end(req.path());
+      }
+    }
+
+    @Override
+    Future<? extends HttpResponse<?>> send(WebClient client) {
+      return client.request(HttpMethod.QUERY, "/redirect")
+        .followRedirects(true)
+        .sendBuffer(Buffer.buffer("q=apples"));
+    }
+
+    @Override
+    void assertResponse(HttpResponse<?> response) {
+      assertEquals(200, response.statusCode());
+      assertEquals("/ok", response.body().toString());
+      assertEquals(1, response.followedRedirects().size());
+      assertEquals(location, response.followedRedirects().get(0));
+    }
+  }
+
+  @Nested
+  class Query303RedirectTest extends SendTestBase {
+
+    private static final String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
+
+    @Override
+    void requestEnd(HttpServerRequest req, Buffer body) {
+      if (req.path().equals("/redirect")) {
+        assertEquals("q=apples", body.toString());
+        req.response().setStatusCode(303).putHeader("Location", location).end();
+      } else {
+        assertEquals(HttpMethod.GET, req.method());
+        assertEquals(0, body.length());
+        req.response().end(req.path());
+      }
+    }
+
+    @Override
+    Future<? extends HttpResponse<?>> send(WebClient client) {
+      return client.request(HttpMethod.QUERY, "/redirect")
+        .followRedirects(true)
+        .sendBuffer(Buffer.buffer("q=apples"));
+    }
+
+    @Override
+    void assertResponse(HttpResponse<?> response) {
+      assertEquals(200, response.statusCode());
+      assertEquals("/ok", response.body().toString());
+      assertEquals(1, response.followedRedirects().size());
+      assertEquals(location, response.followedRedirects().get(0));
+    }
+  }
+
   private abstract static class WriteStreamBase implements WriteStream<Buffer> {
 
     protected Handler<Throwable> exceptionHandler;
