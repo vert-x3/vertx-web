@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-template-engines</artifactId>
-    <version>5.1.4-SNAPSHOT</version>
+    <version>5.1.4</version>
   </parent>
 
   <name>vertx-web-templ-handlebars</name>
