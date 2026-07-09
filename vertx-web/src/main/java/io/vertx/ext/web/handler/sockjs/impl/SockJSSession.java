@@ -364,36 +364,38 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     this.remoteAddress = req.remoteAddress();
     this.uri = req.uri();
     this.headers = BaseTransport.removeCookieHeaders(req.headers());
-    if (closed) {
-      // Closed by the application
-      writeClosed(lst);
-      // And close the listener request
-      lst.close();
-    } else if (this.listener != null) {
-      writeClosed(lst, 2010, "Another connection still open");
-      // And close the listener request
-      lst.close();
-    } else {
+    synchronized (this) {
+      if (closed) {
+        // Closed by the application
+        writeClosed(lst);
+        // And close the listener request
+        lst.close();
+      } else if (this.listener != null) {
+        writeClosed(lst, 2010, "Another connection still open");
+        // And close the listener request
+        lst.close();
+      } else {
 
-      cancelTimer();
+        cancelTimer();
 
-      this.listener = lst;
+        this.listener = lst;
 
-      if (!openWritten) {
-        writeOpen(lst);
-        sockHandler.handle(this);
-        handleCalled = true;
-      }
+        if (!openWritten) {
+          writeOpen(lst);
+          sockHandler.handle(this);
+          handleCalled = true;
+        }
 
-      if (listener != null) {
-        if (closed) {
-          // Could have already been closed by the user
-          writeClosed(lst);
-          listener = null;
-          lst.close();
-        } else {
-          if (!pendingWrites.isEmpty()) {
-            writePendingMessages();
+        if (listener != null) {
+          if (closed) {
+            // Could have already been closed by the user
+            writeClosed(lst);
+            listener = null;
+            lst.close();
+          } else {
+            if (!pendingWrites.isEmpty()) {
+              writePendingMessages();
+            }
           }
         }
       }

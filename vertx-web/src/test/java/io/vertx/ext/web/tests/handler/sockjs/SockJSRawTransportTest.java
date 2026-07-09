@@ -16,6 +16,7 @@
 package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.junit5.Checkpoint;
@@ -126,31 +127,33 @@ public class SockJSRawTransportTest extends SockJSTestBase {
   private void testWrite(boolean text, Checkpoint checkpoint) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      if (text) {
-        socket.write(expected);
-      } else {
-        socket.write(Buffer.buffer(expected));
-      }
+      socket.handler(msg -> {
+        if (text) {
+          socket.write(expected);
+        } else {
+          socket.write(Buffer.buffer(expected));
+        }
+      });
       socket.endHandler(v -> {
         checkpoint.flag();
       });
     };
     startServers(new SockJSHandlerOptions());
-    wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(ws -> {
-      ws.frameHandler(frame -> {
-        if (frame.isClose()) {
-          //
+    WebSocket ws = wsClient.connect("/test/websocket").await();
+    ws.frameHandler(frame -> {
+      if (frame.isClose()) {
+        //
+      } else {
+        if (text) {
+          assertTrue(frame.isText());
+          assertEquals(expected, frame.textData());
         } else {
-          if (text) {
-            assertTrue(frame.isText());
-            assertEquals(expected, frame.textData());
-          } else {
-            assertTrue(frame.isBinary());
-            assertEquals(Buffer.buffer(expected), frame.binaryData());
-          }
-          ws.end();
+          assertTrue(frame.isBinary());
+          assertEquals(Buffer.buffer(expected), frame.binaryData());
         }
-      });
-    }));
+        ws.end();
+      }
+    });
+    ws.writeTextMessage("ready");
   }
 }

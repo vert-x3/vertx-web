@@ -1399,6 +1399,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
         return client.connect("/eventbus/400/8ne8e94a/websocket").map(ws -> new TransportClient() {
           private Handler<JsonObject> handler;
           private Handler<Void> closeHandler;
+          private boolean closePending;
 
           {
             ws.handler(buff -> {
@@ -1422,6 +1423,8 @@ public abstract class EventbusBridgeTest extends WebTestBase {
             ws.closeHandler(v -> {
               if (closeHandler != null) {
                 closeHandler.handle(v);
+              } else {
+                closePending = true;
               }
             });
           }
@@ -1434,6 +1437,10 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           @Override
           public void closeHandler(Handler<Void> handler) {
             this.closeHandler = handler;
+            if (closePending && handler != null) {
+              closePending = false;
+              handler.handle(null);
+            }
           }
 
           @Override
@@ -1464,6 +1471,7 @@ public abstract class EventbusBridgeTest extends WebTestBase {
         return client.connect(address).map(ws -> new TransportClient() {
           private Handler<JsonObject> handler;
           private Handler<Void> closeHandler;
+          private boolean closePending;
 
           {
             ws.handler(buff -> {
@@ -1477,6 +1485,8 @@ public abstract class EventbusBridgeTest extends WebTestBase {
             ws.closeHandler(v -> {
               if (closeHandler != null) {
                 closeHandler.handle(v);
+              } else {
+                closePending = true;
               }
             });
           }
@@ -1489,6 +1499,10 @@ public abstract class EventbusBridgeTest extends WebTestBase {
           @Override
           public void closeHandler(Handler<Void> handler) {
             this.closeHandler = handler;
+            if (closePending && handler != null) {
+              closePending = false;
+              handler.handle(null);
+            }
           }
 
           @Override

@@ -3024,7 +3024,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testDoNotUseSemicolonDelimiter() throws Exception {
 
-    HttpServerConfig config = new HttpServerConfig(getHttpServerOptions())
+    HttpServerConfig config = new HttpServerConfig(getHttpServerOptions().setPort(0))
       .setQueryParamConfig(new QueryParamDecoderConfig().setUseSemicolonAsDelimiter(false));
 
     server.close().await();
@@ -3040,7 +3040,11 @@ public class RouterTest extends WebTestBase {
         assertEquals("b;c", params.get("a"));
         rc.end();
       });
-    testRequest(HttpMethod.GET, "/?a=b;c", 200, "OK");
+    testRequest(new RequestOptions()
+      .setMethod(HttpMethod.GET)
+      .setPort(server.actualPort())
+      .setHost("localhost")
+      .setURI("/?a=b;c"), 200, "OK", null);
   }
 
   @Test
