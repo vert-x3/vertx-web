@@ -20,7 +20,7 @@ module io.vertx.web.template.handlebars {
   requires io.netty.common;
   requires io.vertx.core;
   requires io.vertx.web.common;
-  requires handlebars; // Automatic module
+  requires com.github.jknack.handlebars;
 
   exports io.vertx.ext.web.templ.handlebars;
 }
