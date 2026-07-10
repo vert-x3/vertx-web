@@ -17,7 +17,6 @@
 package io.vertx.ext.web.tests.handler.sockjs;
 
 import io.vertx.core.MultiMap;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
@@ -306,22 +305,17 @@ public class SockJSHandlerTest extends WebTestBase {
   private WebSocket setupSockJsClient(String serverPath, List<Buffer> receivedMessagesCollector, Runnable onClose) {
     String requestURI = serverPath + "/000/000/websocket";
 
-    Promise<WebSocket> promise = Promise.promise();
-    wsClient.connect(requestURI).onComplete(TestUtils.onSuccess(ws -> {
-      ws.handler(replyBuffer -> {
-        log.debug("Client received " + replyBuffer);
-        String textReply = replyBuffer.toString();
-        if ("o".equals(textReply)) {
-          promise.complete(ws);
-        } else {
-          receivedMessagesCollector.add(replyBuffer);
-        }
-      });
-      ws.endHandler(v -> onClose.run());
-      ws.exceptionHandler(err -> fail(err.getMessage()));
-    }));
-
-    return promise.future().await();
+    WebSocket ws = wsClient.connect(requestURI).await();
+    ws.handler(replyBuffer -> {
+      log.debug("Client received " + replyBuffer);
+      String textReply = replyBuffer.toString();
+      if (!"o".equals(textReply)) {
+        receivedMessagesCollector.add(replyBuffer);
+      }
+    });
+    ws.endHandler(v -> onClose.run());
+    ws.exceptionHandler(err -> fail(err.getMessage()));
+    return ws;
   }
 
   /**

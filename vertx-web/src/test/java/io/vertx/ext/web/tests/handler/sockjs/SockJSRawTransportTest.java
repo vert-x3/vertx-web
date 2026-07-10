@@ -46,28 +46,30 @@ public class SockJSRawTransportTest extends SockJSTestBase {
   public void disableHost(Checkpoint checkpoint) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(expected);
+      socket.handler(msg -> {
+        socket.write(expected);
+      });
       socket.endHandler(v -> {
         checkpoint.flag();
       });
     };
     startServers(new SockJSHandlerOptions());
-    wsClient.connect(
+    WebSocket ws = wsClient.connect(
       new WebSocketConnectOptions()
         .setHost("localhost")
         .setPort(8080)
         .setURI("/test/websocket")
-        .setAllowOriginHeader(false)).onComplete(TestUtils.onSuccess(ws -> {
-        ws.frameHandler(frame -> {
-          if (frame.isClose()) {
-            //
-          } else {
-            assertTrue(frame.isText());
-            assertEquals(expected, frame.textData());
-            ws.end();
-          }
-        });
-      }));
+        .setAllowOriginHeader(false)).await();
+    ws.frameHandler(frame -> {
+      if (frame.isClose()) {
+        //
+      } else {
+        assertTrue(frame.isText());
+        assertEquals(expected, frame.textData());
+        ws.end();
+      }
+    });
+    ws.writeTextMessage("ready");
   }
 
   @Test
@@ -92,23 +94,25 @@ public class SockJSRawTransportTest extends SockJSTestBase {
   public void goodOrigin(Checkpoint checkpoint) throws Exception {
     String expected = TestUtils.randomAlphaString(64);
     socketHandler = () -> socket -> {
-      socket.write(expected);
+      socket.handler(msg -> {
+        socket.write(expected);
+      });
       socket.endHandler(v -> {
         checkpoint.flag();
       });
     };
     startServers(new SockJSHandlerOptions().setOrigin("http://localhost:8080"));
-    wsClient.connect("/test/websocket").onComplete(TestUtils.onSuccess(ws -> {
-      ws.frameHandler(frame -> {
-        if (frame.isClose()) {
-          //
-        } else {
-          assertTrue(frame.isText());
-          assertEquals(expected, frame.textData());
-          ws.end();
-        }
-      });
-    }));
+    WebSocket ws = wsClient.connect("/test/websocket").await();
+    ws.frameHandler(frame -> {
+      if (frame.isClose()) {
+        //
+      } else {
+        assertTrue(frame.isText());
+        assertEquals(expected, frame.textData());
+        ws.end();
+      }
+    });
+    ws.writeTextMessage("ready");
   }
 
   @Test
