@@ -838,6 +838,84 @@ public interface WebClient {
   }
 
   /**
+   * Create an HTTP QUERY request to send to the server at the default host and port.
+   * @param requestURI the request URI
+   * @return  an HTTP client request object
+   */
+  default HttpRequest<Buffer> query(String requestURI) {
+    return request(HttpMethod.QUERY, requestURI);
+  }
+
+  /**
+   * Create an HTTP QUERY request to send to the server at the default host and port.
+   * @param requestURI the request URI as a {@link UriTemplate}
+   * @return  an HTTP client request object
+   */
+  default HttpRequest<Buffer> query(UriTemplate requestURI) {
+    return request(HttpMethod.QUERY, requestURI);
+  }
+
+  /**
+   * Create an HTTP QUERY request to send to the server at the specified host and port.
+   * @param port  the port
+   * @param host  the host
+   * @param requestURI the request URI
+   * @return  an HTTP client request object
+   */
+  default HttpRequest<Buffer> query(int port, String host, String requestURI) {
+    return request(HttpMethod.QUERY, port, host, requestURI);
+  }
+
+  /**
+   * Create an HTTP QUERY request to send to the server at the specified host and port.
+   * @param port  the port
+   * @param host  the host
+   * @param requestURI the request URI as a {@link UriTemplate}
+   * @return  an HTTP client request object
+   */
+  default HttpRequest<Buffer> query(int port, String host, UriTemplate requestURI) {
+    return request(HttpMethod.QUERY, port, host, requestURI);
+  }
+
+  /**
+   * Create an HTTP QUERY request to send to the server at the specified host and default port.
+   * @param host  the host
+   * @param requestURI the request URI
+   * @return  an HTTP client request object
+   */
+  default HttpRequest<Buffer> query(String host, String requestURI) {
+    return request(HttpMethod.QUERY, host, requestURI);
+  }
+
+  /**
+   * Create an HTTP QUERY request to send to the server at the specified host and default port.
+   * @param host  the host
+   * @param requestURI the request URI as a {@link UriTemplate}
+   * @return  an HTTP client request object
+   */
+  default HttpRequest<Buffer> query(String host, UriTemplate requestURI) {
+    return request(HttpMethod.QUERY, host, requestURI);
+  }
+
+  /**
+   * Create an HTTP QUERY request to send to the server using an absolute URI.
+   * @param absoluteURI  the absolute URI
+   * @return  an HTTP client request object
+   */
+  default HttpRequest<Buffer> queryAbs(String absoluteURI) {
+    return requestAbs(HttpMethod.QUERY, absoluteURI);
+  }
+
+  /**
+   * Create an HTTP QUERY request to send to the server using an absolute URI.
+   * @param absoluteURI the absolute URI as a {@link UriTemplate}
+   * @return  an HTTP client request object
+   */
+  default HttpRequest<Buffer> queryAbs(UriTemplate absoluteURI) {
+    return requestAbs(HttpMethod.QUERY, absoluteURI);
+  }
+
+  /**
    * Add interceptor in the chain.
    * <p/>
    * The interceptor can maintain per request state with {@link HttpContext#get(String)}/{@link HttpContext#set(String, Object)}.
