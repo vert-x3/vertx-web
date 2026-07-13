@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.api.service.RouteToEBServiceHandler;
+import io.vertx.ext.web.api.service.ServiceResponse;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.impl.UserContextInternal;
 import io.vertx.ext.web.validation.tests.BaseValidationHandlerTest;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 
@@ -284,6 +286,35 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       );
 
     testRequest(client, HttpMethod.GET, "/test")
+      .expect(statusCode(200), statusMessage("OK"))
+      .expect(bodyResponse(Buffer.buffer(new byte[]{(byte) 0xb0}), "application/octet-stream"))
+      .send(checkpoint);
+  }
+
+  @Test
+  public void binaryDataFromFileResponseTest(Vertx vertx, Checkpoint checkpoint) throws IOException {
+    Path payloadFile = Files.createTempFile("vertx-web-api-service-", ".bin");
+    payloadFile.toFile().deleteOnExit();
+    Files.write(payloadFile, new byte[]{(byte) 0xb0});
+
+    consumer = vertx.eventBus().consumer("someAddress", msg -> {
+      ServiceResponse serviceResponse = new ServiceResponse()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader(HttpHeaders.CONTENT_TYPE.toString(), "application/octet-stream")
+        .setPayloadFile(payloadFile.toString());
+      msg.reply(serviceResponse.toJson());
+    });
+
+    router
+      .get("/test-file")
+      .handler(
+        ValidationHandlerBuilder.create(schemaRepo).build()
+      ).handler(
+        RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "binaryFileTest")
+      );
+
+    testRequest(client, HttpMethod.GET, "/test-file")
       .expect(statusCode(200), statusMessage("OK"))
       .expect(bodyResponse(Buffer.buffer(new byte[]{(byte) 0xb0}), "application/octet-stream"))
       .send(checkpoint);
