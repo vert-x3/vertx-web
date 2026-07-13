@@ -13,11 +13,9 @@ package io.vertx.ext.web.client.impl;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import io.netty.handler.codec.http.cookie.Cookie;
-import io.vertx.core.internal.net.RFC3986;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**

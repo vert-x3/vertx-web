@@ -13,7 +13,6 @@ package io.vertx.ext.web.client.spi;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.vertx.ext.web.client.impl.CookieStoreImpl;
 
-import java.util.Iterator;
 
 /**
  * A cookie store that manages cookies for a single user; received for different domains and valid for different paths.
