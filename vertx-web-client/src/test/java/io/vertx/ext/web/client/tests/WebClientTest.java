@@ -400,6 +400,18 @@ public class WebClientTest extends WebClientTestBase {
   }
 
   @Nested
+  class QueryMethodTest extends SendTestBase {
+    @Override
+    void requestBegin(HttpServerRequest req) {
+      assertEquals(HttpMethod.QUERY, req.method());
+    }
+    @Override
+    Future<HttpResponse<Buffer>> send(WebClient client) {
+      return client.query(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath").send();
+    }
+  }
+
+  @Nested
   class QueryParamTest extends SendTestBase {
     @Override
     void requestBegin(HttpServerRequest req) {
@@ -876,6 +888,13 @@ public class WebClientTest extends WebClientTestBase {
   public class SendFilePatchTest extends SendFileTestBase {
     public SendFilePatchTest() {
       super(HttpMethod.PATCH, false);
+    }
+  }
+
+  @Nested
+  public class SendFileQueryTest extends SendFileTestBase {
+    public SendFileQueryTest() {
+      super(HttpMethod.QUERY, false);
     }
   }
 
