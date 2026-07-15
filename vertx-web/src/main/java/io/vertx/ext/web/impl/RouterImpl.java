@@ -175,6 +175,21 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  public Route query() {
+    return route().method(HttpMethod.QUERY);
+  }
+
+  @Override
+  public Route query(String path) {
+    return route(HttpMethod.QUERY, path);
+  }
+
+  @Override
+  public Route queryWithRegex(String path) {
+    return route().method(HttpMethod.QUERY).pathRegex(path);
+  }
+
+  @Override
   public Route delete() {
     return route().method(HttpMethod.DELETE);
   }
