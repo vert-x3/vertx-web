@@ -5,7 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.*;
-import io.vertx.core.internal.CloseFuture;
+import io.vertx.core.internal.CloseableResource;
 import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.internal.VertxInternal;
 import io.vertx.core.json.JsonObject;
@@ -29,15 +29,16 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
   private static final String DEFAULT_SESSION_CACHE_NAME = "vertx-web.caffeine.sessions";
 
 
-  private Cache<String, Session> localCaffeineCache;
+  private CloseableResource<CaffeineCache> resource;
   private VertxContextPRNG random;
-  private String sessionCacheName;
-  private Closeable closeable;
-
   private VertxInternal vertx;
 
   public CaffeineSessionStoreImpl() {
     // required for the service loader
+  }
+
+  private Cache<String, Session> cache() {
+    return resource.get().cache;
   }
 
   @Override
@@ -50,24 +51,42 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
     return new SharedDataSessionImpl(random, timeout, length);
   }
 
+  static class CaffeineCache implements io.vertx.core.internal.Closeable {
+
+    private final Cache<String, Session> cache;
+
+    public CaffeineCache(Cache<String, Session> cache) {
+      this.cache = cache;
+    }
+
+    @Override
+    public Future<Void> shutdown(Duration timeout) {
+      return null;
+    }
+  }
+
   @Override
   public SessionStore init(Vertx vertx, JsonObject options) {
+
+    ContextInternal ctx = ((VertxInternal) vertx).getOrCreateContext();
+    String cacheName = options.getString("cacheName", DEFAULT_SESSION_CACHE_NAME);
+
+    CloseableResource<CaffeineCache> resource = ((VertxInternal) vertx).createSharedResource(
+      "__vertx.shared.caffeine.sessions.store",
+      cacheName,
+      () -> {
+        Cache<String, Session> localCaffeineCache = Caffeine.newBuilder()
+          .executor(cmd -> ctx.runOnContext(v -> cmd.run()))
+          .expireAfter(Expiry.accessing((String key, Session session) ->
+            Duration.ofMillis(session.timeout())))
+          .build();
+        return new CaffeineCache(localCaffeineCache);
+      });
+
     // initialize a secure random
     this.random = VertxContextPRNG.current(vertx);
     this.vertx = (VertxInternal) vertx;
-    this.sessionCacheName = options.getString("cacheName", DEFAULT_SESSION_CACHE_NAME);
-    final ContextInternal ctx = ((VertxInternal) vertx).getOrCreateContext();
-    CloseFuture closeFuture = new CloseFuture();
-    localCaffeineCache = this.vertx.createSharedResource("__vertx.shared.caffeine.sessions.store", sessionCacheName, closeFuture, cf_ -> {
-      Cache<String, Session> localCaffeineCache = Caffeine.newBuilder()
-        .executor(cmd -> ctx.runOnContext(v -> cmd.run()))
-        .expireAfter(Expiry.accessing((String key, Session session) ->
-          Duration.ofMillis(session.timeout())))
-        .build();
-      cf_.add(Completable::succeed);
-      return localCaffeineCache;
-    });
-    closeable = closeFuture;
+    this.resource = resource;
     return this;
   }
 
@@ -79,20 +98,20 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
   @Override
   public Future<@Nullable Session> get(String id) {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    return ctx.succeededFuture(localCaffeineCache.getIfPresent(id));
+    return ctx.succeededFuture(cache().getIfPresent(id));
   }
 
   @Override
   public Future<Void> delete(String id) {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    localCaffeineCache.invalidate(id);
+    cache().invalidate(id);
     return ctx.succeededFuture();
   }
 
   @Override
   public Future<Void> put(Session session) {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    final AbstractSession oldSession = (AbstractSession) localCaffeineCache.getIfPresent(session.id());
+    final AbstractSession oldSession = (AbstractSession) cache().getIfPresent(session.id());
     final AbstractSession newSession = (AbstractSession) session;
 
     if (oldSession != null) {
@@ -103,26 +122,25 @@ public class CaffeineSessionStoreImpl implements SessionStore, CaffeineSessionSt
     }
 
     newSession.incrementVersion();
-    localCaffeineCache.put(session.id(), session);
+    cache().put(session.id(), session);
     return ctx.succeededFuture();
   }
 
   @Override
   public Future<Void> clear() {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    localCaffeineCache.invalidateAll();
+    cache().invalidateAll();
     return ctx.succeededFuture();
   }
 
   @Override
   public Future<Integer> size() {
     final ContextInternal ctx = vertx.getOrCreateContext();
-    return ctx.succeededFuture((int) localCaffeineCache.estimatedSize());
+    return ctx.succeededFuture((int) cache().estimatedSize());
   }
 
   @Override
   public void close() {
-    closeable.close(Promise.promise());
+    resource.close();
   }
-
 }
