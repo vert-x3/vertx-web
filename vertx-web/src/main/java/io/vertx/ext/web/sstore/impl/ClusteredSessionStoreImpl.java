@@ -113,6 +113,9 @@ public class ClusteredSessionStoreImpl implements SessionStore, ClusteredSession
               if (oldSession.version() != newSession.version()) {
                 return ctx.failedFuture("Session version mismatch");
               }
+            } else if (newSession.isPersisted() && !newSession.isRegenerated()) {
+              // the session was in the store but is not anymore (e.g.: deleted by a concurrent request), do not resurrect it
+              return ctx.failedFuture("Session was deleted from the store");
             }
 
             // we can now safely store the new version

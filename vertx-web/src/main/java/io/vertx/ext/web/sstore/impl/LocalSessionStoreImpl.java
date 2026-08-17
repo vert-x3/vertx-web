@@ -109,6 +109,9 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
       if (oldSession.version() != newSession.version()) {
         return ctx.failedFuture("Session version mismatch");
       }
+    } else if (newSession.isPersisted() && !newSession.isRegenerated()) {
+      // the session was in the store but is not anymore (e.g.: deleted by a concurrent request), do not resurrect it
+      return ctx.failedFuture("Session was deleted from the store");
     }
 
     newSession.incrementVersion();
