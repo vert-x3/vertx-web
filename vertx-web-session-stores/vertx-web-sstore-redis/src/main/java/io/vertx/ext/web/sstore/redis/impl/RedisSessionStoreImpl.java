@@ -116,6 +116,9 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
         if (oldSession.version() != newSession.version()) {
           return Future.failedFuture("Session version mismatch");
         }
+      } else if (newSession.isPersisted() && !newSession.isRegenerated()) {
+        // the session was in the store but is not anymore (e.g.: deleted by a concurrent request), do not resurrect it
+        return Future.failedFuture("Session was deleted from the store");
       }
 
       newSession.incrementVersion();
