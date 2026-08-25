@@ -88,7 +88,13 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
           authProvider
             .authenticate(new TokenCredentials(token))
             .andThen(op -> audit.audit(Marker.AUTHENTICATION, op.succeeded()))
-            .recover(err -> Future.failedFuture(new HttpException(401, err)));
+            .recover(err -> Future.failedFuture(new HttpException(401, err)))
+            // validate the scopes eagerly, so chained handlers (ChainAuthHandler) can
+            // recover from a scope mismatch and attempt the next handler in the chain
+            .compose(user ->
+                validateScopes(context, user)
+                .recover(err -> Future.failedFuture(new HttpException(403, err)))
+            );
       });
   }
 
@@ -125,18 +131,29 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
       return;
     }
     // the user is authenticated, however the user may not have all the required scopes
+    validateScopes(ctx, user)
+      .onSuccess(u -> ctx.next())
+      .onFailure(err -> ctx.fail(403, err));
+  }
+
+  /**
+   * Verifies that the given user token contains all the scopes required by this handler
+   * (or by the route metadata).
+   *
+   * @return a succeeded future with the given user if the scopes are valid, a failed future
+   *         with the validation failure otherwise
+   */
+  private Future<User> validateScopes(RoutingContext ctx, User user) {
     final List<String> scopes = getScopesOrSearchMetadata(this.scopes, ctx);
 
     if (scopes.size() > 0) {
       final JsonObject jwt = user.get("accessToken");
       if (jwt == null) {
-        ctx.fail(403, new VertxException("Invalid JWT: null", true));
-        return;
+        return Future.failedFuture(new VertxException("Invalid JWT: null", true));
       }
 
       if (jwt.getValue("scope") == null) {
-        ctx.fail(403, new VertxException("Invalid JWT: scope claim is required", true));
-        return;
+        return Future.failedFuture(new VertxException("Invalid JWT: scope claim is required", true));
       }
 
       List<?> target;
@@ -152,12 +169,11 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
       if (target != null) {
         for (String scope : scopes) {
           if (!target.contains(scope)) {
-            ctx.fail(403, new VertxException("JWT scopes != handler scopes", true));
-            return;
+            return Future.failedFuture(new VertxException("JWT scopes != handler scopes", true));
           }
         }
       }
     }
-    ctx.next();
+    return Future.succeededFuture(user);
   }
 }
