@@ -184,4 +184,48 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>Java21</id>
+      <activation>
+        <jdk>[21,)</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>tools.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>jackson3-jsoncodec-itest</id>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+                <configuration>
+                  <useModulePath>false</useModulePath>
+                  <includes>
+                    <include>io/vertx/ext/web/it/JsonCodecJackson3Test.java</include>
+                  </includes>
+                  <classpathDependencyExcludes>
+                    <classpathDependencyExclude>com.fasterxml.jackson.core:jackson-core</classpathDependencyExclude>
+                    <classpathDependencyExclude>com.fasterxml.jackson.core:jackson-databind</classpathDependencyExclude>
+                    <classpathDependencyExclude>com.fasterxml.jackson.core:jackson-annotations</classpathDependencyExclude>
+                  </classpathDependencyExcludes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
