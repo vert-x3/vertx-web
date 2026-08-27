@@ -32,15 +32,10 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.io.CharTypes;
 import io.vertx.core.json.EncodeException;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,81 +52,93 @@ import java.util.List;
  */
 public class JsonCodec {
 
-  private static final JsonFactory factory = new JsonFactory();
-
-  // By default, Jackson does not escape unicode characters in JSON strings
-  // This should be ok, since a valid JSON string can contain unescaped JSON
-  // characters.
-  // However, SockJS requires that many unicode chars are escaped. This may
-  // be due to browsers barfing over certain unescaped characters
-  // So... when encoding strings we make sure all unicode chars are escaped
-
-  // This code was adapted from http://wiki.fasterxml.com/JacksonSampleQuoteChars
-
   private static final char[] HEX_CHARS = "0123456789abcdef".toCharArray();
-  private static final int[] ESCAPE_CODES = CharTypes.get7BitOutputEscapes();
 
-  private static void writeUnicodeEscape(JsonGenerator gen, char c) throws IOException {
-    gen.writeRaw('\\');
-    gen.writeRaw('u');
-    gen.writeRaw(HEX_CHARS[(c >> 12) & 0xF]);
-    gen.writeRaw(HEX_CHARS[(c >> 8) & 0xF]);
-    gen.writeRaw(HEX_CHARS[(c >> 4) & 0xF]);
-    gen.writeRaw(HEX_CHARS[c & 0xF]);
+  // Escape table for the first 128 characters (replicates Jackson CharTypes.get7BitOutputEscapes()).
+  // 0 = no escaping, -1 = full unicode escape, positive = short escape char code.
+  private static final int[] ESCAPE_CODES;
+
+  static {
+    ESCAPE_CODES = new int[128];
+    for (int i = 0; i < 32; i++) {
+      ESCAPE_CODES[i] = -1;
+    }
+    ESCAPE_CODES['"'] = '"';
+    ESCAPE_CODES['\\'] = '\\';
+    ESCAPE_CODES[0x08] = 'b';
+    ESCAPE_CODES[0x09] = 't';
+    ESCAPE_CODES[0x0C] = 'f';
+    ESCAPE_CODES[0x0A] = 'n';
+    ESCAPE_CODES[0x0D] = 'r';
   }
 
-  private static void writeShortEscape(JsonGenerator gen, char c) throws IOException {
-    gen.writeRaw('\\');
-    gen.writeRaw(c);
+  private static void writeUnicodeEscape(StringBuilder sb, char c) {
+    sb.append('\\');
+    sb.append('u');
+    sb.append(HEX_CHARS[(c >> 12) & 0xF]);
+    sb.append(HEX_CHARS[(c >> 8) & 0xF]);
+    sb.append(HEX_CHARS[(c >> 4) & 0xF]);
+    sb.append(HEX_CHARS[c & 0xF]);
+  }
+
+  private static void writeShortEscape(StringBuilder sb, char c) {
+    sb.append('\\');
+    sb.append(c);
   }
 
   public static String encode(String[] messages) throws EncodeException {
-    StringWriter sw = new StringWriter();
-    try (JsonGenerator gen = factory.createGenerator(sw)) {
-      gen.writeStartArray();
+    try {
+      StringBuilder sb = new StringBuilder();
+      sb.append('[');
       boolean first = true;
       for (String message : messages) {
         if (first) {
           first = false;
         } else {
-          gen.writeRaw(',');
+          sb.append(',');
         }
-        gen.writeRaw('"');
-        for (char c : message.toCharArray()) {
-          if (c >= 0x80) writeUnicodeEscape(gen, c); // use generic escaping for all non US-ASCII characters
-          else {
-            // use escape table for first 128 characters
+        sb.append('"');
+        for (int i = 0; i < message.length(); i++) {
+          char c = message.charAt(i);
+          if (c >= 0x80) {
+            writeUnicodeEscape(sb, c);
+          } else {
             int code = (c < ESCAPE_CODES.length ? ESCAPE_CODES[c] : 0);
-            if (code == 0) gen.writeRaw(c); // no escaping
-            else if (code == -1) writeUnicodeEscape(gen, c); // generic escaping
-            else writeShortEscape(gen, (char) code); // short escaping (\n \t ...)
+            if (code == 0) {
+              sb.append(c);
+            } else if (code == -1) {
+              writeUnicodeEscape(sb, c);
+            } else {
+              writeShortEscape(sb, (char) code);
+            }
           }
         }
-        gen.writeRaw('"');
+        sb.append('"');
       }
-      gen.writeEndArray();
-      gen.close();
-      return sw.toString();
+      sb.append(']');
+      return sb.toString();
     } catch (Exception e) {
       throw new EncodeException("Failed to encode as JSON", e);
     }
   }
 
   public static List<String> decodeValues(String messages) {
-    List<String> result = null;
-    try (JsonParser parser = factory.createParser(messages)) {
-      JsonToken jsonToken = parser.nextToken();
-      if (jsonToken == JsonToken.START_ARRAY) {
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
-          if (result == null) {
-            result = new ArrayList<>();
-          }
-          result.add(parser.getValueAsString());
+    if (messages == null || messages.isEmpty()) {
+      return Collections.emptyList();
+    }
+    try {
+      Object decoded = Json.decodeValue(messages);
+      if (decoded instanceof JsonArray) {
+        JsonArray array = (JsonArray) decoded;
+        List<String> result = new ArrayList<>(array.size());
+        for (int i = 0; i < array.size(); i++) {
+          result.add(array.getString(i));
         }
-      } else if (jsonToken == JsonToken.VALUE_STRING) {
-        result = Collections.singletonList(parser.getValueAsString());
+        return result;
+      } else if (decoded instanceof String) {
+        return Collections.singletonList((String) decoded);
       }
-      return result != null ? result : Collections.emptyList();
+      return Collections.emptyList();
     } catch (Exception ignore) {
       return null;
     }
