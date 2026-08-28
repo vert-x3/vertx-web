@@ -90,6 +90,13 @@ public interface RequestBody {
   @Nullable Buffer buffer();
 
   /**
+   * @return Get the uploaded request body as a file name when
+   * {@link io.vertx.ext.web.handler.BodyHandler} is configured to stream the body to a file.
+   * The context must have first been routed to a {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   */
+  @Nullable String asFile();
+
+  /**
    * @return Get the entire HTTP request body as a POJO. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    * <br/>

@@ -22,7 +22,9 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.FileSystem;
+import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -53,6 +55,7 @@ public class BodyHandlerImpl implements BodyHandler {
   private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
   private boolean deleteUploadedFilesOnEnd = DEFAULT_DELETE_UPLOADED_FILES_ON_END;
   private boolean isPreallocateBodyBuffer = DEFAULT_PREALLOCATE_BODY_BUFFER;
+  private boolean bodyAsFile = DEFAULT_BODY_AS_FILE;
   private static final int DEFAULT_INITIAL_BODY_BUFFER_SIZE = 1024; //bytes
 
 
@@ -181,6 +184,12 @@ public class BodyHandlerImpl implements BodyHandler {
     return this;
   }
 
+  @Override
+  public BodyHandler setBodyAsFile(boolean bodyAsFile) {
+    this.bodyAsFile = bodyAsFile;
+    return this;
+  }
+
   private long parseContentLengthHeader(HttpServerRequest request) {
     String contentLength = request.getHeader(HttpHeaders.CONTENT_LENGTH);
     if (contentLength == null || contentLength.isEmpty()) {
@@ -206,17 +215,13 @@ public class BodyHandlerImpl implements BodyHandler {
     long uploadSize = 0L;
     final boolean isMultipart;
     final boolean isUrlEncoded;
+    final boolean storeBodyAsFile;
+    AsyncFile bodyFile;
+    String bodyFileName;
 
     public BHandler(RoutingContext context, long contentLength) {
       this.context = context;
       this.contentLength = contentLength;
-      // the request clearly states that there should
-      // be a body, so we respect the client and ensure
-      // that the body will not be null
-      if (contentLength != -1) {
-        initBodyBuffer();
-      }
-
       List<FileUpload> fileUploads = context.fileUploads();
 
       final String contentType = context.request().getHeader(HttpHeaders.CONTENT_TYPE);
@@ -227,6 +232,23 @@ public class BodyHandlerImpl implements BodyHandler {
         final String lowerCaseContentType = contentType.toLowerCase();
         isMultipart = lowerCaseContentType.startsWith(HttpHeaderValues.MULTIPART_FORM_DATA.toString());
         isUrlEncoded = lowerCaseContentType.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString());
+      }
+      storeBodyAsFile = bodyAsFile && !isMultipart && !isUrlEncoded;
+
+      // the request clearly states that there should
+      // be a body, so we respect the client and ensure
+      // that the body will not be null
+      if (contentLength != -1 && !storeBodyAsFile) {
+        initBodyBuffer();
+      }
+
+      if (storeBodyAsFile) {
+        makeUploadDir(context.vertx().fileSystem());
+        bodyFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
+        bodyFile = context.vertx().fileSystem().openBlocking(bodyFileName, new OpenOptions()
+          .setCreate(true)
+          .setWrite(true)
+          .setTruncateExisting(true));
       }
 
       if (isMultipart || isUrlEncoded) {
@@ -266,6 +288,8 @@ public class BodyHandlerImpl implements BodyHandler {
 
       context.request().exceptionHandler(t -> {
         context.cancelAndCleanupFileUploads();
+        closeBodyFile().onFailure(err -> LOG.warn("Failed to close request body file", err));
+        cleanupBodyFile();
         int sc = 200;
         if (t instanceof DecoderException) {
           // bad request
@@ -310,17 +334,51 @@ public class BodyHandlerImpl implements BodyHandler {
       if (bodyLimit != -1 && uploadSize > bodyLimit) {
         failed = true;
         context.cancelAndCleanupFileUploads();
+        closeBodyFile().onFailure(err -> LOG.warn("Failed to close request body file", err));
+        cleanupBodyFile();
         context.fail(413);
       } else {
         // multipart requests will not end up in the request body
         // url encoded should also not, however jQuery by default
         // post in urlencoded even if the payload is something else
         if (!isMultipart /* && !isUrlEncoded */) {
-          if (body == null) {
-            initBodyBuffer();
+          if (storeBodyAsFile) {
+            uploadCount.incrementAndGet();
+            Future<Void> write = bodyFile.write(buff);
+            write.onComplete(ar -> {
+              if (ar.succeeded()) {
+                uploadEnded();
+              } else if (!failed) {
+                failed = true;
+                context.cancelAndCleanupFileUploads();
+                closeBodyFile().onFailure(err -> LOG.warn("Failed to close request body file", err));
+                cleanupBodyFile();
+                context.fail(ar.cause());
+              }
+            });
+          } else {
+            if (body == null) {
+              initBodyBuffer();
+            }
+            body.appendBuffer(buff);
           }
-          body.appendBuffer(buff);
         }
+      }
+    }
+
+    private Future<Void> closeBodyFile() {
+      if (bodyFile != null) {
+        AsyncFile file = bodyFile;
+        bodyFile = null;
+        return file.close();
+      }
+      return Future.succeededFuture();
+    }
+
+    private void cleanupBodyFile() {
+      if (bodyFileName != null) {
+        context.vertx().fileSystem().delete(bodyFileName)
+          .onFailure(err -> LOG.debug("Failed to delete request body file " + bodyFileName, err));
       }
     }
 
@@ -347,22 +405,39 @@ public class BodyHandlerImpl implements BodyHandler {
 
       if (failed || context.failed()) {
         context.cancelAndCleanupFileUploads();
+        closeBodyFile().onFailure(err -> LOG.warn("Failed to close request body file", err));
+        cleanupBodyFile();
         return;
       }
 
       if (deleteUploadedFilesOnEnd) {
-        context.addBodyEndHandler(x -> context.cancelAndCleanupFileUploads());
+        final String bodyFileForDeletion = bodyFileName;
+        context.addBodyEndHandler(x -> {
+          context.cancelAndCleanupFileUploads();
+          if (bodyFileForDeletion != null) {
+            context.vertx().fileSystem().delete(bodyFileForDeletion)
+              .onFailure(err -> LOG.debug("Failed to delete request body file " + bodyFileForDeletion, err));
+          }
+        });
       }
 
       HttpServerRequest req = context.request();
       if (mergeFormAttributes && req.isExpectMultipart()) {
         req.params().addAll(req.formAttributes());
       }
-      ((RoutingContextInternal) context).setBody(body);
-      // release body as it may take lots of memory
-      body = null;
-
-      context.next();
+      closeBodyFile().onComplete(ar -> {
+        if (ar.failed()) {
+          failed = true;
+          context.cancelAndCleanupFileUploads();
+          cleanupBodyFile();
+          context.fail(ar.cause());
+          return;
+        }
+        ((RoutingContextInternal) context).setBody(body, bodyFileName, (int) Math.min(uploadSize, Integer.MAX_VALUE));
+        // release body as it may take lots of memory
+        body = null;
+        context.next();
+      });
     }
   }
 }

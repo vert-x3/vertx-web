@@ -58,6 +58,11 @@ public interface BodyHandler extends Handler<RoutingContext> {
   boolean DEFAULT_PREALLOCATE_BODY_BUFFER = false;
 
   /**
+   * Default value of whether non multipart/non url-encoded request bodies should be streamed to a file.
+   */
+  boolean DEFAULT_BODY_AS_FILE = false;
+
+  /**
    * Create a body handler with defaults.
    *
    * @return the body handler
@@ -141,5 +146,17 @@ public interface BodyHandler extends Handler<RoutingContext> {
    */
   @Fluent
   BodyHandler setPreallocateBodyBuffer(boolean isPreallocateBodyBuffer);
+
+  /**
+   * Set whether non multipart/non url-encoded request bodies should be streamed to a file.
+   * <p>
+   * When enabled, the body is not kept in memory and can be retrieved with {@link RoutingContext#body()}
+   * and {@link io.vertx.ext.web.RequestBody#asFile()}.
+   *
+   * @param bodyAsFile  true if request body should be streamed to a file
+   * @return reference to this for fluency
+   */
+  @Fluent
+  BodyHandler setBodyAsFile(boolean bodyAsFile);
 
 }

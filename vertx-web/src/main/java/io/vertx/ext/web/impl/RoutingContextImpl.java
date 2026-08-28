@@ -290,7 +290,16 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void setBody(Buffer body) {
-    this.body.setBuffer(body);
+    setBody(body, null, body == null ? -1 : body.length());
+  }
+
+  @Override
+  public void setBody(Buffer body, String bodyFile, int bodyLength) {
+    if (bodyFile == null) {
+      this.body.setBuffer(body);
+    } else {
+      this.body.setFile(bodyFile, bodyLength);
+    }
   }
 
   @Override

@@ -56,6 +56,8 @@ public class RouteToEBServiceHandlerImpl implements RouteToEBServiceHandler {
           op.getHeaders().forEach(h -> response.putHeader(h.getKey(), h.getValue()));
         if (op.getPayload() != null)
           response.end(op.getPayload());
+        else if (op.getPayloadFile() != null)
+          response.sendFile(op.getPayloadFile());
         else
           response.end();
       } else {

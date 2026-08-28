@@ -35,6 +35,8 @@ public class RequestBodyImpl implements RequestBody {
   private final RoutingContext ctx;
 
   private Buffer body;
+  private String bodyFile;
+  private int length = -1;
 
   // caches
   private String string;
@@ -47,6 +49,18 @@ public class RequestBodyImpl implements RequestBody {
 
   public void setBuffer(Buffer body) {
     this.body = body;
+    this.bodyFile = null;
+    this.length = body == null ? -1 : body.length();
+    // reset caches
+    string = null;
+    jsonObject = null;
+    jsonArray = null;
+  }
+
+  public void setFile(String bodyFile, int length) {
+    this.body = null;
+    this.bodyFile = bodyFile;
+    this.length = length;
     // reset caches
     string = null;
     jsonObject = null;
@@ -133,12 +147,13 @@ public class RequestBodyImpl implements RequestBody {
   }
 
   @Override
+  public @Nullable String asFile() {
+    return bodyFile;
+  }
+
+  @Override
   public int length() {
-    if (body == null) {
-      return -1;
-    } else {
-      return body.length();
-    }
+    return length;
   }
 
   @Override
