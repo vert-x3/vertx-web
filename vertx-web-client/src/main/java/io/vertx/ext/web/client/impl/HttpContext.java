@@ -267,6 +267,9 @@ public class HttpContext<T> {
           if (ar.succeeded()) {
             RequestOptions options = ar.result();
             requestOptions = options;
+            if (options.getMethod() == HttpMethod.GET || options.getMethod() == HttpMethod.HEAD) {
+              this.body = null;
+            }
             fire(ClientPhase.FOLLOW_REDIRECT);
           } else {
             fail(ar.cause());
@@ -541,7 +544,7 @@ public class HttpContext<T> {
 
   private void doSendRequest(HttpClientRequest request) {
     Object bodyToSend = body;
-    if (bodyToSend != null && requestOptions.getMethod() != HttpMethod.GET && requestOptions.getMethod() != HttpMethod.HEAD) {
+    if (bodyToSend != null) {
       if (bodyToSend instanceof Pipe) {
         body = null;
         Pipe<Buffer> pipe = (Pipe<Buffer>) bodyToSend;
