@@ -23,7 +23,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-web-parent</artifactId>
-    <version>5.1.7</version>
+    <version>5.1.8-SNAPSHOT</version>
   </parent>
 
   <name>vertx-web-graphql</name>
