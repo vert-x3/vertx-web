@@ -31,6 +31,7 @@ import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -87,7 +88,10 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
   private void handleCreateRequest(HttpContext<Buffer> context) {
     RequestOptions request = context.requestOptions();
     if (options.getCachedMethods().contains(request.getMethod())) {
-      context.set("cache.body_fingerprint", getBodyFingerprint(context.body()));
+      Object body = context.body();
+      if (body != null) {
+        context.set("cache.body_fingerprint", getBodyFingerprint(body));
+      }
     }
 
     Vary variation;
@@ -264,9 +268,7 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
   }
 
   private static String getBodyFingerprint(Object body) {
-    if (body == null) {
-      return "";
-    }
+    Objects.requireNonNull(body, "body cannot be null");
     if (body instanceof Buffer) {
       try {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
