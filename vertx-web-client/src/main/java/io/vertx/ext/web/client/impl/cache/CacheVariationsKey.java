@@ -17,6 +17,7 @@ package io.vertx.ext.web.client.impl.cache;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  */
 class CacheVariationsKey {
 
+  protected final HttpMethod method;
   protected final String host;
   protected final int port;
   protected final String path;
@@ -37,6 +39,7 @@ class CacheVariationsKey {
   CacheVariationsKey(RequestOptions request) {
     String requestURI = request.getURI();
     QueryStringDecoder dec = new QueryStringDecoder(requestURI);
+    this.method = request.getMethod();
     this.host = request.getHost();
     this.port = request.getPort();
     this.path = dec.path();
@@ -45,7 +48,7 @@ class CacheVariationsKey {
 
   @Override
   public String toString() {
-    return host + ":" + port + path + "?" + queryString;
+    return method + "|" + host + ":" + port + path + "?" + queryString;
   }
 
   @Override
@@ -58,6 +61,7 @@ class CacheVariationsKey {
     }
     CacheVariationsKey that = (CacheVariationsKey) o;
     return port == that.port
+      && method == that.method
       && host.equals(that.host)
       && path.equals(that.path)
       && queryString.equals(that.queryString);
@@ -65,7 +69,7 @@ class CacheVariationsKey {
 
   @Override
   public int hashCode() {
-    return Objects.hash(host, port, path, queryString);
+    return Objects.hash(method, host, port, path, queryString);
   }
 
   private String queryString(Map<String, List<String>> queryParams) {

@@ -267,6 +267,9 @@ public class HttpContext<T> {
           if (ar.succeeded()) {
             RequestOptions options = ar.result();
             requestOptions = options;
+            if (options.getMethod() == HttpMethod.GET || options.getMethod() == HttpMethod.HEAD) {
+              this.body = null;
+            }
             fire(ClientPhase.FOLLOW_REDIRECT);
           } else {
             fail(ar.cause());
@@ -406,6 +409,7 @@ public class HttpContext<T> {
   }
 
   private void handleDispatchResponse() {
+    body = null;
     promise.tryComplete(response);
   }
 
@@ -541,8 +545,8 @@ public class HttpContext<T> {
   private void doSendRequest(HttpClientRequest request) {
     Object bodyToSend = body;
     if (bodyToSend != null) {
-      body = null;
       if (bodyToSend instanceof Pipe) {
+        body = null;
         Pipe<Buffer> pipe = (Pipe<Buffer>) bodyToSend;
         if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
           request.setChunked(true);

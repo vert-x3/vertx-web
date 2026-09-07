@@ -247,6 +247,31 @@ public interface Router extends Handler<HttpServerRequest> {
   Route postWithRegex(String regex);
 
   /**
+   * Add a route that matches any HTTP QUERY request
+   *
+   * @return the route
+   */
+  Route query();
+
+  /**
+   * Add a route that matches a HTTP QUERY request and the specified path
+   *
+   * @param path  URI paths that begin with this path will match
+   *
+   * @return the route
+   */
+  Route query(String path);
+
+  /**
+   * Add a route that matches a HTTP QUERY request and the specified path regex
+   *
+   * @param regex  URI paths that begin with a match for this regex will match
+   *
+   * @return the route
+   */
+  Route queryWithRegex(String regex);
+
+  /**
    * Add a route that matches any HTTP DELETE request
    *
    * @return the route
