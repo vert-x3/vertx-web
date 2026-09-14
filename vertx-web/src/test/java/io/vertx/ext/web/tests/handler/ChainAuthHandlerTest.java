@@ -4,9 +4,14 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.KeyStoreOptions;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.tests.WebTestBase;
@@ -134,6 +139,74 @@ public class ChainAuthHandlerTest extends WebTestBase {
     assertNotNull(setCookie);
     // client will be redirected
     assertTrue(respHeaders.contains(HttpHeaders.LOCATION, "/welcome", false));
+  }
+
+  @Test
+  public void testWithMultipleJWTAuthHandlers() throws Exception {
+    // Reproducer for https://github.com/vert-x3/vertx-web/issues/2691
+    router.clear();
+
+    JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret")));
+
+    chain = ChainAuthHandler.any()
+      .add(JWTAuthHandler.create(jwtAuth).withScope("users:read"))
+      .add(JWTAuthHandler.create(jwtAuth).withScope("users:all"));
+    router.route()
+      .handler(chain)
+      .handler(RoutingContext::end);
+
+    JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "users:read");
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadA)), 200, "OK");
+
+    JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "users:read users:all");
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadB)), 200, "OK");
+
+    JsonObject payloadC = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "users:all");
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadC)), 200, "OK");
+
+    // no handler in the chain accepts this scope, the chain must be exhausted and fail with 403
+    JsonObject payloadD = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "users:none");
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadD)), 403, "Forbidden");
+  }
+
+  @Test
+  public void testScopesCheckedForPreAuthenticatedUser() throws Exception {
+    // when a previous handler already authenticated the user, the next JWT handler skips
+    // authenticate() and must still enforce its scopes in postAuthentication()
+    router.clear();
+
+    JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret")));
+
+    router.route()
+      .handler(JWTAuthHandler.create(jwtAuth).withScope("users:read"))
+      .handler(JWTAuthHandler.create(jwtAuth).withScope("users:all"))
+      .handler(RoutingContext::end);
+
+    JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "users:read");
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadA)), 403, "Forbidden");
+
+    JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "users:read users:all");
+    testRequest(webClient.get("/").putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadB)), 200, "OK");
   }
 
 }
