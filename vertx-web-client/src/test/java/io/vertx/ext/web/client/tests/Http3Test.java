@@ -1,13 +1,11 @@
 package io.vertx.ext.web.client.tests;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerConfig;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.net.ClientSSLOptions;
 import io.vertx.core.net.ServerSSLOptions;
-import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientConfig;
 import io.vertx.junit5.VertxTest;
@@ -32,8 +30,9 @@ public class Http3Test {
       new WebClientConfig()
         .setVersions(List.of(HttpVersion.HTTP_3))
         .setDefaultHost("localhost")
-        .setDefaultPort(4043),
+        .setDefaultPort(4043)
+        .setVerifyHost(false),
       new ClientSSLOptions().setTrustAll(true));
-    HttpResponse<Buffer> response = client.get("/test").send().await();
+    client.get("/test").send().await();
   }
 }
