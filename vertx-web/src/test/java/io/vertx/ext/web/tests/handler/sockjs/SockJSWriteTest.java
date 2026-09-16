@@ -18,6 +18,7 @@ package io.vertx.ext.web.tests.handler.sockjs;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.http.WebSocketBase;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.test.core.TestUtils;
@@ -198,16 +199,18 @@ public class SockJSWriteTest extends SockJSTestBase {
     Runnable[] task = new Runnable[1];
     task[0] = () ->
       client.request(HttpMethod.POST, "/test/400/8ne8e94a/xhr")
-        .compose(req -> req.send(Buffer.buffer()))
-        .onComplete(TestUtils.onSuccess(resp -> {
-          assertEquals(200, resp.statusCode());
-          resp.handler(buffer -> {
-            if (buffer.toString().equals("a[\"" + expected + "\"]\n")) {
-              cp.countDown();
-            } else {
-              task[0].run();
-            }
-          });
+        .compose(req -> req
+          .send(Buffer.buffer())
+          .expecting(HttpResponseExpectation.SC_OK)
+          .compose(response -> response
+            .body()
+            .map(body -> body.toString().equals("a[\"" + expected + "\"]\n"))))
+        .onComplete(TestUtils.onSuccess(result -> {
+          if (result) {
+            cp.countDown();
+          } else {
+            task[0].run();
+          }
         }));
     task[0].run();
   }
