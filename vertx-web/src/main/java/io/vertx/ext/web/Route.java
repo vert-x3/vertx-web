@@ -66,6 +66,8 @@ public interface Route {
   /**
    * Set the path prefix for this route. If set then this route will only match request URI paths which start with this
    * path prefix. Only a single path or path regex can be set for a route.
+   * <p>
+   * In non-regex paths, escape a literal colon as {@code \:}, for example {@code /foo/\:bar}.
    *
    * @param path the path prefix
    * @return a reference to this, so the API can be used fluently
