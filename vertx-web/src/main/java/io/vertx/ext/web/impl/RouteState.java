@@ -1064,8 +1064,7 @@ final class RouteState {
     }
     if (pattern != null) {
       // need to reset "rest"
-      context.pathParams()
-        .remove("*");
+      context.removePathParam("*");
 
       String path = useNormalizedPath ? context.normalizedPath() : context.request().path();
 
@@ -1094,8 +1093,7 @@ final class RouteState {
           if (!exactPath) {
             context.matchRest = m.start("rest");
             // always replace
-            context.pathParams()
-              .put("*", path.substring(context.matchRest));
+            context.addOrReplacePathParam("*", path.substring(context.matchRest));
           }
 
           if (!isEmpty(groups)) {
@@ -1222,8 +1220,7 @@ final class RouteState {
 
     if (exactPath) {
       // exact path has no "rest"
-      ctx.pathParams()
-        .remove("*");
+      ctx.removePathParam("*");
 
       return pathMatchesExact(thePath, requestPath, pathEndsWithSlash);
     } else {
@@ -1244,8 +1241,7 @@ final class RouteState {
           // because the mount path ended with a wildcard we are relaxed in the check
           if (thePath.regionMatches(0, requestPath, 0, pathLen - 1)) {
             // handle the "rest" as path param *, always known to be empty
-            ctx.pathParams()
-              .put("*", "/");
+            ctx.addOrReplacePathParam("*", "/");
             return true;
           }
         }
@@ -1253,8 +1249,8 @@ final class RouteState {
 
       if (requestPath.startsWith(thePath)) {
         // handle the "rest" as path param *
-        ctx.pathParams()
-          .put("*", URIDecoder.decodeURIComponent(requestPath.substring(thePath.length()), false));
+        ctx.addOrReplacePathParam("*",
+          URIDecoder.decodeURIComponent(requestPath.substring(thePath.length()), false));
         return true;
       }
       return false;
@@ -1327,7 +1323,7 @@ final class RouteState {
     if (!request.params().contains(name)) {
       request.params().add(name, decodedValue);
     }
-    context.pathParams().put(name, decodedValue);
+    context.addOrReplacePathParam(name, decodedValue);
   }
 
   boolean hasNextContextHandler(RoutingContextImplBase context) {
