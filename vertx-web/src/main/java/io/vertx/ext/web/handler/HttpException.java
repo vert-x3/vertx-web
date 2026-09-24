@@ -18,13 +18,13 @@ package io.vertx.ext.web.handler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
- * An utility exception class to signal HTTP failures.
- *
- * The class with convey an http status code, by default is is {@code 500}. The exception may contain a cause throwable
- * and for special cases a simple payload string may be added for context. The payload can be used for example perform
- * a redirect.
- *
- * The message for the exception is inferred from the standard http error code using {@link HttpResponseStatus}.
+ * A utility exception class to signal HTTP failures.
+ * <p>
+ * The class will convey an HTTP status code, by default {@code 500}. The exception may contain a cause throwable
+ * and, for special cases, a simple payload string may be added for context. The payload can be used, for example,
+ * to perform a redirect.
+ * <p>
+ * The message for the exception is inferred from the standard HTTP error code using {@link HttpResponseStatus}.
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
