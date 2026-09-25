@@ -136,6 +136,11 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
       .onFailure(err -> ctx.fail(403, err));
   }
 
+  @Override
+  public Future<Void> verifyScopes(RoutingContext ctx, User user) {
+    return validateScopes(ctx, user).mapEmpty();
+  }
+
   /**
    * Verifies that the given user token contains all the scopes required by this handler
    * (or by the route metadata).

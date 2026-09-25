@@ -1,5 +1,7 @@
 package io.vertx.ext.web.internal.handler;
 
+import io.vertx.core.Future;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
@@ -32,6 +34,18 @@ public interface ScopedAuthentication<SELF extends AuthenticationHandler> {
    * @return new instance of this interface.
    */
   SELF withScopes(List<String> scopes);
+
+  /**
+   * Verifies that the given user satisfies the scopes required by this handler.
+   * The default implementation succeeds immediately (no scope requirements).
+   *
+   * @param ctx  the routing context
+   * @param user the authenticated user
+   * @return a succeeded future if the user's scopes are valid, a failed future otherwise
+   */
+  default Future<Void> verifyScopes(RoutingContext ctx, User user) {
+    return Future.succeededFuture();
+  }
 
   /**
    * Return the list of scopes provided as the 1st argument, unless the list is empty. In this case, the list of scopes
