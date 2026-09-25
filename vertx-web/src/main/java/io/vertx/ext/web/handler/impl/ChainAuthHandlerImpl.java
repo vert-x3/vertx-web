@@ -1,6 +1,9 @@
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.*;
+import io.vertx.core.Completable;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.VertxException;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
@@ -9,6 +12,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.ChainAuthHandler;
 import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.internal.handler.ScopedAuthentication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,11 +140,65 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
 
   @Override
   public void postAuthentication(RoutingContext ctx) {
-    Integer idx;
-    if (all || (idx = ctx.get(chainAuthHandlerKey)) == null) {
-      ctx.next();
+    final User user = ctx.user();
+
+    if (all) {
+      verifyScopesAll(ctx, user)
+        .onSuccess(v -> ctx.next())
+        .onFailure(err -> ctx.fail(403, err));
     } else {
-      handlers.get(idx).postAuthentication(ctx);
+      Integer idx = ctx.get(chainAuthHandlerKey);
+      if (idx != null) {
+        // Normal case: a handler won during authenticate(), delegate to it
+        handlers.get(idx).postAuthentication(ctx);
+      } else {
+        // Pre-authenticated user: no handler won during authenticate(),
+        // try each scoped handler until one accepts
+        verifyScopesAny(ctx, user)
+          .onSuccess(winnerIdx -> {
+            if (winnerIdx == -1) {
+              // No scoped handler exists in the chain, pass through
+              ctx.next();
+            } else {
+              // Delegate to the winning handler's postAuthentication
+              handlers.get(winnerIdx).postAuthentication(ctx);
+            }
+          })
+          .onFailure(err -> ctx.fail(403, err));
+      }
     }
+  }
+
+  private Future<Void> verifyScopesAll(RoutingContext ctx, User user) {
+    Future<Void> result = Future.succeededFuture();
+    for (AuthenticationHandlerInternal handler : handlers) {
+      if (handler instanceof ScopedAuthentication) {
+        ScopedAuthentication<?> scopedAuthentication = (ScopedAuthentication<?>) handler;
+        result = result.compose(v -> scopedAuthentication.verifyScopes(ctx, user));
+      }
+    }
+    return result;
+  }
+
+  private Future<Integer> verifyScopesAny(RoutingContext ctx, User user) {
+    Future<Integer> result = null;
+    for (int i = 0; i < handlers.size(); i++) {
+      final AuthenticationHandlerInternal handler = handlers.get(i);
+      if (handler instanceof ScopedAuthentication) {
+        final int idx = i;
+        ScopedAuthentication<?> scoped = (ScopedAuthentication<?>) handler;
+        if (result == null) {
+          result = scoped.verifyScopes(ctx, user).map(v -> idx);
+        } else {
+          result = result.compose(Future::succeededFuture, err -> scoped.verifyScopes(ctx, user).map(v -> idx));
+        }
+      }
+    }
+    if (result == null) {
+      return Future.succeededFuture(-1);
+    }
+    return result.compose(
+      Future::succeededFuture,
+      err -> Future.failedFuture(new VertxException("No handler accepted the user's scopes", true)));
   }
 }
