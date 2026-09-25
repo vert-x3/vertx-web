@@ -118,15 +118,23 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
         final int statusCode = ((HttpException) exception).getStatusCode();
         final String payload = ((HttpException) exception).getPayload();
 
+        final boolean xhr = "XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With"));
+
         switch (statusCode) {
           case 302:
+            if (xhr) {
+              // XHR/fetch calls cannot follow a redirect to an identity provider, the user agent will
+              // block it (and hide the response) so instead we signal that authentication is required
+              ctx.fail(401, new HttpException(401, exception));
+              return;
+            }
             ctx.response()
               .putHeader(HttpHeaders.LOCATION, payload)
               .setStatusCode(302)
               .end("Redirecting to " + payload + ".");
             return;
           case 401:
-            if (!"XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With"))) {
+            if (!xhr) {
               setAuthenticateHeader(ctx);
             }
             ctx.fail(401, exception);

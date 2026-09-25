@@ -2865,6 +2865,11 @@ A rule of thumb is once a valid callback is executed issue a client side redirec
 redirect should also create a session cookie (or other session mechanism) so the user is not required to authenticate
 for every request.
 
+NOTE: Redirects to the authority server are only issued for regular browser navigation. Requests carrying the
+`X-Requested-With: XMLHttpRequest` header (typically `XMLHttpRequest`/`fetch` calls from a single page application)
+are answered with a `401 Unauthorized` status instead, since the user agent would block (and hide) the cross-origin
+redirect. The application can then decide how to trigger the login flow.
+
 Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers but
 vertx-auth provides you with many out of the box implementations:
 
