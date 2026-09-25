@@ -321,18 +321,21 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
    */
   @Override
   public void postAuthentication(RoutingContext ctx) {
-    // the user is authenticated, however the user may not have all the required scopes
-    if (scopes != null && scopes.size() > 0) {
-      final User user = ctx.user();
+    verifyScopes(ctx, ctx.user())
+      .onSuccess(v -> ctx.next())
+      .onFailure(err -> ctx.fail(403, err));
+  }
+
+  @Override
+  public Future<Void> verifyScopes(RoutingContext ctx, User user) {
+    if (scopes != null && !scopes.isEmpty()) {
       if (user == null) {
-        // bad state
-        ctx.fail(403, new VertxException("no user in the context", true));
-        return;
+        return Future.failedFuture(new VertxException("no user in the context", true));
       }
 
       if (user.principal().containsKey("scope")) {
-        final String scopes = user.principal().getString("scope");
-        if (scopes != null) {
+        final String userScopes = user.principal().getString("scope");
+        if (userScopes != null) {
           // user principal contains scope, a basic assertion is required to ensure that
           // the scopes present match the required ones
           for (String scope : this.scopes) {
@@ -341,26 +344,24 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
               continue;
             }
 
-            int idx = scopes.indexOf(scope);
+            int idx = userScopes.indexOf(scope);
             if (idx != -1) {
               // match, but is it valid?
               if (
-                (idx != 0 && scopes.charAt(idx -1) != ' ') ||
-                  (idx + scope.length() != scopes.length() && scopes.charAt(idx + scope.length()) != ' ')) {
+                (idx != 0 && userScopes.charAt(idx -1) != ' ') ||
+                  (idx + scope.length() != userScopes.length() && userScopes.charAt(idx + scope.length()) != ' ')) {
                 // invalid scope assignment
-                ctx.fail(403, new VertxException("principal scope != handler scopes", true));
-                return;
+                return Future.failedFuture(new VertxException("principal scope != handler scopes", true));
               }
             } else {
               // invalid scope assignment
-              ctx.fail(403, new VertxException("principal scope != handler scopes", true));
-              return;
+              return Future.failedFuture(new VertxException("principal scope != handler scopes", true));
             }
           }
         }
       }
     }
-    ctx.next();
+    return Future.succeededFuture();
   }
 
   @Override

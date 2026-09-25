@@ -4,9 +4,14 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.KeyStoreOptions;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import org.junit.Test;
@@ -130,6 +135,169 @@ public class ChainAuthHandlerTest extends WebTestBase {
       // client will be redirected
       assertTrue(headers.contains(HttpHeaders.LOCATION, "/welcome", false));
     }, 302, "Found", null);
+  }
+
+  @Test
+  public void testScopesEnforcedInAllChain() throws Exception {
+    router.clear();
+
+    JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret")));
+
+    chain = ChainAuthHandler.all()
+      .add(JWTAuthHandler.create(jwtAuth).withScope("admin"))
+      .add(JWTAuthHandler.create(jwtAuth).withScope("superuser"));
+
+    router.route()
+      .handler(chain)
+      .handler(RoutingContext::end);
+
+    // user has both scopes -> 200
+    JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "admin superuser");
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadA)), 200, "OK", null);
+
+    // user has only one scope -> 403
+    JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "admin");
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadB)), 403, "Forbidden", null);
+  }
+
+  @Test
+  public void testScopesEnforcedForPreAuthenticatedUserInAnyChain() throws Exception {
+    router.clear();
+
+    JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret")));
+
+    // Parent route: authenticate without scope requirement
+    router.route().handler(JWTAuthHandler.create(jwtAuth));
+
+    // Child route: chain with scope requirement
+    chain = ChainAuthHandler.any()
+      .add(JWTAuthHandler.create(jwtAuth).withScope("admin"));
+
+    router.route("/protected/*")
+      .handler(chain)
+      .handler(RoutingContext::end);
+
+    // Token with scope "read" -> expect 403
+    JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "read");
+    testRequest(HttpMethod.GET, "/protected/resource", req -> req.putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadA)), 403, "Forbidden", null);
+
+    // Token with scope "admin" -> expect 200
+    JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "admin");
+    testRequest(HttpMethod.GET, "/protected/resource", req -> req.putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadB)), 200, "OK", null);
+  }
+
+  @Test
+  public void testScopesEnforcedInAllChainForPreAuthenticatedUser() throws Exception {
+    router.clear();
+
+    JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret")));
+
+    // Parent route: authenticate without scope requirement
+    router.route().handler(JWTAuthHandler.create(jwtAuth));
+
+    // Child route: chain requiring both scopes
+    chain = ChainAuthHandler.all()
+      .add(JWTAuthHandler.create(jwtAuth).withScope("admin"))
+      .add(JWTAuthHandler.create(jwtAuth).withScope("superuser"));
+
+    router.route("/protected/*")
+      .handler(chain)
+      .handler(RoutingContext::end);
+
+    // Token with both scopes -> expect 200
+    JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "admin superuser");
+    testRequest(HttpMethod.GET, "/protected/resource", req -> req.putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadA)), 200, "OK", null);
+
+    // Token with only one scope -> expect 403
+    JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "admin");
+    testRequest(HttpMethod.GET, "/protected/resource", req -> req.putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadB)), 403, "Forbidden", null);
+  }
+
+  @Test
+  public void testAnyChainWithNonScopedHandlerPassesThroughForPreAuthenticatedUser() throws Exception {
+    router.clear();
+
+    JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret")));
+
+    // Parent route: authenticate without scope requirement
+    router.route().handler(JWTAuthHandler.create(jwtAuth));
+
+    // Child route: chain with only a non-scoped handler (BasicAuthHandler)
+    chain = ChainAuthHandler.any()
+      .add(BasicAuthHandler.create(authProvider));
+
+    router.route("/protected/*")
+      .handler(chain)
+      .handler(RoutingContext::end);
+
+    // Pre-authenticated JWT user -> expect 200 (no ScopedAuthentication handler in chain)
+    JsonObject payload = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "read");
+    testRequest(HttpMethod.GET, "/protected/resource", req -> req.putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payload)), 200, "OK", null);
+  }
+
+  @Test
+  public void testAnyChainWithMixedHandlersEnforcesScopesForPreAuthenticatedUser() throws Exception {
+    router.clear();
+
+    JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret")));
+
+    // Parent route: authenticate without scope requirement
+    router.route().handler(JWTAuthHandler.create(jwtAuth));
+
+    // Child route: chain with BasicAuthHandler (non-scoped) and JWT with scope
+    chain = ChainAuthHandler.any()
+      .add(BasicAuthHandler.create(authProvider))
+      .add(JWTAuthHandler.create(jwtAuth).withScope("admin"));
+
+    router.route("/protected/*")
+      .handler(chain)
+      .handler(RoutingContext::end);
+
+    // Token with scope "read" -> expect 403
+    JsonObject payloadA = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "read");
+    testRequest(HttpMethod.GET, "/protected/resource", req -> req.putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadA)), 403, "Forbidden", null);
+
+    // Token with scope "admin" -> expect 200
+    JsonObject payloadB = new JsonObject()
+      .put("sub", "Paulo")
+      .put("scope", "admin");
+    testRequest(HttpMethod.GET, "/protected/resource", req -> req.putHeader("Authorization", "Bearer " + jwtAuth.generateToken(payloadB)), 200, "OK", null);
   }
 
 }
