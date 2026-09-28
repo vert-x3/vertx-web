@@ -19,6 +19,7 @@ package io.vertx.ext.web.sstore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.ClusterSerializable;
 import io.vertx.ext.auth.prng.VertxContextPRNG;
@@ -60,7 +61,9 @@ public abstract class AbstractSession implements Session, SessionInternal {
   private static final byte TYPE_STRING = 9;
   private static final byte TYPE_BUFFER = 10;
   private static final byte TYPE_BYTES = 11;
-  private static final byte TYPE_CLUSTER_SERIALIZABLE = 13;
+  private static final byte TYPE_JSON_OBJECT = 12;
+  private static final byte TYPE_JSON_ARRAY = 13;
+  private static final byte TYPE_CLUSTER_SERIALIZABLE = 14;
 
   private static final char[] HEX = "0123456789abcdef".toCharArray();
 
@@ -354,6 +357,14 @@ public abstract class AbstractSession implements Session, SessionInternal {
         } else if (val instanceof byte[]) {
           byte[] bytes = (byte[]) val;
           buffer.appendByte(TYPE_BYTES).appendInt(bytes.length).appendBytes(bytes);
+        } else if (val instanceof JsonObject) {
+          JsonObject json = (JsonObject) val;
+          buffer.appendByte(TYPE_JSON_OBJECT);
+          json.writeToBuffer(buffer);
+        } else if (val instanceof JsonArray) {
+          JsonArray json = (JsonArray) val;
+          buffer.appendByte(TYPE_JSON_ARRAY);
+          json.writeToBuffer(buffer);
         } else if (val instanceof ClusterSerializable) {
           buffer.appendByte(TYPE_CLUSTER_SERIALIZABLE);
           String className = val.getClass().getName();
@@ -438,6 +449,16 @@ public abstract class AbstractSession implements Session, SessionInternal {
               pos += 4;
               val = buffer.getBytes(pos, pos + len);
               pos += len;
+              break;
+            case TYPE_JSON_OBJECT:
+              JsonObject jsonObject = new JsonObject();
+              pos = jsonObject.readFromBuffer(pos, buffer);
+              val = jsonObject;
+              break;
+            case TYPE_JSON_ARRAY:
+              JsonArray jsonArray = new JsonArray();
+              pos = jsonArray.readFromBuffer(pos, buffer);
+              val = jsonArray;
               break;
             case TYPE_CLUSTER_SERIALIZABLE:
               int classNameLen = buffer.getInt(pos);
