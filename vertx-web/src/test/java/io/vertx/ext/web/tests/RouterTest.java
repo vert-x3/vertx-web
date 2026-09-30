@@ -35,6 +35,8 @@ import io.vertx.ext.web.WebServerRequest;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.PlatformHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
+import io.vertx.ext.web.impl.RouteImpl;
+import io.vertx.ext.web.impl.RouteState;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.test.core.TestUtils;
 import static org.junit.jupiter.api.Assertions.*;
@@ -1600,6 +1602,19 @@ public class RouterTest extends WebTestBase {
         assertEquals("/a", route.getPath());
       }
     }
+  }
+
+  @Test
+  public void testRouteStateAccess() {
+    Handler<RoutingContext> handler = rc -> {
+    };
+    Handler<RoutingContext> failureHandler = rc -> {
+    };
+    router.route("/a").order(5).handler(handler).failureHandler(failureHandler);
+    RouteState state = ((RouteImpl) router.getRoutes().get(0)).state();
+    assertEquals(5, state.getOrder());
+    assertEquals(List.of(handler), state.getContextHandlers());
+    assertEquals(List.of(failureHandler), state.getFailureHandlers());
   }
 
   // Test that adding headersEndhandlers doesn't overwrite other ones

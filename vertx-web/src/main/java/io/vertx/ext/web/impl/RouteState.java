@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  *
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-final class RouteState {
+public final class RouteState {
 
   private static final Logger LOG = LoggerFactory.getLogger(RouteState.class);
 

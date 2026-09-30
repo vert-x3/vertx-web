@@ -68,7 +68,7 @@ public class RouteImpl implements Route {
     setRegex(regex);
   }
 
-  RouteState state() {
+  public RouteState state() {
     return state;
   }
 
