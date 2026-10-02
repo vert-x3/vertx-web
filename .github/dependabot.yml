@@ -28,7 +28,7 @@ updates:
 
   - package-ecosystem: "maven"
     directory: "/vertx-web-graphql"
-    target-branch: "5.1"
+    target-branch: "5.2"
     schedule:
       interval: "daily"
     allow:
