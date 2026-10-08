@@ -16,6 +16,7 @@ import com.google.common.truth.Truth;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.router.impl.RouterBuilderImpl;
 import io.vertx.openapi.contract.OpenAPIVersion;
@@ -54,7 +55,7 @@ class RouterBuilderImplTest {
     Path pathDereferencedContract = TEST_RESOURCE_PATH.resolve(version).resolve("petstore_dereferenced.json");
     JsonObject contract = Buffer.buffer(Files.readAllBytes(pathDereferencedContract)).toJsonObject();
     RouterBuilderImpl rb =
-      new RouterBuilderImpl(null, new OpenAPIContractImpl(contract, OpenAPIVersion.fromContract(contract), null), null);
+      new RouterBuilderImpl(null, new OpenAPIContractImpl(contract, OpenAPIVersion.fromContract(contract), null), null, Router::router);
     assertThat(rb.getRoutes()).hasSize(3);
 
     Operation listPets = rb.getRoute("listPets").getOperation();
@@ -69,7 +70,7 @@ class RouterBuilderImplTest {
   @Test
   void testRootHandler() {
     JsonObject dummySpec = new JsonObject().put("io/vertx/openapi", "3.0.0");
-    RouterBuilderImpl rb = new RouterBuilderImpl(null, new OpenAPIContractImpl(dummySpec, V3_1, null), null);
+    RouterBuilderImpl rb = new RouterBuilderImpl(null, new OpenAPIContractImpl(dummySpec, V3_1, null), null, Router::router);
     assertThat(rb.rootHandlers()).isEmpty();
     Handler<RoutingContext> dummyHandler = RoutingContext::next;
     rb.rootHandler(dummyHandler);
