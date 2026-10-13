@@ -115,6 +115,31 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testAuthCodeFlowXHRRequest() throws Exception {
+
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientId("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
+
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(vertx, oauth2, "http://localhost:8080/callback");
+    oauth2Handler.setupCallback(router.route("/callback"));
+
+    router.route("/protected/*").handler(oauth2Handler);
+    router.route("/protected/somepage").handler(rc -> rc.response().end("Welcome to the protected resource!"));
+
+    // a regular request gets a redirect to the authority server
+    testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
+
+    // XHR calls cannot follow the redirect (the user agent hides it), so they must get a 401 instead
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage")
+      .putHeader("X-Requested-With", "XMLHttpRequest")
+      .followRedirects(false)
+      .send(), 401, "Unauthorized");
+    assertNull(resp.getHeader("Location"));
+  }
+
+  @Test
   public void testAuthCodeFlowWithScopes() throws Exception {
 
     // lets mock an oauth2 server using code auth code flow
