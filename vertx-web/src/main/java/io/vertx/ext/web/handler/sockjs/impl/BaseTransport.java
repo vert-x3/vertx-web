@@ -113,13 +113,15 @@ class BaseTransport {
     }
     protected void addCloseHandler(HttpServerResponse resp, final SockJSSession session) {
       resp.closeHandler(v -> {
-          if (LOG.isTraceEnabled()) {
-            LOG.trace("Connection closed (from client?), closing session");
+          if (!resp.ended()) {
+            if (LOG.isTraceEnabled()) {
+              LOG.trace("Connection closed (from client?), closing session");
+            }
+            // Connection has been closed from the client or network error so
+            // we remove the session
+            session.shutdown();
+            closed = true;
           }
-          // Connection has been closed from the client or network error so
-          // we remove the session
-          session.shutdown();
-          closed = true;
       });
     }
 
