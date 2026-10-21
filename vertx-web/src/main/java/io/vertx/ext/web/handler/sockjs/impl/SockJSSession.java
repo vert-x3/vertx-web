@@ -455,7 +455,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private void handleMessages(List<String> messages) {
     if (context == Vertx.currentContext()) {
       for (String msg : messages) {
-        pendingReads.write(buffer(msg));
+        pendingReads.add(buffer(msg));
       }
     } else {
       context.runOnContext(v -> handleMessages(messages));
