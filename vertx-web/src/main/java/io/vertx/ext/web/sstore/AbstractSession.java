@@ -109,6 +109,8 @@ public abstract class AbstractSession implements Session, SessionInternal {
   private boolean renewed;
   private String oldId;
   private int crc;
+  // whether this session is known to exist in the backing store (it was loaded from it or written to it)
+  private boolean persisted;
 
   /**
    * This constructor is <b>mandatory</b> (even though not referenced anywhere) is required for
@@ -135,6 +137,7 @@ public abstract class AbstractSession implements Session, SessionInternal {
 
   @Override
   public void flushed(boolean skipCrc) {
+    persisted = true;
     renewed = false;
     if (oldId != null) {
       if (!skipCrc) {
@@ -274,6 +277,17 @@ public abstract class AbstractSession implements Session, SessionInternal {
     return version;
   }
 
+  /**
+   * Whether this session is known to have been persisted to (or loaded from) the underlying store. Session stores use
+   * this information to avoid resurrecting a session that has been deleted concurrently (e.g.: a logout performed by
+   * another request while this session was still in use) when the session is written back at the end of a request.
+   *
+   * @return {@code true} if this session was written to or loaded from a store.
+   */
+  public boolean isPersisted() {
+    return persisted;
+  }
+
   public void incrementVersion() {
     int old = this.crc;
     // update the checksum
@@ -381,6 +395,8 @@ public abstract class AbstractSession implements Session, SessionInternal {
   }
 
   protected int readDataFromBuffer(int pos, Buffer buffer) {
+    // the session data is being read from a store
+    persisted = true;
     try {
       int entries = buffer.getInt(pos);
       pos += 4;

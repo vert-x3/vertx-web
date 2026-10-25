@@ -254,6 +254,45 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 	}
 
 	@Test
+	public void testDeletedSessionIsNotResurrectedByFlush() throws Exception {
+		router.route().handler(SessionHandler.create(store));
+		AtomicReference<String> rid = new AtomicReference<>();
+		AtomicInteger requestCount = new AtomicInteger();
+		router.route().handler(rc -> {
+			Session sess = rc.session();
+			assertNotNull(sess);
+			switch (requestCount.getAndIncrement()) {
+			case 0:
+				rid.set(sess.id());
+				sess.put("foo", "bar");
+				rc.response().end();
+				break;
+			case 1:
+				assertEquals(rid.get(), sess.id());
+				assertEquals("bar", sess.get("foo"));
+				// simulate a concurrent request (e.g.: an OIDC back channel logout) deleting the session from the store
+				// while this request is still using it, when this request completes the session must not be put back
+				store.delete(sess.id()).onFailure(rc::fail).onSuccess(v -> rc.response().end());
+				break;
+			case 2:
+				// the session was deleted, a new one must be created
+				assertNotEquals(rid.get(), sess.id());
+				assertNull(sess.get("foo"));
+				rc.response().end();
+				break;
+			}
+		});
+		HttpResponse<Buffer> resp = testRequest(webClient.get("/").send(), 200, "OK");
+		String setCookie = resp.headers().get("set-cookie");
+		assertNotNull(setCookie);
+		testRequest(webClient.get("/").putHeader("cookie", setCookie).send(), 200, "OK");
+		Thread.sleep(500); // the flush happens after the response has been sent
+		assertNull(store.get(rid.get()).await());
+		testRequest(webClient.get("/").putHeader("cookie", setCookie).send(), 200, "OK");
+		assertEquals(3, requestCount.get());
+	}
+
+	@Test
 	public void testLastAccessed1() throws Exception {
     router.route().handler(SessionHandler.create(store));
     AtomicReference<Session> rid = new AtomicReference<>();
