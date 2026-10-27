@@ -269,11 +269,26 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
 
   private Future<HttpResponse<Buffer>> processRevalidationResponse(HttpContext<Buffer> context, CachedHttpResponse cachedResponse) {
     if (context.response().statusCode() == 304) {
-      // The cache returned a stale result, but server has confirmed still good. Update cache
-      return cacheResponse(context, cachedResponse.rehydrate());
+      // The server confirmed the stale entry is still good. Update the stored headers with the
+      // ones from the 304 and recompute freshness from them (RFC 9111, sections 3.2 and 4.3.4).
+      MultiMap merged = mergeHeaders(cachedResponse.getResponseHeaders(), context.response().headers());
+      return cacheResponse(context, cachedResponse.rehydrate(merged)).map(stored -> {
+        // Freshly revalidated, served from the stored body
+        stored.headers().set(HttpHeaders.AGE, "0");
+        return stored;
+      });
     } else {
       return processResponse(context, cachedResponse);
     }
+  }
+
+  private static MultiMap mergeHeaders(MultiMap stored, MultiMap updates) {
+    MultiMap merged = MultiMap.caseInsensitiveMultiMap()
+      .addAll(stored)
+      .setAll(updates);
+    // A 304 must not change the length of the stored body (RFC 9111, section 3.2)
+    merged.remove(HttpHeaders.CONTENT_LENGTH);
+    return merged;
   }
 
   private Future<HttpResponse<Buffer>> cacheResponse(HttpContext<?> context, HttpResponse<Buffer> response) {
