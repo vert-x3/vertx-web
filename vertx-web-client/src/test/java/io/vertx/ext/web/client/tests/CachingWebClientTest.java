@@ -1066,18 +1066,23 @@ public class CachingWebClientTest {
   // Cache-Control: public; Vary: Content-Encoding
 
   @Test
-  public void testVaryEncodingTransformedToIdentityAlwaysSoWeIgnoreIt() throws Exception {
+  public void testVaryAcceptEncodingIgnoredWithDecompression() throws Exception {
     startMockServer(req -> {
       req.response().headers().add("Cache-Control", "public, max-age=300");
       req.response().headers().add("Content-Encoding", "gzip");
       req.response().headers().add("Vary", "Accept-Encoding");
     });
 
-    String body1 = executeGetBlocking(varyClient,req -> {
+    // With decompression enabled the body is transparently decoded, the cached response can be
+    // served whatever encoding the request accepts
+    WebClient decompressingClient = CachingWebClient.create(buildBaseWebClient(), new TestCacheStore(),
+      new CachingWebClientOptions(true).setDecompressionSupported(true));
+
+    String body1 = executeGetBlocking(decompressingClient, req -> {
       req.putHeader("Accept-Encoding", "gzip,deflate");
     });
 
-    String body2 = executeGetBlocking(varyClient,req -> {
+    String body2 = executeGetBlocking(decompressingClient, req -> {
       req.putHeader("Accept-Encoding", "br");
     });
 
@@ -1152,6 +1157,23 @@ public class CachingWebClientTest {
     assertNotEquals(body2, body4);
     assertNotEquals(body3, body4);
 
+  }
+
+  @Test
+  public void testVaryAcceptEncodingWithoutDecompression() throws Exception {
+    startMockServer(req -> {
+      req.response().headers().add("Cache-Control", "public, max-age=300");
+      req.response().headers().add("Vary", "Accept-Encoding");
+    });
+
+    // varyClient does not enable decompression, the cached response can only be served to
+    // requests accepting the same encoding
+    String body1 = executeGetBlocking(varyClient, req -> req.putHeader("Accept-Encoding", "gzip"));
+    String body2 = executeGetBlocking(varyClient, req -> req.putHeader("Accept-Encoding", "gzip"));
+    String body3 = executeGetBlocking(varyClient, req -> req.putHeader("Accept-Encoding", "deflate"));
+
+    assertEquals(body1, body2);
+    assertNotEquals(body1, body3);
   }
 
   @Test
