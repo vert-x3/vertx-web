@@ -34,11 +34,13 @@ public class Vary {
   private final MultiMap requestHeaders;
   private final MultiMap responseHeaders;
   private final Set<CharSequence> variations;
+  private final boolean decompressionSupported;
 
-  public Vary(MultiMap requestHeaders, MultiMap responseHeaders) {
+  public Vary(MultiMap requestHeaders, MultiMap responseHeaders, boolean decompressionSupported) {
     this.requestHeaders = requestHeaders;
     this.responseHeaders = responseHeaders;
     this.variations = parseHeaders(responseHeaders);
+    this.decompressionSupported = decompressionSupported;
   }
 
   public boolean matchesRequest(RequestOptions request) {
@@ -59,7 +61,9 @@ public class Vary {
   private boolean variationMatches(CharSequence variation, RequestOptions request) {
     if (HttpHeaders.USER_AGENT.equals(variation)) {
       return isUserAgentMatch(request);
-    } else if (HttpHeaders.ACCEPT_ENCODING.equals(variation)) {
+    } else if (decompressionSupported && HttpHeaders.ACCEPT_ENCODING.equals(variation)) {
+      // The client transparently decompresses the body, so the cached response can be served
+      // whatever encoding the request accepts
       return true;
     } else {
       return isExactMatch(variation, request);

@@ -261,7 +261,7 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     }
 
     CacheVariationsKey variationsKey = new CacheVariationsKey(context.requestOptions());
-    Vary variation = new Vary(request.headers(), response.headers());
+    Vary variation = new Vary(request.headers(), response.headers(), options.isDecompressionEnabled());
     registerVariation(variationsKey, variation);
 
     String bodyFingerprint = context.get("cache.body_fingerprint");

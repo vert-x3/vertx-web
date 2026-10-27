@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * As Netty is always decompressing the response and removing Content-Encoding header, we ignore this kind of variation.
  * @author <a href="mailto:jllachf@gmail.com">Jordi Llach</a>
  */
 public class VaryTest {
@@ -26,7 +25,7 @@ public class VaryTest {
     MultiMap responseHeaders = MultiMap.caseInsensitiveMultiMap()
       .add(VARY, USER_AGENT)
       .add(USER_AGENT, "Mobile");
-    Vary instance = new Vary(requestHeaders, responseHeaders);
+    Vary instance = new Vary(requestHeaders, responseHeaders, false);
 
     RequestOptions requestMatches = new RequestOptions().addHeader(USER_AGENT, "Another Mobile User Agent");
     RequestOptions requestDoesNotMatch = buildEmptyRequestOptions(); // Desktop by default
@@ -35,13 +34,14 @@ public class VaryTest {
   }
 
   @Test
-  public void testVaryPerAcceptEncodingIsIgnored() {
+  public void testVaryPerAcceptEncodingIsIgnoredWithDecompression() {
+    // The client decompresses the body transparently, any Accept-Encoding can be served
     MultiMap requestHeaders = MultiMap.caseInsensitiveMultiMap()
       .add(ACCEPT_ENCODING, "gzip");
     MultiMap responseHeaders = MultiMap.caseInsensitiveMultiMap()
       .add(VARY, ACCEPT_ENCODING)
       .add(CONTENT_ENCODING, "gzip");
-    Vary instance = new Vary(requestHeaders, responseHeaders);
+    Vary instance = new Vary(requestHeaders, responseHeaders, true);
 
     RequestOptions requestMatches = new RequestOptions().addHeader(ACCEPT_ENCODING, "gzip");
     RequestOptions requestMatchesToo = new RequestOptions().addHeader(ACCEPT_ENCODING, "deflate");
@@ -52,13 +52,32 @@ public class VaryTest {
   }
 
   @Test
+  public void testVaryPerAcceptEncodingMustMatchWithoutDecompression() {
+    // Without decompression the body is stored as received, it can only be served to a request
+    // accepting the same encoding
+    MultiMap requestHeaders = MultiMap.caseInsensitiveMultiMap()
+      .add(ACCEPT_ENCODING, "gzip");
+    MultiMap responseHeaders = MultiMap.caseInsensitiveMultiMap()
+      .add(VARY, ACCEPT_ENCODING)
+      .add(CONTENT_ENCODING, "gzip");
+    Vary instance = new Vary(requestHeaders, responseHeaders, false);
+
+    RequestOptions requestMatches = new RequestOptions().addHeader(ACCEPT_ENCODING, "gzip");
+    RequestOptions requestFails = new RequestOptions().addHeader(ACCEPT_ENCODING, "deflate");
+    RequestOptions requestFailsToo = buildEmptyRequestOptions();
+    assertTrue(instance.matchesRequest(requestMatches), "Encoding matches");
+    assertFalse(instance.matchesRequest(requestFails), "Encoding deflate does not match");
+    assertFalse(instance.matchesRequest(requestFailsToo), "No encoding specified does not match");
+  }
+
+  @Test
   public void testVaryForOtherCasesRequestMustMatch() {
     MultiMap requestHeaders = MultiMap.caseInsensitiveMultiMap()
       .add("X-Vertx", "jordi");
     MultiMap responseHeaders = MultiMap.caseInsensitiveMultiMap()
       .add("Vary", "X-Vertx")
       .add("X-Vertx", "jordi");
-    Vary instance = new Vary(requestHeaders, responseHeaders);
+    Vary instance = new Vary(requestHeaders, responseHeaders, false);
 
     RequestOptions requestMatches = new RequestOptions().addHeader("X-Vertx", "jordi");
     RequestOptions requestFails = new RequestOptions().addHeader("X-Vertx", "llach");
