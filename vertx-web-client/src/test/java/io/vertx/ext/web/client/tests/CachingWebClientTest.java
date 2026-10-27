@@ -281,6 +281,49 @@ public class CachingWebClientTest {
   }
 
   @Test
+  public void testAnonymousRequestDoesNotReceiveAuthenticatedResponse() throws Exception {
+    startMockServer(req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "max-age=600");
+      if (req.getHeader("Authorization") == null) {
+        req.response().setStatusCode(401).end("DENIED");
+      } else {
+        req.response().end("SECRET");
+      }
+    });
+
+    HttpResponse<Buffer> authed = defaultClient.get("localhost", "/")
+      .putHeader("Authorization", "Bearer token").send().await();
+    HttpResponse<Buffer> anonymous = defaultClient.get("localhost", "/").send().await();
+
+    // The authenticated response must not be served from the shared cache to an anonymous request
+    assertEquals("SECRET", authed.bodyAsString());
+    assertEquals(401, anonymous.statusCode());
+    assertEquals("DENIED", anonymous.bodyAsString());
+  }
+
+  @Test
+  public void testSharedDataStoreDoesNotShareAuthenticatedResponse() throws Exception {
+    startMockServer(req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "max-age=600");
+      req.response().end(req.getHeader("Authorization") + "|" + UUID.randomUUID());
+    });
+
+    // Two caching clients sharing one SharedData-backed store
+    CacheStore shared = CacheStore.sharedDataStore(vertx);
+    WebClient alice = CachingWebClient.create(buildBaseWebClient(), shared);
+    WebClient bob = CachingWebClient.create(buildBaseWebClient(), shared);
+
+    String aliceBody = alice.get("localhost", "/")
+      .putHeader("Authorization", "Bearer alice").send().await().bodyAsString();
+    String bobBody = bob.get("localhost", "/")
+      .putHeader("Authorization", "Bearer bob").send().await().bodyAsString();
+
+    // Bob must not receive Alice's authenticated response from the shared store
+    assertTrue(aliceBody.startsWith("Bearer alice"), aliceBody);
+    assertTrue(bobBody.startsWith("Bearer bob"), bobBody);
+  }
+
+  @Test
   public void testAuthorizationStoredInSharedCacheWhenPublic() throws Exception {
     startMockServer("public, max-age=600");
 
