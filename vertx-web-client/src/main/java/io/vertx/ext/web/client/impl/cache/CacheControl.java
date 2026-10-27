@@ -148,6 +148,16 @@ public class CacheControl {
     return directives.contains(CacheControlDirective.MUST_REVALIDATE);
   }
 
+  /**
+   * @return true if a shared cache may store this response although the request it answers
+   * contained an {@code Authorization} header (RFC 9111, section 3.5)
+   */
+  public boolean allowsAuthorizedSharedCaching() {
+    return isPublic()
+      || mustRevalidate()
+      || timeDirectives.containsKey(CacheControlDirective.SHARED_MAX_AGE);
+  }
+
   private long computeMaxAge() {
     if (!isPrivate() && timeDirectives.containsKey(CacheControlDirective.SHARED_MAX_AGE)) {
       return timeDirectives.get(CacheControlDirective.SHARED_MAX_AGE);

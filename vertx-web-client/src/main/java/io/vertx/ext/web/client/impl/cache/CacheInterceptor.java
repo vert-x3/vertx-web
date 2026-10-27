@@ -17,6 +17,7 @@ package io.vertx.ext.web.client.impl.cache;
 
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
@@ -24,6 +25,7 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.client.CachingWebClientOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.spi.CacheStore;
 import java.util.Collections;
@@ -43,6 +45,7 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
   private static final String IS_CACHE_DISPATCH = "cache.dispatch";
   private static final String RESPONSE_TO_REVALIDATE = "cache.response_to_revalidate";
   private static final String IS_CACHE_REVALIDATION = "cache.revalidation";
+  private static final String SENT_HEADERS = "cache.sent_headers";
 
   private final CacheStore publicCacheStore;
   private final CachingWebClientOptions options;
@@ -56,6 +59,14 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
 
   @Override
   public void handle(HttpContext<?> context) {
+    if (context.phase() == ClientPhase.SEND_REQUEST) {
+      // Capture the headers actually sent. A WebClientSession applies its headers (e.g.
+      // Authorization) to the client request at this phase, after this interceptor runs, so the
+      // reference stored here reflects them by the time a cache decision reads it.
+      context.set(SENT_HEADERS, context.clientRequest().headers());
+      context.next();
+      return;
+    }
     if (context.get(IS_CACHE_REVALIDATION) == Boolean.TRUE) {
       switch (context.phase()) {
         case DISPATCH_RESPONSE:
@@ -226,7 +237,18 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
       return Future.succeededFuture(response);
     }
 
-    if (cacheControl.isPrivate() && context.privateCacheStore() == null) {
+    boolean privateOnly = cacheControl.isPrivate();
+    if (!privateOnly && isAuthorizedRequest(context) && !cacheControl.allowsAuthorizedSharedCaching()) {
+      // A shared cache must not store a response to a request with an Authorization header,
+      // unless a cache directive explicitly allows it (RFC 9111, section 3.5)
+      privateOnly = true;
+    }
+    if (!privateOnly && response.headers().contains(HttpHeaders.SET_COOKIE)) {
+      // Replaying a Set-Cookie header to other users would leak the cookie (RFC 9111, section 7.3)
+      privateOnly = true;
+    }
+
+    if (privateOnly && context.privateCacheStore() == null) {
       return Future.succeededFuture(response);
     }
 
@@ -241,11 +263,21 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     CacheKey key = new CacheKey(context.requestOptions(), variation);
     CachedHttpResponse cachedResponse = CachedHttpResponse.wrap(response, cacheControl);
 
-    if (cacheControl.isPrivate()) {
+    if (privateOnly) {
       return context.privateCacheStore().set(key, cachedResponse).map(response);
     } else {
       return publicCacheStore.set(key, cachedResponse).map(response);
     }
+  }
+
+  private static boolean isAuthorizedRequest(HttpContext<?> context) {
+    // Prefer the headers actually sent (they include headers applied by a WebClientSession),
+    // falling back to the request options when the request has not been sent yet.
+    MultiMap headers = context.get(SENT_HEADERS);
+    if (headers == null) {
+      headers = context.requestOptions().getHeaders();
+    }
+    return headers != null && headers.contains(HttpHeaders.AUTHORIZATION);
   }
 
   private void registerVariation(CacheVariationsKey variationsKey, Vary variation) {

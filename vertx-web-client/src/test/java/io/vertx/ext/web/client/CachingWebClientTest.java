@@ -914,6 +914,155 @@ public class CachingWebClientTest {
     context.assertNotEquals(body2, body3);
   }
 
+  // Authorization: a shared cache must not store responses to authenticated requests (RFC 9111 §3.5)
+
+  @Test
+  public void testAuthorizationNotStoredInSharedCache(TestContext context) {
+    startMockServer(context, "max-age=600");
+    String body1 = executeGetBlocking(context, defaultClient, req -> req.putHeader("Authorization", "Bearer token"));
+    String body2 = executeGetBlocking(context, defaultClient, req -> req.putHeader("Authorization", "Bearer token"));
+    context.assertNotEquals(body1, body2);
+  }
+
+  @Test
+  public void testAuthorizationStoredInSharedCacheWhenPublic(TestContext context) {
+    startMockServer(context, "public, max-age=600");
+    String body1 = executeGetBlocking(context, defaultClient, req -> req.putHeader("Authorization", "Bearer token"));
+    String body2 = executeGetBlocking(context, defaultClient, req -> req.putHeader("Authorization", "Bearer token"));
+    context.assertEquals(body1, body2);
+  }
+
+  @Test
+  public void testAuthorizationStoredInSharedCacheWhenSharedMaxAge(TestContext context) {
+    startMockServer(context, "s-maxage=600");
+    String body1 = executeGetBlocking(context, defaultClient, req -> req.putHeader("Authorization", "Bearer token"));
+    String body2 = executeGetBlocking(context, defaultClient, req -> req.putHeader("Authorization", "Bearer token"));
+    context.assertEquals(body1, body2);
+  }
+
+  @Test
+  public void testAuthorizationStoredInSharedCacheWhenMustRevalidate(TestContext context) {
+    startMockServer(context, "must-revalidate, max-age=600");
+    String body1 = executeGetBlocking(context, defaultClient, req -> req.putHeader("Authorization", "Bearer token"));
+    String body2 = executeGetBlocking(context, defaultClient, req -> req.putHeader("Authorization", "Bearer token"));
+    context.assertEquals(body1, body2);
+  }
+
+  @Test
+  public void testAuthorizationCachedPerSession(TestContext context) {
+    startMockServer(context, "max-age=600");
+    WebClient caching = CachingWebClient.create(buildBaseWebClient(), new TestCacheStore());
+    WebClientSession alice = WebClientSession.create(caching);
+    WebClientSession bob = WebClientSession.create(caching);
+    String alice1 = executeGetBlocking(context, alice, req -> req.putHeader("Authorization", "Bearer alice"));
+    String bob1 = executeGetBlocking(context, bob, req -> req.putHeader("Authorization", "Bearer bob"));
+    String alice2 = executeGetBlocking(context, alice, req -> req.putHeader("Authorization", "Bearer alice"));
+    String bob2 = executeGetBlocking(context, bob, req -> req.putHeader("Authorization", "Bearer bob"));
+    // The response is cached in the session private store, not in the shared store
+    context.assertNotEquals(alice1, bob1);
+    context.assertEquals(alice1, alice2);
+    context.assertEquals(bob1, bob2);
+  }
+
+  @Test
+  public void testSessionAuthorizationHeaderNotSharedAcrossSessions(TestContext context) {
+    // Reproduces GHSA-g66v-j585-g25m: the Authorization header is applied by the session, not set
+    // on the request, so it is only present on the sent client request
+    startMockServer(context, req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "max-age=60");
+      req.response().end(req.getHeader("Authorization") + "|" + UUID.randomUUID());
+    });
+    WebClient caching = CachingWebClient.create(buildBaseWebClient(), new TestCacheStore());
+    WebClientSession alice = WebClientSession.create(caching);
+    WebClientSession bob = WebClientSession.create(caching);
+    alice.addHeader("Authorization", "Bearer alice");
+    bob.addHeader("Authorization", "Bearer bob");
+    String aliceBody = executeGetBlocking(context, alice);
+    String bobBody = executeGetBlocking(context, bob);
+    // Bob must receive his own response, not Alice's from the shared tier
+    context.assertTrue(aliceBody.startsWith("Bearer alice"), aliceBody);
+    context.assertTrue(bobBody.startsWith("Bearer bob"), bobBody);
+    context.assertNotEquals(aliceBody, bobBody);
+  }
+
+  // Set-Cookie: a shared cache must not store cookie-bearing responses (RFC 9111 §7.3)
+
+  @Test
+  public void testSetCookieNotStoredInSharedCache(TestContext context) {
+    startMockServer(context, req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=600");
+      req.response().headers().set(HttpHeaders.SET_COOKIE, "sid=secret");
+    });
+    assertNotCached(context);
+  }
+
+  @Test
+  public void testSetCookieCachedPerSession(TestContext context) {
+    startMockServer(context, req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "max-age=60");
+      req.response().headers().set(HttpHeaders.SET_COOKIE, "sid=secret");
+    });
+    WebClient caching = CachingWebClient.create(buildBaseWebClient(), new TestCacheStore());
+    WebClientSession alice = WebClientSession.create(caching);
+    WebClientSession bob = WebClientSession.create(caching);
+    String alice1 = executeGetBlocking(context, alice);
+    String bob1 = executeGetBlocking(context, bob);
+    String alice2 = executeGetBlocking(context, alice);
+    String bob2 = executeGetBlocking(context, bob);
+    // The response is cached in the session private store, not in the shared store
+    context.assertNotEquals(alice1, bob1);
+    context.assertEquals(alice1, alice2);
+    context.assertEquals(bob1, bob2);
+  }
+
+  @Test
+  public void testAnonymousRequestDoesNotReceiveAuthenticatedResponse(TestContext context) {
+    startMockServer(context, req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "max-age=600");
+      if (req.getHeader("Authorization") == null) {
+        req.response().setStatusCode(401).end("DENIED");
+      } else {
+        req.response().end("SECRET");
+      }
+    });
+    Async async = context.async();
+    defaultClient.get("localhost", "/").putHeader("Authorization", "Bearer token")
+      .send(context.asyncAssertSuccess(authed -> {
+        context.assertEquals("SECRET", authed.bodyAsString());
+        // Anonymous request must not be served the cached authenticated response
+        defaultClient.get("localhost", "/").send(context.asyncAssertSuccess(anon -> {
+          context.assertEquals(401, anon.statusCode());
+          context.assertEquals("DENIED", anon.bodyAsString());
+          async.complete();
+        }));
+      }));
+    async.await();
+  }
+
+  @Test
+  public void testSharedDataStoreDoesNotShareAuthenticatedResponse(TestContext context) {
+    startMockServer(context, req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "max-age=600");
+      req.response().end(req.getHeader("Authorization") + "|" + UUID.randomUUID());
+    });
+    // Two caching clients sharing one SharedData-backed store
+    CacheStore shared = CacheStore.sharedDataStore(vertx);
+    WebClient alice = CachingWebClient.create(buildBaseWebClient(), shared);
+    WebClient bob = CachingWebClient.create(buildBaseWebClient(), shared);
+    Async async = context.async();
+    alice.get("localhost", "/").putHeader("Authorization", "Bearer alice")
+      .send(context.asyncAssertSuccess(aliceResp -> {
+        context.assertTrue(aliceResp.bodyAsString().startsWith("Bearer alice"), aliceResp.bodyAsString());
+        // Bob must not receive Alice's authenticated response from the shared store
+        bob.get("localhost", "/").putHeader("Authorization", "Bearer bob")
+          .send(context.asyncAssertSuccess(bobResp -> {
+            context.assertTrue(bobResp.bodyAsString().startsWith("Bearer bob"), bobResp.bodyAsString());
+            async.complete();
+          }));
+      }));
+    async.await();
+  }
+
   static class TestCacheStore implements CacheStore {
     public final Map<String, CachedHttpResponse> db = new ConcurrentHashMap<>();
 
