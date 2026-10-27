@@ -41,7 +41,7 @@ import io.vertx.ext.web.client.spi.CacheStore;
  *      <li>max-age</li>
  *      <li>s-maxage</li>
  *      <li>stale-if-error</li>
- *      <li>staile-while-revalidate</li>
+ *      <li>stale-while-revalidate</li>
  *      <li>must-revalidate</li>
  *    </ul>
  *  </li>
