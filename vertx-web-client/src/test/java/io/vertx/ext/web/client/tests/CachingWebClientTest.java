@@ -1068,6 +1068,19 @@ public class CachingWebClientTest {
   }
 
   @Test
+  public void testWithQueryParamsDifferingOnlyByCase() throws Exception {
+    startMockServer("public, max-age=300");
+
+    // Parameter names are case-sensitive, these are different resources and must not share a
+    // cache entry
+    String body1 = executeGetBlocking(req -> req.setQueryParam("q", "search"));
+    String body2 = executeGetBlocking(req -> req.setQueryParam("Q", "search"));
+
+    assertNotEquals(body1, body2);
+
+  }
+
+  @Test
   public void testWithDifferentQueryParamOrdering() throws Exception {
     startMockServer("public, max-age=300");
 
