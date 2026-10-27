@@ -253,6 +253,10 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
       // unless a cache directive explicitly allows it (RFC 9111, section 3.5)
       privateOnly = true;
     }
+    if (!privateOnly && response.headers().contains(HttpHeaders.SET_COOKIE)) {
+      // Replaying a Set-Cookie header to other users would leak the cookie (RFC 9111, section 7.3)
+      privateOnly = true;
+    }
 
     if (privateOnly && context.privateCacheStore() == null) {
       return Future.succeededFuture(response);
