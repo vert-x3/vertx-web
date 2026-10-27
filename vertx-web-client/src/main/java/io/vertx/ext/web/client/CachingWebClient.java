@@ -50,6 +50,10 @@ import io.vertx.ext.web.client.spi.CacheStore;
  *  <li>Vary</li>
  * </ul>
  * <p/>
+ * Caching only applies to requests using the default {@link io.vertx.ext.web.codec.BodyCodec#buffer() buffer}
+ * response codec. A request configured with another body codec (for example via
+ * {@link HttpRequest#as(io.vertx.ext.web.codec.BodyCodec)}) bypasses the cache entirely: its response is
+ * neither stored nor served from the cache, because the raw response body is not available for caching.
  *
  * @author <a href="mailto:craigday3@gmail.com">Craig Day</a>
  */
