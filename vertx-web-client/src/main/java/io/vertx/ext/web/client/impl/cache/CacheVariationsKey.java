@@ -16,7 +16,6 @@
 package io.vertx.ext.web.client.impl.cache;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 
@@ -73,12 +72,12 @@ class CacheVariationsKey {
   }
 
   private String queryString(Map<String, List<String>> queryParams) {
-    MultiMap mm = MultiMap.caseInsensitiveMultiMap();
-    queryParams.forEach(mm::set);
-    return mm.entries()
+    // Parameter names are case-sensitive, so ?a=1 and ?A=2 must not collide. Sort by name to make
+    // the key independent of parameter ordering, and join repeated values deterministically.
+    return queryParams.entrySet()
       .stream()
-      .sorted((a, b) -> a.getKey().compareToIgnoreCase(b.getKey()))
-      .map(e -> e.getKey() + "=" + e.getValue())
+      .sorted(Map.Entry.comparingByKey())
+      .map(e -> e.getKey() + "=" + String.join(",", e.getValue()))
       .collect(Collectors.joining("&"));
   }
 }
