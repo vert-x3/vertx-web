@@ -118,6 +118,10 @@ public class CacheControl {
     if ("*".equals(vary)) {
       return false;
     }
+    if (noCache()) {
+      // A no-cache response may be stored, but it must be revalidated before each use
+      return true;
+    }
 
     return maxAge > 0;
   }
@@ -156,7 +160,8 @@ public class CacheControl {
     } else if (date != null && expires != null) {
       return Duration.between(date, expires).getSeconds();
     } else {
-      return Long.MAX_VALUE;
+      // No explicit freshness information (RFC 9111, section 4.2): the response is stale immediately
+      return 0;
     }
   }
 

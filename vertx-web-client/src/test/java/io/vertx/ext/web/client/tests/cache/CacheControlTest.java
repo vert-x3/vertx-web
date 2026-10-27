@@ -22,20 +22,20 @@ public class CacheControlTest {
 
   @Test
   public void testInvalidHeaders() {
-    // invalid Date
+    // invalid Date: no usable freshness information, the response is stale immediately
     MultiMap headers = MultiMap.caseInsensitiveMultiMap();
     headers.add("Date", "this header doesn't make sense");
     headers.add("Expires", "Thu, 09 May 2024 19:10:51 GMT");
 
     CacheControl cc = CacheControl.parse(headers);
-    assertEquals(Long.MAX_VALUE, cc.getMaxAge());
+    assertEquals(0, cc.getMaxAge());
 
-    // invalid Expires
+    // invalid Expires: must be treated as already expired (RFC 9111, section 5.3)
     headers = MultiMap.caseInsensitiveMultiMap();
     headers.add("Date", "Tue, 09 Apr 2024 19:10:51 GMT");
     headers.add("Expires", "this header doesn't make sense");
 
     cc = CacheControl.parse(headers);
-    assertEquals(Long.MAX_VALUE, cc.getMaxAge());
+    assertEquals(0, cc.getMaxAge());
   }
 }
