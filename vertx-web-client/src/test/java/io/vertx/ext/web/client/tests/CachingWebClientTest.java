@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -782,6 +783,81 @@ public class CachingWebClientTest {
     assertNotEquals(body1, body2);
     assertNotEquals(body1, body3);
     assertNotEquals(body2, body3);
+
+  }
+
+  @Test
+  public void testStaleWhileRevalidateSendsConditionalRequest() throws Exception {
+    AtomicInteger hits = new AtomicInteger();
+    AtomicBoolean conditional = new AtomicBoolean();
+    CountDownLatch refreshed = new CountDownLatch(1);
+
+    server.requestHandler(req -> {
+      hits.incrementAndGet();
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1, stale-while-revalidate=60");
+      req.response().headers().set(HttpHeaders.ETAG, "\"v1\"");
+      if (req.headers().contains(HttpHeaders.IF_NONE_MATCH)) {
+        conditional.set(true);
+        req.response().setStatusCode(304).end();
+        refreshed.countDown();
+      } else {
+        req.response().end("ORIGINAL");
+      }
+    });
+    server.listen().await();
+
+    assertEquals("ORIGINAL", executeGetBlocking());
+
+    // Stale but within the stale-while-revalidate window (age must exceed max-age, and age is
+    // floored to whole seconds)
+    Thread.sleep(2500);
+
+    // Serves the stale response immediately and triggers a background refresh
+    assertEquals("ORIGINAL", executeGetBlocking());
+
+    assertTrue(refreshed.await(10, TimeUnit.SECONDS));
+    assertTrue(conditional.get(), "the background refresh must be a conditional request");
+    assertEquals(2, hits.get());
+
+  }
+
+  @Test
+  public void testStaleWhileRevalidatePrivateIsRecached() throws Exception {
+    AtomicInteger hits = new AtomicInteger();
+    CountDownLatch refreshed = new CountDownLatch(1);
+
+    server.requestHandler(req -> {
+      hits.incrementAndGet();
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "private, max-age=2, stale-while-revalidate=60");
+      req.response().headers().set(HttpHeaders.ETAG, "\"v1\"");
+      if (req.headers().contains(HttpHeaders.IF_NONE_MATCH)) {
+        req.response().setStatusCode(304).end();
+        refreshed.countDown();
+      } else {
+        req.response().end("ORIGINAL");
+      }
+    });
+    server.listen().await();
+
+    assertEquals("ORIGINAL", executeGetBlocking(sessionClient));
+
+    // Stale but within the stale-while-revalidate window (age must exceed max-age, and age is
+    // floored to whole seconds)
+    Thread.sleep(3500);
+
+    // Serves the stale response immediately and triggers a background refresh of the private entry
+    assertEquals("ORIGINAL", executeGetBlocking(sessionClient));
+
+    assertTrue(refreshed.await(10, TimeUnit.SECONDS));
+    // Let the background refresh re-store the entry in the session private cache
+    Thread.sleep(300);
+
+    // The refreshed private entry is fresh again and served from the private cache
+    HttpResponse<Buffer> resp3 = sessionClient.get("localhost", "/").send().await(10, TimeUnit.SECONDS);
+    assertEquals("ORIGINAL", resp3.bodyAsString());
+
+    Thread.sleep(1000);
+    assertEquals(2, hits.get());
 
   }
 
