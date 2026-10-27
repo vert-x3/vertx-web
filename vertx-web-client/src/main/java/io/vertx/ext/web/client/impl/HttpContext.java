@@ -69,10 +69,14 @@ public class HttpContext<T> {
   }
 
   /**
-   * @return a duplicate of this context
+   * @return a duplicate of this context, detached from this context's response promise so it can
+   * run in the background (e.g. a stale-while-revalidate refresh) without completing the original
+   * request
    */
   public HttpContext<T> duplicate() {
-    return new HttpContext<>(context, client, options, interceptors, promise);
+    HttpContext<T> duplicate = new HttpContext<>(context, client, options, interceptors, context.promise());
+    duplicate.privateCacheStore = privateCacheStore;
+    return duplicate;
   }
 
   public Future<HttpResponse<T>> future() {

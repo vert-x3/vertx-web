@@ -70,9 +70,19 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
       return;
     }
     if (context.get(IS_CACHE_REVALIDATION) == Boolean.TRUE) {
+      // A background refresh always carries the stale response it is revalidating
+      CachedHttpResponse toRevalidate = context.get(RESPONSE_TO_REVALIDATE);
       switch (context.phase()) {
+        case CREATE_REQUEST:
+          String etag = toRevalidate.getCacheControl().getEtag();
+          if (etag != null) {
+            // Make the background refresh a conditional request so the server can answer 304
+            context.requestOptions().putHeader(HttpHeaders.IF_NONE_MATCH, etag);
+          }
+          context.next();
+          break;
         case DISPATCH_RESPONSE:
-          processResponse((HttpContext<Buffer>) context, null).onComplete(ar -> {
+          processRevalidationResponse((HttpContext<Buffer>) context, toRevalidate).onComplete(ar -> {
             // Don't go further
           });
           break;
@@ -227,9 +237,10 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
       // Response is current, reply with it immediately
       return Optional.of(result);
     } else if (response.useStaleWhileRevalidate()) {
-      // Send off a request to revalidate the cache but don't want for a response,
+      // Send off a request to revalidate the cache but don't wait for a response
       HttpContext<Buffer> duplicate = context.duplicate();
       duplicate.set(IS_CACHE_REVALIDATION, true);
+      duplicate.set(RESPONSE_TO_REVALIDATE, response);
       duplicate.prepareRequest(context.request(), context.contentType(), context.body());
       // Just respond immediately with the cached value.
       return Optional.of(result);
