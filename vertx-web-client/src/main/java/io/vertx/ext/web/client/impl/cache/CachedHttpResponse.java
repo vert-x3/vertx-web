@@ -111,11 +111,15 @@ public class CachedHttpResponse {
   }
 
   public HttpResponse<Buffer> rehydrate() {
+    return rehydrate(responseHeaders);
+  }
+
+  public HttpResponse<Buffer> rehydrate(MultiMap headers) {
     return new HttpResponseImpl<>(
       HttpVersion.valueOf(version),
       statusCode,
       statusMessage,
-      responseHeaders,
+      headers,
       MultiMap.caseInsensitiveMultiMap(),
       Collections.emptyList(),
       body,

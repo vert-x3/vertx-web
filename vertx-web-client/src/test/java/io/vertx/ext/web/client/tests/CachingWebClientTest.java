@@ -383,6 +383,47 @@ public class CachingWebClientTest {
     }
   }
 
+  // 304 revalidation header update
+
+  @Test
+  public void test304UpdatesFreshnessFromNewHeaders() throws Exception {
+    AtomicInteger hits = new AtomicInteger();
+
+    server.requestHandler(req -> {
+      hits.incrementAndGet();
+      if (req.headers().contains(HttpHeaders.IF_NONE_MATCH)) {
+        // Revalidation extends the freshness lifetime
+        req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=60");
+        req.response().setStatusCode(304).end();
+      } else {
+        req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1");
+        req.response().headers().set(HttpHeaders.ETAG, "\"v1\"");
+        req.response().end("ORIGINAL");
+      }
+    });
+    server.listen().await();
+
+    assertEquals("ORIGINAL", executeGetBlocking());
+
+    // Stale against the original max-age=1
+    Thread.sleep(2000);
+
+    // Foreground revalidation: 304 re-stores with the new max-age=60
+    HttpResponse<Buffer> res2 = defaultClient.get("localhost", "/").send().await();
+    assertEquals("ORIGINAL", res2.bodyAsString());
+    assertEquals(2, hits.get());
+
+    // Older than the original max-age=1 but within the revalidated max-age=60
+    Thread.sleep(2000);
+
+    // Served from cache, no further revalidation thanks to the updated freshness
+    HttpResponse<Buffer> res3 = defaultClient.get("localhost", "/").send().await();
+    assertEquals("ORIGINAL", res3.bodyAsString());
+    assertNotNull(res3.headers().get(HttpHeaders.AGE));
+    assertEquals(2, hits.get());
+
+  }
+
   // Body codecs
 
   @Test
