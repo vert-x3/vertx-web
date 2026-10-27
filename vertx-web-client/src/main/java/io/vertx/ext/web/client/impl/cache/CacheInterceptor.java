@@ -27,6 +27,7 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.spi.CacheStore;
+import io.vertx.ext.web.codec.BodyCodec;
 import io.netty.util.internal.StringUtil;
 import java.security.MessageDigest;
 import java.util.Collections;
@@ -61,6 +62,13 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
 
   @Override
   public void handle(HttpContext<?> context) {
+    if (!usesBufferCodec(context)) {
+      // Caching requires the raw response body, but a custom body codec decodes the response as it
+      // streams and does not expose the buffer. Such requests bypass the cache entirely until the
+      // cache can store and re-decode the raw body.
+      context.next();
+      return;
+    }
     if (context.phase() == ClientPhase.SEND_REQUEST) {
       // Capture the headers actually sent. A WebClientSession applies its headers (e.g.
       // Authorization) to the client request at this phase, after this interceptor runs, so the
@@ -308,6 +316,10 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     } else {
       return publicCacheStore.set(key, cachedResponse).map(response);
     }
+  }
+
+  private static boolean usesBufferCodec(HttpContext<?> context) {
+    return context.request().bodyCodec() == BodyCodec.buffer();
   }
 
   private static boolean isAuthorizedRequest(HttpContext<?> context) {

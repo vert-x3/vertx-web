@@ -6,7 +6,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.junit5.VertxTest;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.*;
+import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.ext.web.client.impl.cache.CacheKey;
@@ -379,6 +381,24 @@ public class CachingWebClientTest {
     } finally {
       pool.shutdownNow();
     }
+  }
+
+  // Body codecs
+
+  @Test
+  public void testNonBufferCodecBypassesCache() throws Exception {
+    startMockServer(req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=600");
+      req.response().end(new JsonObject().put("v", UUID.randomUUID().toString()).encode());
+    });
+
+    HttpResponse<JsonObject> res1 = defaultClient.get("localhost", "/").as(BodyCodec.jsonObject()).send().await();
+    HttpResponse<JsonObject> res2 = defaultClient.get("localhost", "/").as(BodyCodec.jsonObject()).send().await();
+
+    // A custom codec bypasses the cache: the server is hit again and no Age header is added
+    assertNotEquals(res1.body().getString("v"), res2.body().getString("v"));
+    assertNull(res1.headers().get(HttpHeaders.AGE));
+    assertNull(res2.headers().get(HttpHeaders.AGE));
   }
 
   // Options isolation

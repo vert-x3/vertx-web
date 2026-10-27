@@ -531,6 +531,10 @@ Vert.x web offers an HTTP response caching facility; to use it, you create a {@l
 By default, a caching web client will only cache a response from a `GET` method that has a status code of `200`, `301`, or `404`.
 Additionally, responses that contain a `Vary` header will not be cached by default.
 
+NOTE: Caching only applies to requests using the default buffer response codec. A request configured with another
+body codec, for example through {@link io.vertx.ext.web.client.HttpRequest#as(io.vertx.ext.web.codec.BodyCodec)},
+bypasses the cache: its response is neither stored nor served from the cache.
+
 This can be configured by passing {@link io.vertx.ext.web.client.CachingWebClientOptions} during client creation.
 
 [source,$lang]
