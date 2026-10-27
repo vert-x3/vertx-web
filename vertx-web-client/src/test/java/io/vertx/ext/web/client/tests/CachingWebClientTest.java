@@ -348,6 +348,21 @@ public class CachingWebClientTest {
     assertEquals(bob1, bob2);
   }
 
+  // Options isolation
+
+  @Test
+  public void testOptionsMutationAfterClientCreationHasNoEffect() throws Exception {
+    startMockServer("public, max-age=600");
+
+    CachingWebClientOptions options = new CachingWebClientOptions();
+    WebClient client = CachingWebClient.create(buildBaseWebClient(), new TestCacheStore(), options);
+
+    // Mutating the options after the client was created must not reconfigure the client
+    options.removeCachedStatusCode(200);
+
+    assertCached(client);
+  }
+
   // Private cache store failures
 
   @Test

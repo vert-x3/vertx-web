@@ -33,12 +33,12 @@ import java.util.Set;
 @DataObject
 public class CachingWebClientConfig extends WebClientConfig {
 
-  public static final Set<Integer> DEFAULT_CACHED_STATUS_CODES = buildDefaultStatusCodes();
-  public static final Set<HttpMethod> DEFAULT_CACHED_METHODS = buildDefaultMethods();
+  public static final Set<Integer> DEFAULT_CACHED_STATUS_CODES = Collections.unmodifiableSet(buildDefaultStatusCodes());
+  public static final Set<HttpMethod> DEFAULT_CACHED_METHODS = Collections.unmodifiableSet(buildDefaultMethods());
 
   private boolean enableVaryCaching = false;
-  private Set<Integer> cachedStatusCodes = DEFAULT_CACHED_STATUS_CODES;
-  private Set<HttpMethod> cachedMethods = DEFAULT_CACHED_METHODS;
+  private Set<Integer> cachedStatusCodes = buildDefaultStatusCodes();
+  private Set<HttpMethod> cachedMethods = buildDefaultMethods();
 
   public CachingWebClientConfig() {
   }
@@ -56,15 +56,15 @@ public class CachingWebClientConfig extends WebClientConfig {
   void init(CachingWebClientConfig other) {
     super.init(other);
     this.enableVaryCaching = other.enableVaryCaching;
-    this.cachedStatusCodes = other.cachedStatusCodes;
-    this.cachedMethods = other.cachedMethods;
+    this.cachedStatusCodes = new HashSet<>(other.cachedStatusCodes);
+    this.cachedMethods = new HashSet<>(other.cachedMethods);
   }
 
   void init(CachingWebClientOptions other) {
     super.init(other);
     this.enableVaryCaching = other.isVaryCachingEnabled();
-    this.cachedStatusCodes = other.getCachedStatusCodes();
-    this.cachedMethods = other.getCachedMethods();
+    this.cachedStatusCodes = new HashSet<>(other.getCachedStatusCodes());
+    this.cachedMethods = new HashSet<>(other.getCachedMethods());
   }
 
   /**
