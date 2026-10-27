@@ -790,6 +790,47 @@ public class CachingWebClientTest {
   }
 
   @Test
+  public void testStaleWhileRevalidateWithMustRevalidate() throws Exception {
+    startMockServer("public, max-age=1, stale-while-revalidate=60, must-revalidate");
+
+    String body1 = executeGetBlocking();
+
+    // Wait > max-age, the response is stale and must-revalidate forbids serving it
+    Thread.sleep(2000);
+
+    String body2 = executeGetBlocking();
+
+    assertNotEquals(body1, body2);
+  }
+
+  @Test
+  public void testStaleIfErrorWithMustRevalidate() throws Exception {
+    AtomicBoolean stale = new AtomicBoolean();
+
+    startMockServer(req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1, stale-if-error=60, must-revalidate");
+      if (stale.get()) {
+        req.response().setStatusCode(503);
+        req.response().end();
+      }
+    });
+
+    String body1 = executeGetBlocking();
+    Thread.sleep(2000);
+    stale.set(true);
+
+    HttpResponse<Buffer> response = defaultClient
+      .get("localhost", "/")
+      .send()
+      .await();
+
+    // must-revalidate forbids serving the stale response on error
+    assertNotNull(body1);
+    assertEquals(503, response.statusCode());
+    assertNull(response.bodyAsString());
+  }
+
+  @Test
   public void testMatchingPaths() throws Exception {
     startMockServer("public, max-age=300");
 
