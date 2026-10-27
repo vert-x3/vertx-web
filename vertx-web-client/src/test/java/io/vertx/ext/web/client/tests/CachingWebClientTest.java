@@ -7,6 +7,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.junit5.VertxTest;
 import io.vertx.ext.web.client.*;
+import io.vertx.ext.web.client.impl.ClientPhase;
+import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.ext.web.client.impl.cache.CacheKey;
 import io.vertx.ext.web.client.impl.cache.CachedHttpResponse;
 import io.vertx.ext.web.client.spi.CacheStore;
@@ -18,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -343,6 +346,50 @@ public class CachingWebClientTest {
     assertNotEquals(alice1, bob1);
     assertEquals(alice1, alice2);
     assertEquals(bob1, bob2);
+  }
+
+  // Private cache store failures
+
+  @Test
+  public void testPrivateCacheStoreFailure() throws Exception {
+    CacheStore failingCacheStore = new CacheStore() {
+      @Override
+      public Future<CachedHttpResponse> get(CacheKey key) {
+        return Future.failedFuture("cache store failure");
+      }
+
+      @Override
+      public Future<CachedHttpResponse> set(CacheKey key, CachedHttpResponse response) {
+        return Future.failedFuture("cache store failure");
+      }
+
+      @Override
+      public Future<Void> delete(CacheKey key) {
+        return Future.failedFuture("cache store failure");
+      }
+
+      @Override
+      public Future<Void> flush() {
+        return Future.failedFuture("cache store failure");
+      }
+    };
+
+    startMockServer("public, max-age=600");
+
+    WebClient client = CachingWebClient.create(buildBaseWebClient(), new TestCacheStore());
+    ((WebClientInternal) client).addInterceptor(ctx -> {
+      if (ctx.phase() == ClientPhase.PREPARE_REQUEST) {
+        ctx.privateCacheStore(failingCacheStore);
+      }
+      ctx.next();
+    });
+
+    // A failing private store must neither hang the request nor prevent the shared store fallback
+    String body1 = client.get("localhost", "/").send().await(10, TimeUnit.SECONDS).bodyAsString();
+    String body2 = client.get("localhost", "/").send().await(10, TimeUnit.SECONDS).bodyAsString();
+
+    assertNotNull(body1);
+    assertEquals(body1, body2);
   }
 
   // Responses with Set-Cookie
