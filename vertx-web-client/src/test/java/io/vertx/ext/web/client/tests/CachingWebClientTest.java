@@ -837,6 +837,66 @@ public class CachingWebClientTest {
   }
 
   @Test
+  public void testStaleIfErrorNotUsedForNonErrorStatus() throws Exception {
+    AtomicBoolean stale = new AtomicBoolean();
+
+    startMockServer(req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=1, stale-if-error=60");
+      if (stale.get()) {
+        req.response().setStatusCode(201);
+        req.response().end("created");
+      }
+    });
+
+    String body1 = executeGetBlocking();
+    Thread.sleep(2000);
+    stale.set(true);
+
+    HttpResponse<Buffer> response = defaultClient
+      .get("localhost", "/")
+      .send()
+      .await();
+
+    // A 201 is not an error (RFC 5861), it must be delivered instead of the stale response
+    assertNotNull(body1);
+    assertEquals(201, response.statusCode());
+    assertEquals("created", response.bodyAsString());
+  }
+
+  @Test
+  public void testStaleIfErrorOnNetworkFailure() throws Exception {
+    startMockServer("public, max-age=1, stale-if-error=60");
+
+    String body1 = executeGetBlocking();
+    Thread.sleep(2000);
+    server.close().await();
+
+    HttpResponse<Buffer> response = defaultClient
+      .get("localhost", "/")
+      .send()
+      .await(10, TimeUnit.SECONDS);
+
+    // The revalidation failed, the stale response is served instead (RFC 5861)
+    assertEquals(body1, response.bodyAsString());
+    assertNotNull(response.headers().get(HttpHeaders.AGE));
+  }
+
+  @Test
+  public void testNetworkFailureWithoutStaleIfError() throws Exception {
+    startMockServer("public, max-age=1");
+
+    String body1 = executeGetBlocking();
+    Thread.sleep(2000);
+    server.close().await();
+
+    assertNotNull(body1);
+    assertThrows(Exception.class, () -> defaultClient
+      .get("localhost", "/")
+      .send()
+      .await(10, TimeUnit.SECONDS));
+  }
+
+  @Test
   public void testStaleWhileRevalidateWithMustRevalidate() throws Exception {
     startMockServer("public, max-age=1, stale-while-revalidate=60, must-revalidate");
 

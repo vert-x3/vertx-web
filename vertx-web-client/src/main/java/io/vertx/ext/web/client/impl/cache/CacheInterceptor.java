@@ -88,10 +88,24 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
         case DISPATCH_RESPONSE:
           handleDispatchResponse((HttpContext<Buffer>) context);
           break;
+        case FAILURE:
+          handleFailure((HttpContext<Buffer>) context);
+          break;
         default:
           context.next();
           break;
       }
+    }
+  }
+
+  private void handleFailure(HttpContext<Buffer> context) {
+    CachedHttpResponse cachedResponse = context.get(RESPONSE_TO_REVALIDATE);
+    if (cachedResponse != null && cachedResponse.useStaleIfError()) {
+      // The revalidation failed, serve the stale response instead of the failure (RFC 5861)
+      context.set(IS_CACHE_DISPATCH, true);
+      context.dispatchResponse(dispatchedResponse(cachedResponse));
+    } else {
+      context.next();
     }
   }
 
@@ -178,13 +192,24 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     if (options.getCachedStatusCodes().contains(response.statusCode())) {
       // Request was successful, attempt to cache response
       return cacheResponse(context, response).map(response);
-    } else if (cachedResponse != null && cachedResponse.useStaleIfError()) {
-      // The response is a status code we don't know about, assume revalidate failed and use cached result
-      return Future.succeededFuture(cachedResponse.rehydrate());
+    } else if (cachedResponse != null && isErrorStatus(response.statusCode()) && cachedResponse.useStaleIfError()) {
+      // The server responded with an error, use the cached result (RFC 5861)
+      return Future.succeededFuture(dispatchedResponse(cachedResponse));
     } else {
       // Response is not cacheable, do nothing
       return Future.succeededFuture(response);
     }
+  }
+
+  private static boolean isErrorStatus(int statusCode) {
+    // RFC 5861 defines an error as a 500, 502, 503 or 504 response
+    return statusCode == 500 || statusCode == 502 || statusCode == 503 || statusCode == 504;
+  }
+
+  private static HttpResponse<Buffer> dispatchedResponse(CachedHttpResponse response) {
+    HttpResponse<Buffer> result = response.rehydrate();
+    result.headers().set(HttpHeaders.AGE, Long.toString(response.age()));
+    return result;
   }
 
   private Optional<HttpResponse<Buffer>> respondFromCache(HttpContext<Buffer> context, CachedHttpResponse response) {
@@ -192,8 +217,7 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
       return Optional.empty();
     }
 
-    HttpResponse<Buffer> result = response.rehydrate();
-    result.headers().set(HttpHeaders.AGE, Long.toString(response.age()));
+    HttpResponse<Buffer> result = dispatchedResponse(response);
 
     if (response.getCacheControl().noCache()) {
       // We must validate with the server before releasing the cached data
