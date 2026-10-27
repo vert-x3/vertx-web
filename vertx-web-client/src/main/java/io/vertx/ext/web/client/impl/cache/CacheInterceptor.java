@@ -18,7 +18,6 @@ package io.vertx.ext.web.client.impl.cache;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
@@ -112,25 +111,20 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
       return;
     }
 
-    Promise<CachedHttpResponse> promise = Promise.promise();
     CacheKey key = new CacheKey(request, variation, context.get("cache.body_fingerprint"));
+    Future<CachedHttpResponse> lookup;
 
     if (context.privateCacheStore() != null) {
-      // Check the local private store first
-      context.privateCacheStore().get(key).onSuccess(cached -> {
-        if (cached == null) {
-          // If the local private store doesn't have the result, try the public shared store
-          publicCacheStore.get(key).onComplete(promise);
-        } else {
-          promise.complete(cached);
-        }
-      });
+      // Check the local private store first, then the public shared store when the private
+      // lookup misses or fails
+      lookup = context.privateCacheStore()
+        .get(key)
+        .transform((cached, err) -> cached != null ? Future.succeededFuture(cached) : publicCacheStore.get(key));
     } else {
-      publicCacheStore.get(key).onComplete(promise);
+      lookup = publicCacheStore.get(key);
     }
 
-    promise
-      .future()
+    lookup
       .map(cached -> respondFromCache(context, cached))
       .onComplete(ar -> {
         if (ar.succeeded() && ar.result().isPresent()) {
