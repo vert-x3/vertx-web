@@ -260,6 +260,22 @@ public class CachingWebClientTest {
 
   }
 
+  // No explicit freshness information (RFC 9111, section 4.2)
+
+  @Test
+  public void testNoCacheHeaders() throws Exception {
+    startMockServer(req -> {});
+    assertNotCached();
+  }
+
+  @Test
+  public void testEtagWithoutFreshnessInfo() throws Exception {
+    startMockServer(req -> {
+      req.response().headers().set(HttpHeaders.ETAG, "\"v1\"");
+    });
+    assertNotCached();
+  }
+
   // Cache-Control: public
 
   @Test
@@ -282,8 +298,10 @@ public class CachingWebClientTest {
 
   @Test
   public void testPublicWithoutMaxAge() throws Exception {
+    // public alone carries no freshness information, the response must not be served from
+    // cache without validation (RFC 9111, section 4.2)
     startMockServer("public");
-    assertCached();
+    assertNotCached();
 
   }
 
@@ -720,8 +738,10 @@ public class CachingWebClientTest {
 
   @Test
   public void testPrivateEnabled() throws Exception {
+    // private alone carries no freshness information, the response must not be served from
+    // cache without validation (RFC 9111, section 4.2)
     startMockServer("private");
-    assertCached(sessionClient);
+    assertNotCached(sessionClient);
 
   }
 
