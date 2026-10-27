@@ -345,6 +345,40 @@ public class CachingWebClientTest {
     assertEquals(bob1, bob2);
   }
 
+  // Responses with Set-Cookie
+
+  @Test
+  public void testSetCookieNotStoredInSharedCache() throws Exception {
+    startMockServer(req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "public, max-age=600");
+      req.response().headers().set(HttpHeaders.SET_COOKIE, "sid=secret");
+    });
+
+    assertNotCached();
+  }
+
+  @Test
+  public void testSetCookieCachedPerSession() throws Exception {
+    startMockServer(req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "max-age=600");
+      req.response().headers().set(HttpHeaders.SET_COOKIE, "sid=secret");
+    });
+
+    WebClient caching = CachingWebClient.create(buildBaseWebClient(), new TestCacheStore());
+    WebClientSession alice = WebClientSession.create(caching);
+    WebClientSession bob = WebClientSession.create(caching);
+
+    String alice1 = executeGetBlocking(alice);
+    String bob1 = executeGetBlocking(bob);
+    String alice2 = executeGetBlocking(alice);
+    String bob2 = executeGetBlocking(bob);
+
+    // The response is cached in the session private store, not in the shared store
+    assertNotEquals(alice1, bob1);
+    assertEquals(alice1, alice2);
+    assertEquals(bob1, bob2);
+  }
+
   // No explicit freshness information (RFC 9111, section 4.2)
 
   @Test
