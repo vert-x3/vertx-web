@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -346,6 +348,36 @@ public class CachingWebClientTest {
     assertNotEquals(alice1, bob1);
     assertEquals(alice1, alice2);
     assertEquals(bob1, bob2);
+  }
+
+  // Concurrent store access
+
+  @Test
+  public void testConcurrentCaching() throws Exception {
+    startMockServer("public, max-age=600");
+
+    // Default client backed by LocalCacheStore
+    WebClient client = CachingWebClient.create(buildBaseWebClient());
+
+    int count = 128;
+    ExecutorService pool = Executors.newFixedThreadPool(8);
+    try {
+      CountDownLatch latch = new CountDownLatch(count);
+      for (int i = 0; i < count; i++) {
+        String uri = "/" + i;
+        // Each send from a non-vertx thread runs on its own context, the store is accessed
+        // from multiple event loops concurrently
+        pool.submit(() -> client.get("localhost", uri).send().onComplete(ar -> latch.countDown()));
+      }
+      assertTrue(latch.await(30, TimeUnit.SECONDS));
+
+      for (int i = 0; i < count; i++) {
+        HttpResponse<Buffer> response = client.get("localhost", "/" + i).send().await(10, TimeUnit.SECONDS);
+        assertNotNull(response.headers().get(HttpHeaders.AGE), "expected a cache hit for /" + i);
+      }
+    } finally {
+      pool.shutdownNow();
+    }
   }
 
   // Options isolation
