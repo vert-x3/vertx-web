@@ -260,6 +260,91 @@ public class CachingWebClientTest {
 
   }
 
+  // Requests with an Authorization header (RFC 9111, section 3.5)
+
+  @Test
+  public void testAuthorizationNotStoredInSharedCache() throws Exception {
+    startMockServer("max-age=600");
+
+    String body1 = executeGetBlocking(req -> req.putHeader("Authorization", "Bearer token"));
+    String body2 = executeGetBlocking(req -> req.putHeader("Authorization", "Bearer token"));
+
+    assertNotEquals(body1, body2);
+  }
+
+  @Test
+  public void testAuthorizationStoredInSharedCacheWhenPublic() throws Exception {
+    startMockServer("public, max-age=600");
+
+    String body1 = executeGetBlocking(req -> req.putHeader("Authorization", "Bearer token"));
+    String body2 = executeGetBlocking(req -> req.putHeader("Authorization", "Bearer token"));
+
+    assertEquals(body1, body2);
+  }
+
+  @Test
+  public void testAuthorizationStoredInSharedCacheWhenSharedMaxAge() throws Exception {
+    startMockServer("s-maxage=600");
+
+    String body1 = executeGetBlocking(req -> req.putHeader("Authorization", "Bearer token"));
+    String body2 = executeGetBlocking(req -> req.putHeader("Authorization", "Bearer token"));
+
+    assertEquals(body1, body2);
+  }
+
+  @Test
+  public void testAuthorizationStoredInSharedCacheWhenMustRevalidate() throws Exception {
+    startMockServer("must-revalidate, max-age=600");
+
+    String body1 = executeGetBlocking(req -> req.putHeader("Authorization", "Bearer token"));
+    String body2 = executeGetBlocking(req -> req.putHeader("Authorization", "Bearer token"));
+
+    assertEquals(body1, body2);
+  }
+
+  @Test
+  public void testSessionAuthorizationHeaderNotSharedAcrossSessions() throws Exception {
+    // Reproduces GHSA-g66v-j585-g25m: the Authorization header is applied by the session, not set
+    // on the request, so it is only present on the sent client request
+    startMockServer(req -> {
+      req.response().headers().set(HttpHeaders.CACHE_CONTROL, "max-age=60");
+      req.response().end(req.headers().get("Authorization") + "|" + UUID.randomUUID());
+    });
+
+    WebClient caching = CachingWebClient.create(buildBaseWebClient(), new TestCacheStore());
+    WebClientSession alice = WebClientSession.create(caching);
+    WebClientSession bob = WebClientSession.create(caching);
+    alice.addHeader("Authorization", "Bearer alice");
+    bob.addHeader("Authorization", "Bearer bob");
+
+    String aliceBody = executeGetBlocking(alice);
+    String bobBody = executeGetBlocking(bob);
+
+    // Bob must receive his own response, not Alice's from the shared tier
+    assertTrue(aliceBody.startsWith("Bearer alice"), aliceBody);
+    assertTrue(bobBody.startsWith("Bearer bob"), bobBody);
+    assertNotEquals(aliceBody, bobBody);
+  }
+
+  @Test
+  public void testAuthorizationCachedPerSession() throws Exception {
+    startMockServer("max-age=600");
+
+    WebClient caching = CachingWebClient.create(buildBaseWebClient(), new TestCacheStore());
+    WebClientSession alice = WebClientSession.create(caching);
+    WebClientSession bob = WebClientSession.create(caching);
+
+    String alice1 = executeGetBlocking(alice, req -> req.putHeader("Authorization", "Bearer alice"));
+    String bob1 = executeGetBlocking(bob, req -> req.putHeader("Authorization", "Bearer bob"));
+    String alice2 = executeGetBlocking(alice, req -> req.putHeader("Authorization", "Bearer alice"));
+    String bob2 = executeGetBlocking(bob, req -> req.putHeader("Authorization", "Bearer bob"));
+
+    // The response is cached in the session private store, not in the shared store
+    assertNotEquals(alice1, bob1);
+    assertEquals(alice1, alice2);
+    assertEquals(bob1, bob2);
+  }
+
   // No explicit freshness information (RFC 9111, section 4.2)
 
   @Test
