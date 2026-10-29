@@ -283,13 +283,14 @@ public class RouteImpl implements Route {
   }
 
   private synchronized void setPath(String path) {
+    path = path.replace("\\:", ESCAPED_COLON_SENTINEL);
     // See if the path is a wildcard "*" is present - If so we need to configure this path to be not exact
     if (path.charAt(path.length() - 1) != '*') {
       state = state.setExactPath(true);
-      state = state.setPath(path);
+      state = state.setPath(path.replace(ESCAPED_COLON_SENTINEL, ":"));
     } else {
       state = state.setExactPath(false);
-      state = state.setPath(path.substring(0, path.length() - 1));
+      state = state.setPath(path.substring(0, path.length() - 1).replace(ESCAPED_COLON_SENTINEL, ":"));
     }
 
     state = state.setPathEndsWithSlash(state.getPath().endsWith("/"));
@@ -343,6 +344,7 @@ public class RouteImpl implements Route {
 
   // intersection of regex chars and https://tools.ietf.org/html/rfc3986#section-3.3
   private static final Pattern RE_OPERATORS_NO_STAR = Pattern.compile("([\\(\\)\\$\\+\\.])");
+  private static final String ESCAPED_COLON_SENTINEL = "\u0000";
 
   private synchronized int createPatternRegex(String path) {
     // escape path from any regex special chars
@@ -382,7 +384,7 @@ public class RouteImpl implements Route {
     if (state.isExactPath() && !state.isPathEndsWithSlash()) {
       sb.append("/?");
     }
-    path = sb.toString();
+    path = sb.toString().replace(ESCAPED_COLON_SENTINEL, ":");
 
     state = state.setGroups(groups);
     state = state.setPattern(Pattern.compile(path));
