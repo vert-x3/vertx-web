@@ -15,6 +15,7 @@ import io.vertx.ext.web.openapi.router.RequestExtractor;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.contract.Operation;
+import io.vertx.openapi.contract.RequestBody;
 import io.vertx.openapi.validation.ValidatedRequest;
 
 public class RouterExamples {
@@ -128,5 +129,19 @@ public class RouterExamples {
     // room for mistakes. While the example is using "OpenIDConnectAuth", you can
     // use any of the OAuth2 providers that may reduce even further the
     // configuration needs.
+  }
+
+  void accessOpenAPIModel(Vertx vertx, RouterBuilder routerBuilder) {
+    OpenAPIRoute putPetRoute = routerBuilder.getRoute("putPet");
+
+    putPetRoute.addHandler(routingContext -> {
+      Operation operation = (Operation) routingContext
+        .currentRoute()
+        .metadata()
+        .get(RouterBuilder.KEY_META_DATA_OPERATION);
+      RequestBody requestBody = operation.getRequestBody();
+      // ..
+      // ..
+    });
   }
 }
