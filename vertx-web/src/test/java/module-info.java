@@ -43,6 +43,8 @@ open module io.vertx.web.tests {
   requires io.netty.common;
   requires io.netty.codec.http;
   requires org.assertj.core;
+  requires org.slf4j;
+  requires com.fasterxml.jackson.annotation;
   requires static org.mockito;
   requires static com.webauthn4j.metadata.async;
   requires static com.webauthn4j.test;

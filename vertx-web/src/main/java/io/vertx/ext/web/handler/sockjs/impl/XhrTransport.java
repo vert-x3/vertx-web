@@ -208,6 +208,11 @@ class XhrTransport extends BaseTransport {
     @Override
     public Future<Void> sendFrame(String body) {
       super.beforeSend();
+      // If the response has already ended (e.g. client disconnect raced with
+      // this send), don't write to it.
+      if (rc.response().ended()) {
+        return Future.succeededFuture();
+      }
       Future<Void> fut = rc.response().write(body + "\n");
       close();
       return fut;
@@ -220,7 +225,6 @@ class XhrTransport extends BaseTransport {
         try {
           session.resetListener();
           rc.response().end();
-          rc.request().connection().close();
           closed = true;
         } catch (IllegalStateException e) {
           // Underlying connection might already be closed - that's fine
@@ -264,7 +268,6 @@ class XhrTransport extends BaseTransport {
         session.resetListener();
         try {
           rc.response().end();
-          rc.request().connection().close();
           closed = true;
         } catch (IllegalStateException e) {
           // Underlying connection might already be closed - that's fine

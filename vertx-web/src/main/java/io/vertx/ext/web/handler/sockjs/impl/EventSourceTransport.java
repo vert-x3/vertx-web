@@ -122,7 +122,6 @@ class EventSourceTransport extends BaseTransport {
         try {
           session.resetListener();
           rc.response().end();
-          rc.request().connection().close();
         } catch (IllegalStateException e) {
           // Underlying connection might already be closed - that's fine
         }
