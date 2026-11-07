@@ -27,6 +27,9 @@ import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.junit5.VertxTest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.Parameter;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -35,6 +38,8 @@ import java.util.function.Supplier;
  * @author Ben Ripkens
  */
 @VertxTest
+@ParameterizedClass
+@ValueSource(booleans = {false, true})
 abstract class SockJSTestBase {
 
   protected Vertx vertx;
@@ -45,10 +50,13 @@ abstract class SockJSTestBase {
   Consumer<Router> preSockJSHandlerSetup;
   Supplier<Handler<SockJSSocket>> socketHandler;
 
+  @Parameter
+  boolean keepAlive;
+
   @BeforeEach
   public void setUp(Vertx vertx) throws Exception {
     this.vertx = vertx;
-    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setKeepAlive(false));
+    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setKeepAlive(keepAlive));
     webClient = WebClient.wrap(client);
     wsClient = vertx.createWebSocketClient(new WebSocketClientOptions().setDefaultPort(8080));
   }

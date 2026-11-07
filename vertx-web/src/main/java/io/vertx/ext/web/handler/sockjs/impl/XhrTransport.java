@@ -188,7 +188,7 @@ class XhrTransport extends BaseTransport {
           resp.setChunked(true);
         }
         // NOTE that this is streaming!!!
-        // Client are not expecting to see Content-Length as we don't know it's value
+        // Client are not expecting to see Content-Length as we don't know its value
         headersWritten = true;
       }
     }
@@ -220,7 +220,6 @@ class XhrTransport extends BaseTransport {
         try {
           session.resetListener();
           rc.response().end();
-          rc.request().connection().close();
           closed = true;
         } catch (IllegalStateException e) {
           // Underlying connection might already be closed - that's fine
@@ -264,7 +263,6 @@ class XhrTransport extends BaseTransport {
         session.resetListener();
         try {
           rc.response().end();
-          rc.request().connection().close();
           closed = true;
         } catch (IllegalStateException e) {
           // Underlying connection might already be closed - that's fine
