@@ -41,6 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -310,6 +311,48 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     // fake the redirect
     testRequest(webClient.get("/callback?state=/protected/somepage&code=1").send(), 403, "Forbidden");
+
+    server.close();
+  }
+
+  @Test
+  public void testAuthCodeFlowWithEmptyScopesIgnoresMetadata() throws Exception {
+
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientId("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
+
+    HttpServer server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
+      } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    });
+
+    server.listen(10000).await();
+
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler
+      .create(vertx, oauth2, "http://localhost:8080/callback")
+      .withScopes(Collections.emptyList());
+    oauth2Handler.setupCallback(router.route("/callback"));
+
+    router.route("/protected/*")
+      .putMetadata("scopes", "delete")
+      .handler(oauth2Handler);
+    router.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+    HttpResponse<Buffer> resp = testRequest(webClient.get("/protected/somepage").followRedirects(false).send(), 302, "Found");
+    redirectURL = resp.getHeader("Location");
+    assertNotNull(redirectURL);
+
+    testRequest(webClient.get("/callback?state=/protected/somepage&code=1").send(), 200, "OK", "Welcome to the protected resource!");
 
     server.close();
   }
