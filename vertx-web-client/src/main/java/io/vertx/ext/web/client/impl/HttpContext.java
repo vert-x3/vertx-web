@@ -550,13 +550,21 @@ public class HttpContext<T> {
     Object bodyToSend = body;
     if (bodyToSend != null) {
       if (bodyToSend instanceof Pipe) {
-        body = null;
         Pipe<Buffer> pipe = (Pipe<Buffer>) bodyToSend;
-        if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
-          request.setChunked(true);
+        // From now on, the pipe is owned by this method: the failure phase must not close it
+        body = null;
+        Future<Void> piped;
+        try {
+          if (this.request.headers == null || !this.request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
+            request.setChunked(true);
+          }
+          pipe.endOnFailure(false);
+          piped = pipe.to(request);
+        } catch (Exception e) {
+          pipe.close();
+          throw e;
         }
-        pipe.endOnFailure(false);
-        pipe.to(request).onComplete(ar2 -> {
+        piped.onComplete(ar2 -> {
           if (ar2.failed()) {
             request.reset(0L, ar2.cause());
           }

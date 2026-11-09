@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -139,4 +140,70 @@ public class HttpContextTest extends WebClientTestBase {
     assertSame(failure, capturedFailure.get());
   }
 
+  @Test
+  public void testPipeClosedWhenDoSendRequestThrows() {
+    server.requestHandler(req -> req.response().end());
+    startServer();
+
+    AtomicBoolean closed = new AtomicBoolean();
+
+    webClientInternal.addInterceptor(ctx -> {
+      if (ctx.phase() == ClientPhase.SEND_REQUEST) {
+        // Make the request complete before the body is piped, so that setChunked() throws
+        ctx.clientRequest().end();
+      }
+      ctx.next();
+    });
+
+    ReadStream<Buffer> src = new FakeStream(closed);
+
+    assertThrows(Exception.class, () -> webClientInternal.post("/somepath").sendStream(src).await(5, TimeUnit.SECONDS));
+    assertTrue(closed.get(), "The pipe should have been closed");
+  }
+
+  @Test
+  public void testPipeClosedWhenContextFailsBeforeSendingBody() {
+    server.requestHandler(req -> req.response().end());
+    startServer();
+
+    AtomicBoolean closed = new AtomicBoolean();
+    Throwable cause = new Throwable();
+
+    webClientInternal.addInterceptor(ctx -> {
+      if (ctx.phase() == ClientPhase.SEND_REQUEST) {
+        ctx.fail(cause);
+      } else {
+        ctx.next();
+      }
+    });
+
+    ReadStream<Buffer> src = new FakeStream(closed);
+
+    Throwable err = assertThrows(Throwable.class, () -> webClientInternal.post("/somepath").sendStream(src).await(5, TimeUnit.SECONDS));
+    assertSame(cause, err);
+    assertTrue(closed.get(), "The pipe should have been closed");
+  }
+
+  private static class FakeStream implements ReadStream<Buffer> {
+    final AtomicBoolean closed;
+    FakeStream(AtomicBoolean closed) {
+      this.closed = closed;
+    }
+    @Override public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) { return this; }
+    @Override public ReadStream<Buffer> handler(Handler<Buffer> handler) { return this; }
+    @Override public ReadStream<Buffer> pause() { return this; }
+    @Override public ReadStream<Buffer> resume() { return this; }
+    @Override public ReadStream<Buffer> fetch(long amount) { return this; }
+    @Override public ReadStream<Buffer> endHandler(Handler<Void> endHandler) { return this; }
+    @Override public Pipe<Buffer> pipe() {
+      Pipe<Buffer> delegate = ReadStream.super.pipe();
+      return new Pipe<Buffer>() {
+        @Override public Pipe<Buffer> endOnFailure(boolean end) { delegate.endOnFailure(end); return this; }
+        @Override public Pipe<Buffer> endOnSuccess(boolean end) { delegate.endOnSuccess(end); return this; }
+        @Override public Pipe<Buffer> endOnComplete(boolean end) { delegate.endOnComplete(end); return this; }
+        @Override public Future<Void> to(WriteStream<Buffer> dst) { return delegate.to(dst); }
+        @Override public void close() { closed.set(true); delegate.close(); }
+      };
+    }
+  }
 }
