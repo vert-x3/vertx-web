@@ -1,7 +1,12 @@
 package io.vertx.ext.web.client.tests;
 
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.streams.Pipe;
+import io.vertx.core.streams.ReadStream;
+import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
@@ -9,7 +14,7 @@ import io.vertx.ext.web.client.impl.WebClientInternal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,21 +68,75 @@ public class HttpContextTest extends WebClientTestBase {
     server.requestHandler(req -> req.response().end());
     startServer();
 
+    RuntimeException failure = new RuntimeException("boom");
     AtomicReference<Throwable> capturedFailure = new AtomicReference<>();
 
     webClientInternal.addInterceptor(ctx -> {
-      if (Objects.requireNonNull(ctx.phase()) == ClientPhase.FAILURE) {
+      if (ctx.phase() == ClientPhase.FAILURE) {
         capturedFailure.set(ctx.failure());
-        ctx.next();
-      } else {
-        ctx.next();
       }
+      ctx.next();
     });
 
-    RuntimeException err = assertThrows(RuntimeException.class, () -> webClientInternal.get("/some illegal path").send().await());
-    assertNotNull(capturedFailure.get(), "The exception should have been captured in the FAILURE phase.");
-    assertSame(err, capturedFailure.get());
+    // A body stream whose pipe throws synchronously when HttpContext#doSendRequest writes the body
+    Pipe<Buffer> pipe = new Pipe<Buffer>() {
+      @Override
+      public Pipe<Buffer> endOnFailure(boolean end) {
+        return this;
+      }
+      @Override
+      public Pipe<Buffer> endOnSuccess(boolean end) {
+        return this;
+      }
+      @Override
+      public Pipe<Buffer> endOnComplete(boolean end) {
+        return this;
+      }
+      @Override
+      public Future<Void> to(WriteStream<Buffer> dst) {
+        throw failure;
+      }
+      @Override
+      public void close() {
+      }
+    };
+    ReadStream<Buffer> stream = new ReadStream<Buffer>() {
+      @Override
+      public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+        return this;
+      }
+      @Override
+      public ReadStream<Buffer> handler(Handler<Buffer> handler) {
+        return this;
+      }
+      @Override
+      public ReadStream<Buffer> pause() {
+        return this;
+      }
+      @Override
+      public ReadStream<Buffer> resume() {
+        return this;
+      }
+      @Override
+      public ReadStream<Buffer> fetch(long amount) {
+        return this;
+      }
+      @Override
+      public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
+        return this;
+      }
+      @Override
+      public Pipe<Buffer> pipe() {
+        return pipe;
+      }
+    };
 
+    // Without the try/catch around HttpContext#doSendRequest, the exception is swallowed by the
+    // event loop and the response future never completes, hence the bounded await
+    RuntimeException err = assertThrows(RuntimeException.class, () -> webClientInternal.post("/somepath").sendStream(stream).await(5, TimeUnit.SECONDS));
+    assertSame(failure, err);
+    assertNotNull(capturedFailure.get(), "The exception should have been captured in the FAILURE phase.");
+    assertSame(failure, capturedFailure.get());
   }
 
 }
