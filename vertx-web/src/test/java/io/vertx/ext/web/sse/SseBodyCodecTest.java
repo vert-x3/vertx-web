@@ -648,4 +648,78 @@ public class SseBodyCodecTest extends VertxTestBase {
 
     await();
   }
+
+  @Test
+  public void testEventParsingAcrossResponseBuffers() {
+    List<SseEvent> events = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> stream.handler(events::add));
+
+    codec.create(ar -> {
+      BodyStream<Void> stream = ar.result();
+      stream.write(Buffer.buffer("event: greeting\ndata: hello")).onComplete(first -> {
+        assertTrue(first.succeeded());
+        assertTrue(events.isEmpty());
+        stream.write(Buffer.buffer(" world\nid: 1\n\n")).onComplete(second -> {
+          assertTrue(second.succeeded());
+          assertEquals(1, events.size());
+          assertEquals("greeting", events.get(0).event());
+          assertEquals("hello world", events.get(0).data());
+          assertEquals("1", events.get(0).id());
+          testComplete();
+        });
+      });
+    });
+
+    await();
+  }
+
+  @Test
+  public void testDataLineLimitDiscardsEventAndContinues() {
+    List<SseEvent> events = new ArrayList<>();
+    List<Throwable> errors = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
+      stream.handler(events::add);
+      stream.exceptionHandler(errors::add);
+    }, 2, -1);
+
+    codec.create(ar -> {
+      BodyStream<Void> stream = ar.result();
+      stream.write(Buffer.buffer("data: one\ndata: two\n")).onComplete(first ->
+        stream.write(Buffer.buffer("data: three\n\ndata: accepted\n\n")).onComplete(second -> {
+          assertTrue(second.succeeded());
+          assertEquals(1, errors.size());
+          assertTrue(errors.get(0).getMessage().contains("maximum number of data lines"));
+          assertEquals(1, events.size());
+          assertEquals("accepted", events.get(0).data());
+          testComplete();
+        }));
+    });
+
+    await();
+  }
+
+  @Test
+  public void testEventSizeLimitDiscardsEventAndContinuesAcrossBuffers() {
+    List<SseEvent> events = new ArrayList<>();
+    List<Throwable> errors = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
+      stream.handler(events::add);
+      stream.exceptionHandler(errors::add);
+    }, -1, 12);
+
+    codec.create(ar -> {
+      BodyStream<Void> stream = ar.result();
+      stream.write(Buffer.buffer("data: 12")).onComplete(first ->
+        stream.write(Buffer.buffer("3456\n\ndata: ok\n\n")).onComplete(second -> {
+          assertTrue(second.succeeded());
+          assertEquals(1, errors.size());
+          assertTrue(errors.get(0).getMessage().contains("maximum size"));
+          assertEquals(1, events.size());
+          assertEquals("ok", events.get(0).data());
+          testComplete();
+        }));
+    });
+
+    await();
+  }
 }

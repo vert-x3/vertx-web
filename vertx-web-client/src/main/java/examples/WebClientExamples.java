@@ -732,8 +732,9 @@ public class WebClientExamples {
     WebClient client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(servicePort).setDefaultHost("localhost"));
     client.get("/basic?count=5").as(BodyCodec.sseStream(stream -> {
       stream.handler(v -> System.out.println("Event received " + v));
+      stream.exceptionHandler(err -> System.out.println("Invalid SSE event: " + err.getMessage()));
       stream.endHandler(v ->  System.out.println("End of stream " + v));
-      })).send().expecting(HttpResponseExpectation.SC_OK)
+      }, 100, 1024 * 1024)).send().expecting(HttpResponseExpectation.SC_OK)
           .onSuccess(res ->
             System.out.println("Received response with status code" + res.statusCode()))
           .onFailure(err ->
