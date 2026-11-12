@@ -17,14 +17,28 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SseBodyCodec implements BodyCodec<Void> {
 
   private final Handler<ReadStream<SseEvent>> handler;
+  private final int maxDataLines;
+  private final int maxEventSize;
 
   public SseBodyCodec(Handler<ReadStream<SseEvent>> handler) {
+    this(handler, -1, -1);
+  }
+
+  public SseBodyCodec(Handler<ReadStream<SseEvent>> handler, int maxDataLines, int maxEventSize) {
+    if (maxDataLines == 0 || maxDataLines < -1) {
+      throw new IllegalArgumentException("maxDataLines must be greater than zero or -1");
+    }
+    if (maxEventSize == 0 || maxEventSize < -1) {
+      throw new IllegalArgumentException("maxEventSize must be greater than zero or -1");
+    }
     this.handler = handler;
+    this.maxDataLines = maxDataLines;
+    this.maxEventSize = maxEventSize;
   }
 
   @Override
   public BodyStream<Void> stream() throws Exception {
-    SseBodyStream stream = new SseBodyStream();
+    SseBodyStream stream = new SseBodyStream(maxDataLines, maxEventSize);
     handler.handle(stream);
     return stream;
   }
@@ -34,16 +48,30 @@ public class SseBodyCodec implements BodyCodec<Void> {
     private static final int LOW_WATERMARK = 1024;
     private static final int HIGH_WATERMARK = 4 * 1024;
 
+    private final int maxDataLines;
+    private final int maxEventSize;
     private Handler<SseEvent> handler;
     private Handler<Void> endHandler;
     private final AtomicLong demand = new AtomicLong(Long.MAX_VALUE);
-    private Buffer content = Buffer.buffer();
+    private Buffer pending = Buffer.buffer();
+    private int pendingPos;
+    private Buffer line = Buffer.buffer();
+    private SseEventBuilder eventBuilder = new SseEventBuilder();
+    private int eventSize;
+    private int dataLines;
+    private boolean discarding;
+    private boolean skipLf;
     private volatile boolean ended;
     private Handler<Void> drainHandler;
     private Handler<Throwable> errorHandler;
     private volatile boolean writeQueueFull;
     private volatile boolean failed;
     private final Object lock = new Object();
+
+    SseBodyStream(int maxDataLines, int maxEventSize) {
+      this.maxDataLines = maxDataLines;
+      this.maxEventSize = maxEventSize;
+    }
 
     @Override
     public ReadStream<SseEvent> handler(@Nullable Handler<SseEvent> handler) {
@@ -80,31 +108,6 @@ public class SseBodyCodec implements BodyCodec<Void> {
       return this;
     }
 
-    SseEvent nextSseEvent() {
-      SseEventBuilder eventBuilder = new SseEventBuilder();
-      int lineStart = 0;
-      byte[] bytes = content.getBytes();
-
-      for (int i = 0; i < bytes.length; i++) {
-        byte b = bytes[i];
-        if (b == '\n' || b == '\r') {
-          // Extract the line without the newline character
-          String line = content.getString(lineStart, i, "UTF-8");
-
-          if (line.isEmpty()) {
-            // Empty line dispatches the event
-            content = content.getBuffer(i + 1, content.length());
-            return eventBuilder.build();
-          } else {
-            eventBuilder.parseLine(line);
-          }
-
-          lineStart = i + 1;
-        }
-      }
-      return null;
-    }
-
     void check() {
       if (failed) {
         return;
@@ -113,10 +116,10 @@ public class SseBodyCodec implements BodyCodec<Void> {
         if (demand.get() == 0L) {
           break;
         }
-        SseEvent event;
+        ParseResult result;
         try {
           synchronized (lock) {
-            event = nextSseEvent();
+            result = nextResult();
             writeQueueFull |= writeQueueFull();
           }
         } catch (Exception e) {
@@ -125,21 +128,25 @@ public class SseBodyCodec implements BodyCodec<Void> {
           handleEnd();
           return;
         }
-        if (event == null) {
+        if (result == null) {
           if (ended) {
             handleEnd();
           }
           break;
         }
+        if (result.error != null) {
+          handle(result.error);
+          continue;
+        }
         demand.updateAndGet(d -> d == Long.MAX_VALUE ? d : d - 1);
         Handler<SseEvent> h = handler;
         if (h != null) {
-          h.handle(event);
+          h.handle(result.event);
         }
       }
       Handler<Void> h = null;
       synchronized (lock) {
-        if (content.length() < LOW_WATERMARK && writeQueueFull) {
+        if (line.length() < LOW_WATERMARK && writeQueueFull) {
           writeQueueFull = false;
           h = drainHandler;
         }
@@ -156,10 +163,104 @@ public class SseBodyCodec implements BodyCodec<Void> {
       }
     }
 
+    private ParseResult nextResult() {
+      while (pendingPos < pending.length()) {
+        ParseResult result = processByte(pending.getByte(pendingPos++));
+        if (result != null) {
+          compactPending();
+          return result;
+        }
+      }
+      compactPending();
+      return null;
+    }
+
+    private ParseResult processByte(byte b) {
+      if (skipLf) {
+        skipLf = false;
+        if (b == '\n') {
+          return null;
+        }
+      }
+
+      eventSize++;
+      boolean discardingBefore = discarding;
+      boolean lineWasEmpty = line.length() == 0;
+      ParseResult result = null;
+      if (!discarding && maxEventSize != -1 && eventSize > maxEventSize) {
+        discard();
+        result = ParseResult.error(new IllegalStateException("SSE event exceeds the maximum size of " + maxEventSize + " bytes"));
+      }
+
+      if (b == '\n' || b == '\r') {
+        if (b == '\r') {
+          skipLf = true;
+        }
+        if (discarding) {
+          // When the size limit was reached by this line terminator, the line being
+          // terminated still belongs to the discarded event.
+          if (discardingBefore || lineWasEmpty) {
+            resetEvent();
+          }
+        } else if (line.length() == 0) {
+          SseEvent event = eventBuilder.build();
+          resetEvent();
+          return ParseResult.event(event);
+        } else if (!discarding) {
+          String value = line.toString("UTF-8");
+          line = Buffer.buffer();
+          if (isDataLine(value)) {
+            if (++dataLines > maxDataLines && maxDataLines != -1) {
+              discard();
+              if (result == null) {
+                result = ParseResult.error(new IllegalStateException("SSE event exceeds the maximum number of data lines of " + maxDataLines));
+              }
+            } else {
+              eventBuilder.parseLine(value);
+            }
+          } else {
+            eventBuilder.parseLine(value);
+          }
+        } else {
+          line = Buffer.buffer();
+        }
+      } else if (!discarding) {
+        line.appendByte(b);
+      }
+      return result;
+    }
+
+    private static boolean isDataLine(String line) {
+      int colon = line.indexOf(':');
+      return (colon == -1 ? line : line.substring(0, colon)).equals("data");
+    }
+
+    private void discard() {
+      discarding = true;
+      line = Buffer.buffer();
+      eventBuilder = new SseEventBuilder();
+    }
+
+    private void resetEvent() {
+      eventBuilder = new SseEventBuilder();
+      line = Buffer.buffer();
+      eventSize = 0;
+      dataLines = 0;
+      discarding = false;
+    }
+
+    private void compactPending() {
+      if (pendingPos == pending.length()) {
+        pending = Buffer.buffer();
+        pendingPos = 0;
+      }
+    }
+
     @Override
     public Future<Void> write(Buffer buffer) {
       synchronized (lock) {
-        content.appendBuffer(buffer);
+        compactPending();
+        pending.appendBuffer(buffer);
       }
       check();
       return Future.succeededFuture();
@@ -167,7 +268,7 @@ public class SseBodyCodec implements BodyCodec<Void> {
 
     @Override
     public boolean writeQueueFull() {
-      return content.length() >= HIGH_WATERMARK;
+      return pending.length() + line.length() >= HIGH_WATERMARK;
     }
 
     @Override
@@ -205,6 +306,25 @@ public class SseBodyCodec implements BodyCodec<Void> {
     @Override
     public WriteStream<Buffer> setWriteQueueMaxSize(int i) {
       return this;
+    }
+
+    private static class ParseResult {
+
+      final SseEvent event;
+      final Throwable error;
+
+      private ParseResult(SseEvent event, Throwable error) {
+        this.event = event;
+        this.error = error;
+      }
+
+      static ParseResult event(SseEvent event) {
+        return new ParseResult(event, null);
+      }
+
+      static ParseResult error(Throwable error) {
+        return new ParseResult(null, error);
+      }
     }
   }
 

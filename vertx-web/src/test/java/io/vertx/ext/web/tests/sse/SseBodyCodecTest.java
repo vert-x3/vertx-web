@@ -407,4 +407,58 @@ public class SseBodyCodecTest {
     assertEquals(1, events.size());
     assertEquals("This is\na multiline\nmessage", events.get(0).data());
   }
+
+  @Test
+  public void testEventParsingAcrossResponseBuffers() throws Exception {
+    List<SseEvent> events = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> stream.handler(events::add));
+    BodyStream<Void> stream = codec.stream();
+
+    stream.write(Buffer.buffer("event: greeting\ndata: hello")).await();
+    assertTrue(events.isEmpty());
+    stream.write(Buffer.buffer(" world\nid: 1\n\n")).await();
+
+    assertEquals(1, events.size());
+    assertEquals("greeting", events.get(0).event());
+    assertEquals("hello world", events.get(0).data());
+    assertEquals("1", events.get(0).id());
+  }
+
+  @Test
+  public void testDataLineLimitDiscardsEventAndContinues() throws Exception {
+    List<SseEvent> events = new ArrayList<>();
+    List<Throwable> errors = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
+      stream.handler(events::add);
+      stream.exceptionHandler(errors::add);
+    }, 2, -1);
+    BodyStream<Void> stream = codec.stream();
+
+    stream.write(Buffer.buffer("data: one\ndata: two\n")).await();
+    stream.write(Buffer.buffer("data: three\n\ndata: accepted\n\n")).await();
+
+    assertEquals(1, errors.size());
+    assertTrue(errors.get(0).getMessage().contains("maximum number of data lines"));
+    assertEquals(1, events.size());
+    assertEquals("accepted", events.get(0).data());
+  }
+
+  @Test
+  public void testEventSizeLimitDiscardsEventAndContinuesAcrossBuffers() throws Exception {
+    List<SseEvent> events = new ArrayList<>();
+    List<Throwable> errors = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
+      stream.handler(events::add);
+      stream.exceptionHandler(errors::add);
+    }, -1, 12);
+    BodyStream<Void> stream = codec.stream();
+
+    stream.write(Buffer.buffer("data: 12")).await();
+    stream.write(Buffer.buffer("3456\n\ndata: ok\n\n")).await();
+
+    assertEquals(1, errors.size());
+    assertTrue(errors.get(0).getMessage().contains("maximum size"));
+    assertEquals(1, events.size());
+    assertEquals("ok", events.get(0).data());
+  }
 }
