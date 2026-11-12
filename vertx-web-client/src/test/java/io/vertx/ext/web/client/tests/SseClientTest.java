@@ -81,7 +81,7 @@ public class SseClientTest {
           for (int i = 0; i < count; i++) {
             String event = String.format("data: burst%d\n\n", i);
             req.response().write(event);
-          }   
+          }
           req.response().end();
           break;
         case "/slow":{
@@ -89,7 +89,7 @@ public class SseClientTest {
           count = Integer.parseInt(req.getParam("count"));
           vertx.setPeriodic(200, new Handler<Long>() {
             private int index = 0;
-            
+
             @Override
             public void handle(Long timerId) {
               if (index < count) {
