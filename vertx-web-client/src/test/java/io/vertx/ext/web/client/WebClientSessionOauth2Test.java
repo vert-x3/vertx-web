@@ -1,6 +1,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -605,5 +606,82 @@ public class WebClientSessionOauth2Test extends WebClientTestBase {
       });
 
     awaitLatch(latchClient);
+  }
+
+  @Test
+  public void tokenInvalidatedByProviderWithUrlEncodedForm() throws Exception {
+    testFormRetry(false);
+  }
+
+  @Test
+  public void tokenInvalidatedByProviderWithMultipartForm() throws Exception {
+    testFormRetry(true);
+  }
+
+  private void testFormRetry(boolean multipart) throws Exception {
+    final CountDownLatch latch = new CountDownLatch(1);
+    final AtomicBoolean retry = new AtomicBoolean();
+    MultiMap form = MultiMap.caseInsensitiveMultiMap().add("access_token", "synthetic +&=% token");
+
+    server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        JsonObject token = retry.get() ? fixture : loggedOutFixture;
+        req.response().putHeader("Content-Type", "application/json").end(token.encode());
+      } else if (req.method() == HttpMethod.POST && "/protected/path".equals(req.path())) {
+        req.setExpectMultipart(true);
+        req.endHandler(v -> {
+          boolean retried = retry.getAndSet(true);
+          JsonObject token = retried ? fixture : loggedOutFixture;
+          assertEquals("Bearer " + token.getString("access_token"), req.getHeader("Authorization"));
+          assertEquals(form.get("access_token"), req.getFormAttribute("access_token"));
+          req.response().setStatusCode(retried ? 200 : 401).end();
+        });
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(8080, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      latch.countDown();
+    });
+
+    awaitLatch(latch);
+
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, new OAuth2Options()
+      .setClientId("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:8080"));
+
+    try {
+      OAuth2WebClient oauth2WebClient =
+        OAuth2WebClient.create(
+          webClient,
+          oauth2,
+          new OAuth2WebClientOptions().setRenewTokenOnForbidden(true));
+
+      final CountDownLatch latchClient = new CountDownLatch(1);
+
+      HttpRequest<Buffer> request = oauth2WebClient
+        .withCredentials(oauthConfig)
+        .post(8080, "localhost", "/protected/path")
+        .timeout(5000);
+      if (multipart) {
+        request.putHeader("Content-Type", "multipart/form-data");
+      }
+
+      request.sendForm(form, result -> {
+        if (result.failed()) {
+          fail(result.cause());
+        } else {
+          assertEquals(200, result.result().statusCode());
+          latchClient.countDown();
+        }
+      });
+
+      awaitLatch(latchClient);
+    } finally {
+      oauth2.close();
+    }
   }
 }
