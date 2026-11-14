@@ -1,0 +1,36 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: Content Negotiation
+  license:
+    identifier: MIT
+    name: MIT License
+servers:
+  - url: https://various.example.com/v1
+paths:
+  /pets:
+    post:
+      summary: https://github.com/vert-x3/vertx-web/issues/2933
+      operationId: createPet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pet'
+      responses:
+        "200":
+          description: The created pet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+components:
+  schemas:
+    Pet:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string

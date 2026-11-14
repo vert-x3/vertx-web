@@ -17,8 +17,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.internal.logging.Logger;
 import io.vertx.core.internal.logging.LoggerFactory;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.impl.RouteImpl;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.HttpException;
@@ -30,6 +32,7 @@ import io.vertx.ext.web.openapi.router.Security;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.contract.Operation;
 import io.vertx.openapi.contract.Path;
+import io.vertx.openapi.contract.RequestBody;
 import io.vertx.openapi.validation.RequestValidator;
 import io.vertx.openapi.validation.ValidatorException;
 
@@ -37,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
@@ -121,6 +125,19 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
         Route route = router.route(operation.getHttpMethod(), toVertxWebPath(path.getName()));
         route.putMetadata(KEY_META_DATA_OPERATION, operation);
 
+        // Register the request/response media types declared in the contract as consumed/produced content types so
+        // that Vert.x Web performs content negotiation and replies with 415 (Unsupported Media Type) or 406
+        // (Not Acceptable) instead of letting the request reach the validation handler (which would reply 400) or,
+        // in the case of the Accept header, be processed with a response type the client did not ask for.
+        // See https://github.com/vert-x3/vertx-web/issues/2933
+        RequestBody requestBody = operation.getRequestBody();
+        if (requestBody != null && !requestBody.getContent().isEmpty()) {
+          requestBody.getContent().keySet().forEach(route::consumes);
+          // an absent body (hence an absent content type) is only a mismatch when the body is required
+          ((RouteImpl) route).setEmptyBodyPermittedWithConsumes(!requestBody.isRequired());
+        }
+        producedContentTypes(operation).forEach(route::produces);
+
         OpenAPIRoute openAPIRoute = getRoute(operation.getOperationId());
         Objects.requireNonNull(openAPIRoute, "No route found for operation " + operation.getOperationId());
 
@@ -154,5 +171,21 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
       }
     }
     return router;
+  }
+  /**
+   * Collects the response media types declared for an operation in the contract. These are used as the content types
+   * produced by the route so that Vert.x Web can perform Accept header based content negotiation.
+   *
+   * @param operation the operation to inspect
+   * @return the set of media types the operation can produce (may be empty)
+   */
+  private static Set<String> producedContentTypes(Operation operation) {
+    JsonObject responses = operation.getOpenAPIModel().getJsonObject("responses", new JsonObject());
+    return responses.stream()
+      .map(Map.Entry::getValue)
+      .filter(JsonObject.class::isInstance)
+      .map(JsonObject.class::cast)
+      .flatMap(response -> response.getJsonObject("content", new JsonObject()).fieldNames().stream())
+      .collect(Collectors.toSet());
   }
 }
