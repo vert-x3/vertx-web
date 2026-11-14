@@ -426,6 +426,7 @@ public class HttpContext<T> {
 
   private void handleCreateRequest() {
     requestPromise = context.promise();
+    Object body = this.body;
     if (body != null || "application/json".equals(contentType)) {
       if (body instanceof MultipartForm) {
         MultipartFormUpload multipartForm;
@@ -433,7 +434,7 @@ public class HttpContext<T> {
           boolean multipart = "multipart/form-data".equals(contentType);
           HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed() ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
           multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
-          this.body = multipartForm;
+          body = multipartForm;
         } catch (Exception e) {
           fail(e);
           return;
@@ -458,8 +459,8 @@ public class HttpContext<T> {
                 req.reset(0L, ar2.cause());
               }
             });
-            if (body instanceof MultipartFormUpload) {
-              ((MultipartFormUpload) body).run();
+            if (stream instanceof MultipartFormUpload) {
+              ((MultipartFormUpload) stream).run();
             }
           } else {
             // Test this
