@@ -5,7 +5,7 @@
   "dependencies": {
     "@graphiql/toolkit": "0.12.1",
     "graphiql": "^5.4.0",
-    "graphql": "^16.14.0",
+    "graphql": "^17.1.0",
     "graphql-ws": "^6.0.8",
     "lodash": "4.18.1",
     "react": "^19.2.6",
