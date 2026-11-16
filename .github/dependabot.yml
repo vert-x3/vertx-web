@@ -15,7 +15,7 @@ updates:
 
   - package-ecosystem: "maven"
     directory: "/vertx-web-graphql"
-    target-branch: 4.x
+    target-branch: "4.x"
     schedule:
       interval: "daily"
     allow:
@@ -43,4 +43,4 @@ updates:
     directory: "/vertx-web-graphql/vertx-web-graphiql"
     schedule:
       interval: "monthly"
-      open-pull-requests-limit: 10
+    open-pull-requests-limit: 10
