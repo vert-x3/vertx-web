@@ -6,12 +6,27 @@ updates:
       interval: "daily"
 
   - package-ecosystem: "maven"
+    directory: "/"
+    target-branch: "4.x"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "org.testcontainers:*"
+
+  - package-ecosystem: "maven"
+    directory: "/"
+    target-branch: "5.2"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "org.testcontainers:*"
+
+  - package-ecosystem: "maven"
     directory: "/vertx-web-graphql"
     schedule:
       interval: "daily"
     allow:
       - dependency-name: "com.graphql-java:graphql-java"
-      - dependency-name: "org.testcontainers:*"
 
   - package-ecosystem: "maven"
     directory: "/vertx-web-graphql"
@@ -20,7 +35,6 @@ updates:
       interval: "daily"
     allow:
       - dependency-name: "com.graphql-java:graphql-java"
-      - dependency-name: "org.testcontainers:*"
     ignore:
       - dependency-name: "com.graphql-java:graphql-java"
         update-types:
@@ -33,7 +47,6 @@ updates:
       interval: "daily"
     allow:
       - dependency-name: "com.graphql-java:graphql-java"
-      - dependency-name: "org.testcontainers:*"
     ignore:
       - dependency-name: "com.graphql-java:graphql-java"
         update-types:
