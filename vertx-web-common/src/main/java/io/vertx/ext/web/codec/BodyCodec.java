@@ -153,6 +153,24 @@ public interface BodyCodec<T> {
   }
 
   /**
+   * A body codec that parses the response as a Server-Sent Event stream, limiting the number of
+   * {@code data} lines and the size of each event.
+   * <p>
+   * When either limit is exceeded, the event is discarded and the stream exception handler is
+   * notified. The next event is still parsed.
+   *
+   * @param handler the non-null {@code handler} for the stream of Server-Sent Events
+   * @param maxDataLines the maximum number of {@code data} lines in an event, or {@code -1} for no limit
+   * @param maxEventSize the maximum size, in bytes, of an event, or {@code -1} for no limit
+   * @return the body codec for a write stream
+   * @throws IllegalArgumentException when either limit is zero or less than {@code -1}
+   */
+  @Unstable
+  static BodyCodec<Void> sseStream(Handler<ReadStream<SseEvent>> handler, int maxDataLines, int maxEventSize) {
+    return new SseBodyCodec(handler, maxDataLines, maxEventSize);
+  }
+
+  /**
    * Create the {@link BodyStream}.
    * <p>
    * This method is usually called for creating the pump for the HTTP response and should not be called directly.
