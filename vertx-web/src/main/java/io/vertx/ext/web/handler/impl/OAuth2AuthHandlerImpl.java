@@ -59,6 +59,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
   private final MessageDigest sha256;
 
   private final List<String> scopes;
+  private final boolean scopesExplicitlyConfigured;
   private JsonObject extraParams;
   private String prompt;
   private int pkce = -1;
@@ -90,6 +91,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     }
     // scopes are empty by default
     this.scopes = Collections.emptyList();
+    this.scopesExplicitlyConfigured = false;
   }
 
   private OAuth2AuthHandlerImpl(OAuth2AuthHandlerImpl base, List<String> scopes) {
@@ -115,6 +117,11 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     // apply the new scopes
     Objects.requireNonNull(scopes, "scopes cannot be null");
     this.scopes = scopes;
+    this.scopesExplicitlyConfigured = true;
+  }
+
+  private List<String> getScopes(RoutingContext context) {
+    return scopesExplicitlyConfigured ? scopes : getScopesOrSearchMetadata(scopes, context);
   }
 
   @Override
@@ -153,7 +160,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
         }
       } else {
         // continue
-        final List<String> scopes = getScopesOrSearchMetadata(this.scopes, context);
+        final List<String> scopes = getScopes(context);
 
         final Credentials credentials =
           scopes.size() > 0 ? new TokenCredentials(token).setScopes(scopes) : new TokenCredentials(token);
@@ -224,7 +231,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
       config.setRedirectUri(callbackURL.href());
     }
 
-    final List<String> scopes = getScopesOrSearchMetadata(this.scopes, context);
+    final List<String> scopes = getScopes(context);
 
     if (scopes.size() > 0) {
       config.setScopes(scopes);
@@ -340,7 +347,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
 
   @Override
   public Future<Void> verifyScopes(RoutingContext ctx, User user) {
-    final List<String> scopes = getScopesOrSearchMetadata(this.scopes, ctx);
+    final List<String> scopes = getScopes(ctx);
 
     if (!scopes.isEmpty()) {
       if (user == null) {
