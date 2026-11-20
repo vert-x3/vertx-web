@@ -556,14 +556,18 @@ public class HttpContext<T> {
   }
 
   private void handleSendRequest() {
-    clientRequest.response(ar -> {
+    HttpClientRequest request = clientRequest;
+    Promise<HttpClientRequest> promise = requestPromise;
+    request.response(ar -> {
       if (ar.succeeded()) {
         receiveResponse(ar.result().pause());
       } else {
         fail(ar.cause());
+        // the response can fail synchronously (e.g. connection already closed), the failure nulls clientRequest
+        promise.tryFail(ar.cause());
       }
     });
-    requestPromise.complete(clientRequest);
+    promise.tryComplete(request);
   }
 
   public <T> T get(String key) {

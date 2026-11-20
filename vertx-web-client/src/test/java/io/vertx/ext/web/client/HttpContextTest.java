@@ -95,4 +95,25 @@ public class HttpContextTest extends HttpTestBase {
 
   }
 
+  @Test
+  public void testResponseFailedBeforeSendRequest() throws Exception {
+    server.requestHandler(req -> req.response().end());
+    startServer();
+    // simulates a pooled connection closed just before the request is sent: the response future fails
+    // synchronously when the context registers its handler
+    vertx.exceptionHandler(this::fail);
+    client.addInterceptor(ctx -> {
+      if (ctx.phase() == ClientPhase.SEND_REQUEST) {
+        ctx.clientRequest().reset();
+      }
+      ctx.next();
+    });
+    HttpRequest<Buffer> builder = client.post("/somepath").host("localhost").port(8080);
+    builder.sendBuffer(Buffer.buffer("body"), onFailure(err -> {
+      // let the current event loop task end so that an exception thrown after the failure is reported
+      vertx.runOnContext(v -> testComplete());
+    }));
+    await();
+  }
+
 }
