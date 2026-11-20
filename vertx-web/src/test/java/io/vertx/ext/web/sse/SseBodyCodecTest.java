@@ -648,4 +648,121 @@ public class SseBodyCodecTest extends VertxTestBase {
 
     await();
   }
+  @Test
+  public void testWriteQueueExcludesConsumedBytes() throws Exception {
+    AtomicReference<BodyStream<Void>> body = new AtomicReference<>();
+    List<Boolean> full = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream ->
+      stream.handler(event -> full.add(body.get().writeQueueFull())));
+    codec.create(ar -> { body.set(ar.result()); });
+
+    body.get().write(Buffer.buffer("data: " + new String(new char[4096]).replace('\0', 'a') + "\n\ndata: next\n\n"));
+
+    assertEquals(java.util.Arrays.asList(false, false), full);
+  }
+
+  @Test
+  public void testEventParsingAcrossResponseBuffers() throws Exception {
+    List<SseEvent> events = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> stream.handler(events::add));
+    AtomicReference<BodyStream<Void>> ref = new AtomicReference<>();
+    codec.create(ar -> { ref.set(ar.result()); });
+    BodyStream<Void> stream = ref.get();
+
+    stream.write(Buffer.buffer("event: greeting\ndata: hello"));
+    assertTrue(events.isEmpty());
+    stream.write(Buffer.buffer(" world\nid: 1\n\n"));
+
+    assertEquals(1, events.size());
+    assertEquals("greeting", events.get(0).event());
+    assertEquals("hello world", events.get(0).data());
+    assertEquals("1", events.get(0).id());
+  }
+
+  @Test
+  public void testDataLineLimitDiscardsEventAndContinues() throws Exception {
+    List<SseEvent> events = new ArrayList<>();
+    List<Throwable> errors = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
+      stream.handler(events::add);
+      stream.exceptionHandler(errors::add);
+    }, 2, -1);
+    AtomicReference<BodyStream<Void>> ref = new AtomicReference<>();
+    codec.create(ar -> { ref.set(ar.result()); });
+    BodyStream<Void> stream = ref.get();
+
+    stream.write(Buffer.buffer("data: one\ndata: two\n"));
+    stream.write(Buffer.buffer("data: three\n\ndata: accepted\n\n"));
+
+    assertEquals(1, errors.size());
+    assertTrue(errors.get(0).getMessage().contains("maximum number of data lines"));
+    assertEquals(1, events.size());
+    assertEquals("accepted", events.get(0).data());
+  }
+
+  @Test
+  public void testEventSizeLimitDiscardsEventAndContinuesAcrossBuffers() throws Exception {
+    List<SseEvent> events = new ArrayList<>();
+    List<Throwable> errors = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
+      stream.handler(events::add);
+      stream.exceptionHandler(errors::add);
+    }, -1, 12);
+    AtomicReference<BodyStream<Void>> ref = new AtomicReference<>();
+    codec.create(ar -> { ref.set(ar.result()); });
+    BodyStream<Void> stream = ref.get();
+
+    stream.write(Buffer.buffer("data: 12"));
+    stream.write(Buffer.buffer("3456\n\ndata: ok\n\n"));
+
+    assertEquals(1, errors.size());
+    assertTrue(errors.get(0).getMessage().contains("maximum size"));
+    assertEquals(1, events.size());
+    assertEquals("ok", events.get(0).data());
+  }
+
+  @Test
+  public void testDataLineLimitDiscardsEntireEventWhenMoreLinesFollow() throws Exception {
+    List<SseEvent> events = new ArrayList<>();
+    List<Throwable> errors = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
+      stream.handler(events::add);
+      stream.exceptionHandler(errors::add);
+    }, 2, -1);
+    AtomicReference<BodyStream<Void>> ref = new AtomicReference<>();
+    codec.create(ar -> { ref.set(ar.result()); });
+    BodyStream<Void> stream = ref.get();
+
+    // Event 1: 4 data lines, limit is 2 — lines 3 and 4 appear before the event terminator
+    stream.write(Buffer.buffer("data: one\ndata: two\ndata: three\ndata: four\n\n"));
+    // Event 2: within limit
+    stream.write(Buffer.buffer("data: accepted\n\n"));
+
+    // Exactly one error for the oversized event
+    assertEquals(1, errors.size());
+    assertTrue(errors.get(0).getMessage().contains("maximum number of data lines"));
+    // No spurious empty event; only the second, valid event must be delivered
+    assertEquals(1, events.size());
+    assertEquals("accepted", events.get(0).data());
+  }
+
+  @Test
+  public void testErrorDeliveredWhilePaused() throws Exception {
+    List<Throwable> errors = new ArrayList<>();
+    List<SseEvent> events = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
+      stream.pause();
+      stream.handler(events::add);
+      stream.exceptionHandler(errors::add);
+    }, 1, -1);
+    AtomicReference<BodyStream<Void>> ref = new AtomicReference<>();
+    codec.create(ar -> { ref.set(ar.result()); });
+    BodyStream<Void> stream = ref.get();
+
+    stream.write(Buffer.buffer("data: one\ndata: two\n\n"));
+
+    assertEquals(1, errors.size());
+    assertTrue(errors.get(0).getMessage().contains("maximum number of data lines"));
+    assertEquals(0, events.size());
+  }
 }

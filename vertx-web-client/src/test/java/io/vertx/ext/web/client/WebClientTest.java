@@ -939,7 +939,7 @@ public class WebClientTest extends WebClientTestBase {
       public AsyncFile resume() { throw new UnsupportedOperationException(); }
       public AsyncFile endHandler(Handler<Void> handler) { throw new UnsupportedOperationException(); }
       public AsyncFile setWriteQueueMaxSize(int i) { throw new UnsupportedOperationException(); }
-      public AsyncFile drainHandler(Handler<Void> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile drainHandler(Handler<Void> handler) { return this; }
       public AsyncFile fetch(long l) { throw new UnsupportedOperationException(); }
       public Future<Void> end() { return close(); }
       public void end(Handler<AsyncResult<Void>> handler) { close(handler); }

@@ -373,11 +373,19 @@ WARNING: this is only valid for the response decoded as a buffer.
 
 === Server-Sent Events
 
-Using a specific body codec: {@link io.vertx.ext.web.codec.impl.SseBodyCodec}, you can decode a Server-Sent Events stream into a list of events:
+Use {@link io.vertx.ext.web.codec.BodyCodec#sseStream(io.vertx.core.Handler)} to decode a Server-Sent Events response and handle each event as it arrives:
+
 [source,$lang]
 ----
 {@link examples.WebClientExamples#receiveResponseAsServerSentEvents}
 ----
+
+The example limits each event to 100 `data` lines and 1 MiB. You can set these limits with the
+{@link io.vertx.ext.web.codec.BodyCodec#sseStream(io.vertx.core.Handler,int,int)} overload that accepts a maximum number of `data` lines and a maximum
+event size in bytes. Each limit must be positive, or `-1` for no limit. The overload without limits allows up to 10 000 `data` lines and 10 MiB per event.
+
+When an event exceeds either limit, it is discarded and the stream's exception handler is notified. Parsing continues
+with the next event.
 [[http-response-expectations]]
 === Response expectations
 
