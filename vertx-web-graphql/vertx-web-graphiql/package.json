@@ -2,19 +2,21 @@
   "name": "vertx-web-graphiql",
   "version": "0.1.0",
   "private": true,
+  "overrides": {
+    "dompurify": "3.4.17"
+  },
   "dependencies": {
-    "@graphiql/toolkit": "0.12.1",
-    "graphiql": "^5.4.0",
-    "graphql": "^16.14.0",
-    "graphql-ws": "^6.0.8",
+    "@graphiql/toolkit": "^1.0.1",
+    "graphiql": "^6.0.1",
+    "graphql": "^17.1.0",
+    "graphql-ws": "^6.4.3",
     "lodash": "4.18.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.2",
-    "vite": "^7.3.3",
-    "vite-plugin-monaco-editor": "^1.1.0"
+    "vite": "^7.3.3"
   },
   "scripts": {
     "dev": "vite",

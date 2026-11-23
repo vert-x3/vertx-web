@@ -93,7 +93,6 @@ const App = () => (
     fetcher={fetcher}
     initialQuery={config.parameters.query}
     initialVariables={config.parameters.variables}
-    operationName={config.parameters.operationName}
     onEditQuery={onEditQuery}
     onEditVariables={onEditVariables}
     onEditOperationName={onEditOperationName}
