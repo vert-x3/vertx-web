@@ -1,21 +1,24 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright (c) 2011-2026 The original author or authors
+ * ------------------------------------------------------
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * and Apache License v2.0 which accompanies this distribution.
  *
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  and Apache License v2.0 which accompanies this distribution.
+ *     The Eclipse Public License is available at
+ *     http://www.eclipse.org/legal/epl-v10.html
  *
- *  The Eclipse Public License is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ *     The Apache License v2.0 is available at
+ *     http://www.opensource.org/licenses/apache2.0.php
  *
- *  The Apache License v2.0 is available at
- *  http://www.opensource.org/licenses/apache2.0.php
- *
- *  You may elect to redistribute this code under either of these licenses.
+ * You may elect to redistribute this code under either of these licenses.
  */
 
 package io.vertx.ext.web.templ;
 
+import de.neuland.pug4j.Pug4J;
+import de.neuland.pug4j.PugEngine;
+import de.neuland.pug4j.RenderContext;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
@@ -143,6 +146,73 @@ public class PugTemplateTest {
   public void testGetPugConfiguration() {
     PugTemplateEngine engine = PugTemplateEngine.create(vertx);
     assertNotNull(engine.unwrap());
+  }
+
+  @Test
+  public void testVoidTagRendersHtmlOnDefaultPath() {
+    TemplateEngine engine = PugTemplateEngine.create(vertx);
+
+    Buffer render = engine.render(new JsonObject(), "src/test/filesystemtemplates/test-pug-void-tag.pug").await();
+    assertContains(render, "<br>");
+    assertContains(render, "<img src=\"logo.png\">");
+    // Mode.HTML: void elements are not self-closing
+    assertFalse(render.toString().contains("/>"));
+  }
+
+  @Test
+  public void testEngineRendersSameOutputAsDefaultPath() {
+    TemplateEngine engine = PugTemplateEngine.create(vertx, PugEngine.builder().build());
+    TemplateEngine defaultEngine = PugTemplateEngine.create(vertx);
+
+    String templateFile = "src/test/filesystemtemplates/test-pug-void-tag.pug";
+    Buffer render = engine.render(new JsonObject(), templateFile).await();
+    Buffer defaultRender = defaultEngine.render(new JsonObject(), templateFile).await();
+
+    // the engine path pins the Vert.x legacy Mode.HTML rendering
+    assertContains(render, "<br>");
+    assertFalse(render.toString().contains("<br/>"));
+    assertEquals(defaultRender.toString(), render.toString());
+  }
+
+  @Test
+  public void testEngineRenderContextXhtml() {
+    TemplateEngine engine = PugTemplateEngine.create(vertx, PugEngine.builder().build(),
+            RenderContext.builder().defaultMode(Pug4J.Mode.XHTML).build());
+
+    Buffer render = engine.render(new JsonObject(), "src/test/filesystemtemplates/test-pug-void-tag-xhtml.pug").await();
+    assertContains(render, "<br/>");
+  }
+
+  @Test
+  public void testEngineWithExtensionAndEncoding() {
+    TemplateEngine engine = PugTemplateEngine.create(vertx, "pug", StandardCharsets.UTF_8.name(), PugEngine.builder().build());
+
+    Buffer render = engine.render(new JsonObject(), "src/test/filesystemtemplates/test-pug-void-tag.pug").await();
+    assertContains(render, "<br>");
+  }
+
+  @Test
+  public void testEngineWithExtensionEncodingAndRenderContext() {
+    TemplateEngine engine = PugTemplateEngine.create(vertx, "pug", StandardCharsets.UTF_8.name(), PugEngine.builder().build(),
+            RenderContext.builder().defaultMode(Pug4J.Mode.XHTML).build());
+
+    Buffer render = engine.render(new JsonObject(), "src/test/filesystemtemplates/test-pug-void-tag-xhtml.pug").await();
+    assertContains(render, "<br/>");
+  }
+
+  @Test
+  public void testEngineAccessorOnDefaultPath() {
+    PugTemplateEngine engine = PugTemplateEngine.create(vertx);
+    assertNotNull(engine.engine());
+  }
+
+  @Test
+  public void testEngineAccessorOnEnginePath() {
+    PugEngine pugEngine = PugEngine.builder().build();
+    PugTemplateEngine engine = PugTemplateEngine.create(vertx, pugEngine);
+
+    assertSame(pugEngine, engine.engine());
+    assertNull(engine.unwrap());
   }
 
   @Test

@@ -1,22 +1,25 @@
 /*
- * Copyright 2014 Red Hat, Inc.
+ * Copyright (c) 2011-2026 The original author or authors
+ * ------------------------------------------------------
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * and Apache License v2.0 which accompanies this distribution.
  *
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  and Apache License v2.0 which accompanies this distribution.
+ *     The Eclipse Public License is available at
+ *     http://www.eclipse.org/legal/epl-v10.html
  *
- *  The Eclipse Public License is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ *     The Apache License v2.0 is available at
+ *     http://www.opensource.org/licenses/apache2.0.php
  *
- *  The Apache License v2.0 is available at
- *  http://www.opensource.org/licenses/apache2.0.php
- *
- *  You may elect to redistribute this code under either of these licenses.
+ * You may elect to redistribute this code under either of these licenses.
  */
 
 package io.vertx.ext.web.templ.pug.impl;
 
+import de.neuland.pug4j.Pug4J;
 import de.neuland.pug4j.PugConfiguration;
+import de.neuland.pug4j.PugEngine;
+import de.neuland.pug4j.RenderContext;
 import de.neuland.pug4j.template.PugTemplate;
 import de.neuland.pug4j.template.TemplateLoader;
 import io.vertx.core.Future;
@@ -31,6 +34,7 @@ import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * This implementation has been copied from
@@ -42,9 +46,16 @@ import java.util.Map;
  *
  * <p>For authors of this file see git history.
  */
+@SuppressWarnings("removal")
 public class PugTemplateEngineImpl extends CachingTemplateEngine<PugTemplate> implements PugTemplateEngine {
 
-  private final PugConfiguration config = new PugConfiguration();
+  // Render-time defaults preserving the Vert.x 5 output contract for doctype-less templates:
+  // the deprecated PugConfiguration defaults to Mode.HTML, while a RenderContext defaults to XHTML.
+  private static final RenderContext LEGACY_RENDER_CONTEXT = RenderContext.builder().defaultMode(Pug4J.Mode.HTML).build();
+
+  private final PugConfiguration config;     // non-null on the default (deprecated) path only
+  private final PugEngine engine;            // non-null on the engine path only
+  private final RenderContext renderContext; // engine path only, never null there
   private final Charset encoding;
 
   /**
@@ -54,11 +65,44 @@ public class PugTemplateEngineImpl extends CachingTemplateEngine<PugTemplate> im
     this(vertx, extension, StandardCharsets.UTF_8.name());
   }
 
+  /**
+   * Default path: renders through the deprecated pug4j 2.x configuration, using the Vert.x
+   * template loader and the Vert.x cache only (pug4j caching disabled).
+   */
   public PugTemplateEngineImpl(Vertx vertx, String extension, String encoding) {
     super(vertx, extension);
+    this.config = new PugConfiguration();
     config.setTemplateLoader(new PugTemplateLoader(vertx));
     config.setCaching(false);
+    this.engine = null;
+    this.renderContext = null;
     this.encoding = Charset.forName(encoding);
+  }
+
+  /**
+   * Engine path: renders through the given pug4j 3.x engine with the Vert.x legacy
+   * {@link Pug4J.Mode#HTML} rendering.
+   */
+  public PugTemplateEngineImpl(Vertx vertx, String extension, String encoding, PugEngine engine) {
+    this(vertx, extension, encoding, engine, null);
+  }
+
+  /**
+   * Engine path: renders through the given pug4j 3.x engine and render context. The engine is
+   * used as-is: its own template loader governs template resolution. A {@code null} render
+   * context defaults to the Vert.x legacy {@link Pug4J.Mode#HTML} rendering.
+   */
+  public PugTemplateEngineImpl(Vertx vertx, String extension, String encoding, PugEngine engine, RenderContext renderContext) {
+    super(vertx, extension);
+    this.config = null;
+    this.engine = Objects.requireNonNull(engine, "engine");
+    this.renderContext = renderContext != null ? renderContext : LEGACY_RENDER_CONTEXT;
+    this.encoding = Charset.forName(encoding);
+  }
+
+  @Override
+  public PugEngine engine() {
+    return engine != null ? engine : config.getOrCreateEngine();
   }
 
   @Override
@@ -75,13 +119,24 @@ public class PugTemplateEngineImpl extends CachingTemplateEngine<PugTemplate> im
       if (template == null) {
         synchronized (this) {
           // Compile
-          template = new CachedTemplate<>(config.getTemplate(src));
+          template = new CachedTemplate<>(engine != null ? engine.getTemplate(src) : config.getTemplate(src));
         }
         putTemplate(src, template);
       }
-      return Future.succeededFuture(Buffer.buffer(config.renderTemplate(template.template(), context)));
+      String output = engine != null
+        ? engine.render(template.template(), context, renderContext)
+        : config.renderTemplate(template.template(), context);
+      return Future.succeededFuture(Buffer.buffer(output));
     } catch (Exception ex) {
       return Future.failedFuture(ex);
+    }
+  }
+
+  @Override
+  public void clearCache() {
+    super.clearCache();
+    if (engine != null) {
+      engine.clearCache();
     }
   }
 
