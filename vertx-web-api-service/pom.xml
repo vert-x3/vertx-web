@@ -14,7 +14,7 @@
 
   <properties>
     <vertx.surefire.useModulePath>false</vertx.surefire.useModulePath>
-    <truth.version>1.1.3</truth.version>
+    <truth.version>1.4.5</truth.version>
     <s>${path.separator}</s>
   </properties>
 
