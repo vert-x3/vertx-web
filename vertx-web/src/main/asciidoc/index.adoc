@@ -1863,6 +1863,19 @@ Create an instance of the Pug template engine using: `io.vertx.ext.web.templ.pug
 
 When using the Pug template engine, it will by default look for templates with the `.pug` extension if no extension is specified in the file name.
 
+You can also create an instance of the Pug template engine from a pug4j `PugEngine`, e.g. if you want to use custom filters or a custom expression handler, using `io.vertx.ext.web.templ.pug.PugTemplateEngine#create(io.vertx.core.Vertx, de.neuland.pug4j.PugEngine)`:
+
+[source,java]
+----
+PugEngine pugEngine = PugEngine.builder()
+  .templateLoader(new FileTemplateLoader("templates"))
+  .build();
+PugTemplateEngine engine = PugTemplateEngine.create(vertx, pugEngine);
+----
+
+The given engine is used as-is: its own template loader governs template resolution.
+An optional `de.neuland.pug4j.RenderContext` can be passed as well, using `io.vertx.ext.web.templ.pug.PugTemplateEngine#create(io.vertx.core.Vertx, de.neuland.pug4j.PugEngine, de.neuland.pug4j.RenderContext)`, to control the rendering, e.g. to render doctype-less templates with the XHTML mode instead of the legacy HTML mode.
+
 The routing context {@link io.vertx.ext.web.RoutingContext#data()} is available in the Pug template as the source of variables, this means you can render the template based on anything in the context data.
 If you need data from the request, response, session then it needs to be added explicitly to the data.
 
