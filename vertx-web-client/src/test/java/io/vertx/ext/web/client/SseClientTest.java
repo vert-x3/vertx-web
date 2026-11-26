@@ -11,6 +11,7 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.SseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
@@ -20,6 +21,8 @@ import org.junit.runner.RunWith;
 
 @RunWith(VertxUnitRunner.class)
 public class SseClientTest {
+
+  private static final String LARGE_EVENT_DATA = String.join("", Collections.nCopies(10_000, "x"));
 
   private Vertx vertx;
   private WebClient client;
@@ -63,6 +66,17 @@ public class SseClientTest {
           req.response().write("data: line1\ndata: line2\ndata: line3\n\n");
           req.response().end();
           break;
+        case "/large-split-event":
+        case "/large-split-multiline-event": {
+          String firstLine = "data: " + LARGE_EVENT_DATA + "\n";
+          int split = firstLine.length() / 2;
+          String remaining = firstLine.substring(split) + (path.equals("/large-split-event")
+            ? "\n" : "data: second line\n\ndata: next event\n\n");
+          // The first chunk exceeds the codec's 4 KiB watermark before the line ends.
+          req.response().write(firstLine.substring(0, split))
+            .compose(v -> req.response().end(remaining));
+          break;
+        }
         case "/comments":
           req.response().write(": this is a comment\ndata: test data\n\n");
           req.response().end();
@@ -148,6 +162,48 @@ public class SseClientTest {
         async.complete();
       });
     })).send().onFailure(tc::fail);
+  }
+
+  @Test(timeout = 10000)
+  public void testLargeSplitEvent(TestContext tc) {
+    Async async = tc.async();
+    List<String> events = new ArrayList<>();
+
+    client.get("/large-split-event").as(BodyCodec.sseStream(stream -> {
+      stream.handler(event -> events.add(event.data()));
+      stream.endHandler(v -> {
+        tc.assertEquals(Collections.singletonList(LARGE_EVENT_DATA), events);
+        async.complete();
+      });
+    })).send().onFailure(tc::fail);
+  }
+
+  @Test(timeout = 10000)
+  public void testLargeSplitEventExceedsSizeLimit(TestContext tc) {
+    assertLargeSplitEventExceedsLimit(tc, 2, 6000, "maximum size of 6000 bytes");
+  }
+
+  @Test(timeout = 10000)
+  public void testLargeSplitEventExceedsDataLineLimit(TestContext tc) {
+    assertLargeSplitEventExceedsLimit(tc, 1, 12000, "maximum number of data lines of 1");
+  }
+
+  private void assertLargeSplitEventExceedsLimit(TestContext tc, int maxDataLines, int maxEventSize, String limitMessage) {
+    Async async = tc.async();
+    List<String> events = new ArrayList<>();
+    List<Throwable> errors = new ArrayList<>();
+
+    client.get("/large-split-multiline-event").as(BodyCodec.sseStream(stream -> {
+      stream.handler(event -> events.add(event.data()));
+      stream.exceptionHandler(errors::add);
+      stream.endHandler(v -> {
+        tc.assertEquals(1, errors.size());
+        tc.assertTrue(errors.get(0) instanceof IllegalStateException);
+        tc.assertEquals("SSE event exceeds the " + limitMessage, errors.get(0).getMessage());
+        tc.assertEquals(Collections.singletonList("next event"), events);
+        async.complete();
+      });
+    }, maxDataLines, maxEventSize)).send().onFailure(tc::fail);
   }
 
   @Test(timeout = 10000)

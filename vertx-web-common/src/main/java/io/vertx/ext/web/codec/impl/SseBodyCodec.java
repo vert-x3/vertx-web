@@ -68,7 +68,7 @@ public class SseBodyCodec implements BodyCodec<Void> {
     private volatile boolean ended;
     private Handler<Void> drainHandler;
     private Handler<Throwable> errorHandler;
-    private volatile boolean writeQueueFull;
+    private boolean writeQueueFull;
     private volatile boolean failed;
     private final Object lock = new Object();
     private final Promise<Void> promise = Promise.promise();
@@ -117,7 +117,6 @@ public class SseBodyCodec implements BodyCodec<Void> {
       if (failed) {
         return;
       }
-      boolean wqFull = false;
       while (true) {
         if (pendingEvent != null) {
           if (demand.get() == 0L) {
@@ -136,7 +135,6 @@ public class SseBodyCodec implements BodyCodec<Void> {
         try {
           synchronized (lock) {
             result = nextResult();
-            wqFull |= writeQueueFull();
           }
         } catch (Exception e) {
           failed = true;
@@ -166,7 +164,7 @@ public class SseBodyCodec implements BodyCodec<Void> {
       }
       Handler<Void> h = null;
       synchronized (lock) {
-        if (line.length() < LOW_WATERMARK && wqFull) {
+        if (writeQueueFull && pending.length() - pendingPos < LOW_WATERMARK) {
           writeQueueFull = false;
           h = drainHandler;
         }
@@ -298,13 +296,19 @@ public class SseBodyCodec implements BodyCodec<Void> {
     @Override
     public boolean writeQueueFull() {
       synchronized (lock) {
-        return pending.length() - pendingPos + line.length() >= HIGH_WATERMARK;
+        // Only unread input counts toward the queue. The partial line needs more bytes to finish.
+        if (pending.length() - pendingPos >= HIGH_WATERMARK) {
+          writeQueueFull = true;
+        }
+        return writeQueueFull;
       }
     }
 
     @Override
     public WriteStream<Buffer> drainHandler(@Nullable Handler<Void> handler) {
-      drainHandler = handler;
+      synchronized (lock) {
+        drainHandler = handler;
+      }
       return this;
     }
 
