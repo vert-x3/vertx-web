@@ -194,8 +194,7 @@ class JsonPTransport extends BaseTransport {
         body +
         "\");\r\n";
 
-      //End the response and close the HTTP connection
-
+      // End the response
       Future<Void> fut = rc.response().write(sb);
       close();
       return fut;
@@ -207,7 +206,6 @@ class JsonPTransport extends BaseTransport {
         try {
           session.resetListener();
           rc.response().end();
-          rc.request().connection().close();
           closed = true;
         } catch (IllegalStateException e) {
           // Underlying connection might already be closed - that's fine
