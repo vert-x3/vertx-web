@@ -17,9 +17,14 @@
 package io.vertx.ext.web.tests;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpResponseExpectation;
+import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.net.NetClient;
+import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.junit5.Checkpoint;
@@ -28,6 +33,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Path;
 
 import static io.vertx.ext.web.AllowForwardHeaders.*;
 
@@ -415,6 +425,146 @@ public class ForwardedTest extends WebTestBase {
     });
 
     testRequest("Forwarded", "for=\"" + host + ":" + port + "\"");
+  }
+
+  @Test
+  public void testXForwardedForWithPortOutOfRange() {
+    testForwardedForWithPortOutOfRange("X-Forwarded-For", "1.2.3.4:70000");
+  }
+
+  @Test
+  public void testForwardedForWithPortOutOfRange() {
+    testForwardedForWithPortOutOfRange("Forwarded", "for=\"1.2.3.4:70000\"");
+  }
+
+  @Test
+  public void testXForwardedForWithNegativePort() {
+    testForwardedForWithPortOutOfRange("X-Forwarded-For", "1.2.3.4:-1");
+  }
+
+  private void testForwardedForWithPortOutOfRange(String header, String value) {
+    router.allowForward(ALL).route("/").handler(rc -> {
+      HttpServerRequest request = rc.request();
+      assertEquals("1.2.3.4", request.remoteAddress().host());
+      assertEquals(request.connection().remoteAddress().port(), request.remoteAddress().port());
+      rc.end();
+    });
+
+    testRequest(header, value);
+  }
+
+  @Test
+  @EnabledForJreRange(min = JRE.JAVA_16, disabledReason = "Domain sockets require JDK 16 or a native transport")
+  public void testXForwardedForWithDomainSocket(@TempDir Path tempDir) {
+    router.allowForward(ALL).route("/").handler(rc -> {
+      assertEquals("1.2.3.4", rc.request().remoteAddress().host());
+      assertEquals(0, rc.request().remoteAddress().port());
+      rc.end();
+    });
+
+    // the remote address of a server bound on a domain socket has no port
+    SocketAddress address = SocketAddress.domainSocketAddress(tempDir.resolve("forwarded.sock").toString());
+    HttpServer domainSocketServer = vertx.createHttpServer().requestHandler(router);
+    domainSocketServer.listen(address).await();
+    try {
+      client.request(new RequestOptions().setServer(address).setHost("localhost").setPort(8080).setURI("/"))
+        .compose(request -> request
+          .putHeader("X-Forwarded-For", "1.2.3.4")
+          .send()
+          .expecting(HttpResponseExpectation.SC_OK)
+          .compose(HttpClientResponse::body))
+        .await();
+    } finally {
+      domainSocketServer.close().await();
+    }
+  }
+
+  @Test
+  public void testXForwardedForWithWhitespace() {
+    router.allowForward(ALL).route("/").handler(rc -> {
+      assertEquals("1.2.3.4", rc.request().remoteAddress().host());
+      rc.end();
+    });
+
+    testRequest("X-Forwarded-For", "1.2.3.4 , 5.6.7.8");
+  }
+
+  @Test
+  public void testXForwardedForEmpty() {
+    testMalformedValueIsIgnored("X-Forwarded-For", "");
+  }
+
+  @Test
+  public void testXForwardedForEmptyFirstElement() {
+    testMalformedValueIsIgnored("X-Forwarded-For", ", 5.6.7.8");
+  }
+
+  @Test
+  public void testXForwardedForWithoutElement() {
+    testMalformedValueIsIgnored("X-Forwarded-For", ",");
+  }
+
+  @Test
+  public void testXForwardedProtoWithoutElement() {
+    testMalformedValueIsIgnored("X-Forwarded-Proto", ",");
+  }
+
+  @Test
+  public void testXForwardedHostWithoutElement() {
+    testMalformedValueIsIgnored("X-Forwarded-Host", ",");
+  }
+
+  @Test
+  public void testXForwardedHostInvalid() {
+    testMalformedValueIsIgnored("X-Forwarded-Host", "not a host");
+  }
+
+  @Test
+  public void testXForwardedHostWithPortOutOfRange() {
+    testMalformedValueIsIgnored("X-Forwarded-Host", "localhost:70000");
+  }
+
+  @Test
+  public void testXForwardedPortWithoutElement() {
+    testMalformedValueIsIgnored("X-Forwarded-Port", ",");
+  }
+
+  @Test
+  public void testXForwardedPortOutOfRange() {
+    testMalformedValueIsIgnored("X-Forwarded-Port", "70000");
+  }
+
+  @Test
+  public void testForwardedWithoutElement() {
+    testMalformedValueIsIgnored("Forwarded", ",");
+  }
+
+  @Test
+  public void testForwardedHostInvalid() {
+    testMalformedValueIsIgnored("Forwarded", "host=\"not a host\"");
+  }
+
+  @Test
+  public void testForwardedForBlank() {
+    testMalformedValueIsIgnored("Forwarded", "for= ;by=203.0.113.43");
+  }
+
+  @Test
+  public void testForwardedProtoBlank() {
+    testMalformedValueIsIgnored("Forwarded", "proto= ;host=localhost:8080");
+  }
+
+  private void testMalformedValueIsIgnored(String header, String value) {
+    router.allowForward(ALL).route("/").handler(rc -> {
+      HttpServerRequest request = rc.request();
+      assertEquals("http", request.scheme());
+      assertEquals("localhost", request.authority().host());
+      assertEquals(8080, request.authority().port());
+      assertEquals(request.connection().remoteAddress(), request.remoteAddress());
+      rc.end();
+    });
+
+    testRequest(header, value);
   }
 
   @Test

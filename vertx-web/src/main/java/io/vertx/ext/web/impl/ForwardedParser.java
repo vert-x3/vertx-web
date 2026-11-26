@@ -147,62 +147,97 @@ class ForwardedParser {
   }
 
   private void calculateForward() {
-    String forwarded = delegate.getHeader(FORWARDED);
-    if (forwarded != null) {
-      String forwardedToUse = forwarded.split(",")[0];
-      Matcher matcher = FORWARDED_PROTO_PATTERN.matcher(forwardedToUse);
-      if (matcher.find()) {
-        scheme = (matcher.group(1).trim());
+    String forwardedToUse = firstElement(delegate.getHeader(FORWARDED));
+    if (forwardedToUse != null) {
+      String forwardedProto = forwardedValue(FORWARDED_PROTO_PATTERN, forwardedToUse);
+      if (forwardedProto != null) {
+        scheme = forwardedProto;
         port = -1;
       }
 
-      matcher = FORWARDED_HOST_PATTERN.matcher(forwardedToUse);
-      if (matcher.find()) {
-        setHostAndPort(HostAndPort.parseAuthority(matcher.group(1).trim(), -1));
+      String forwardedHost = forwardedValue(FORWARDED_HOST_PATTERN, forwardedToUse);
+      if (forwardedHost != null) {
+        setHostAndPort(HostAndPort.parseAuthority(forwardedHost, -1));
       }
 
-      matcher = FORWARDED_FOR_PATTERN.matcher(forwardedToUse);
-      if (matcher.find()) {
-        remoteAddress = parseFor(matcher.group(1).trim(), remoteAddress.port());
+      String forwardedFor = forwardedValue(FORWARDED_FOR_PATTERN, forwardedToUse);
+      if (forwardedFor != null) {
+        remoteAddress = parseFor(forwardedFor);
       }
     }
+  }
+
+  /**
+   * Find the value of a {@code Forwarded} parameter.
+   *
+   * @return the value, {@code null} when the parameter is missing or blank
+   */
+  private static String forwardedValue(Pattern parameter, String forwarded) {
+    Matcher matcher = parameter.matcher(forwarded);
+    if (matcher.find()) {
+      String value = matcher.group(1).trim();
+      if (!value.isEmpty()) {
+        return value;
+      }
+    }
+    return null;
   }
 
   private void calculateXForward() {
     String forwardedSsl = delegate.getHeader(X_FORWARDED_SSL);
     boolean isForwardedSslOn = forwardedSsl != null && forwardedSsl.equalsIgnoreCase("on");
 
-    String protocolHeader = delegate.getHeader(X_FORWARDED_PROTO);
+    String protocolHeader = firstElement(delegate.getHeader(X_FORWARDED_PROTO));
     if (protocolHeader != null) {
-      scheme = protocolHeader.split(",")[0];
+      scheme = protocolHeader;
       port = -1;
     } else if (isForwardedSslOn) {
       scheme = HTTPS_SCHEME;
       port = -1;
     }
 
-    String hostHeader = delegate.getHeader(X_FORWARDED_HOST);
+    String hostHeader = firstElement(delegate.getHeader(X_FORWARDED_HOST));
     if (hostHeader != null) {
-      setHostAndPort(HostAndPort.parseAuthority(hostHeader.split(",")[0], -1));
+      setHostAndPort(HostAndPort.parseAuthority(hostHeader, -1));
     }
 
-    String portHeader = delegate.getHeader(X_FORWARDED_PORT);
+    String portHeader = firstElement(delegate.getHeader(X_FORWARDED_PORT));
     if (portHeader != null) {
-      port = parsePort(portHeader.split(",")[0], port);
+      port = parsePort(portHeader, port);
     }
 
-    String forHeader = delegate.getHeader(X_FORWARDED_FOR);
+    String forHeader = firstElement(delegate.getHeader(X_FORWARDED_FOR));
     if (forHeader != null) {
-      remoteAddress = parseFor(forHeader.split(",")[0], remoteAddress.port());
+      remoteAddress = parseFor(forHeader);
     }
   }
 
+  /**
+   * Find the first element of a comma separated header value.
+   *
+   * @return the element, {@code null} when the header is missing or the element is blank
+   */
+  private static String firstElement(String value) {
+    if (value == null) {
+      return null;
+    }
+    int idx = value.indexOf(',');
+    String element = (idx == -1 ? value : value.substring(0, idx)).trim();
+    return element.isEmpty() ? null : element;
+  }
+
   private void setHostAndPort(HostAndPort authority) {
+    if (authority == null) {
+      LOG.error("Failed to parse a host from \"forwarded\"-type headers.");
+      return;
+    }
     host = authority.host();
     port = authority.port();
   }
 
-  private SocketAddress parseFor(String forToParse, int defaultPort) {
+  private SocketAddress parseFor(String forToParse) {
+    // the remote address of a server bound on a domain socket is null or has no port
+    int defaultPort = remoteAddress != null && remoteAddress.isInetSocket() ? remoteAddress.port() : 0;
     String host = forToParse;
     int port = defaultPort;
     if (forToParse.length() > 0 && forToParse.charAt(0) == '[') {
@@ -229,10 +264,14 @@ class ForwardedParser {
 
   private int parsePort(String portToParse, int defaultPort) {
     try {
-      return Integer.parseInt(portToParse);
+      int parsed = Integer.parseInt(portToParse);
+      if (parsed >= 0 && parsed <= 65535) {
+        return parsed;
+      }
     } catch (NumberFormatException ignored) {
-      LOG.error("Failed to parse a port from \"forwarded\"-type headers.");
-      return defaultPort;
+      // reported below
     }
+    LOG.error("Failed to parse a port from \"forwarded\"-type headers.");
+    return defaultPort;
   }
 }
