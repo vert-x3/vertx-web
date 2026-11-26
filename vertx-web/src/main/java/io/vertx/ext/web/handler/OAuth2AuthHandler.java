@@ -89,7 +89,7 @@ public interface OAuth2AuthHandler extends AuthenticationHandler {
   /**
    * Return a <b>new instance</b> with the internal state copied from the caller but the scopes to be requested during
    * a token request are unique to the instance. When scopes are applied to the handler, the default scopes from the
-   * route metadata will be ignored.
+   * route metadata will be ignored. Pass an empty list to prevent route metadata from imposing scope requirements.
    *
    * @param scopes scopes.
    * @return new instance of this interface.
