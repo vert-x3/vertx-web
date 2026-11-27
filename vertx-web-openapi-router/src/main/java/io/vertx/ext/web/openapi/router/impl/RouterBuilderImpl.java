@@ -26,6 +26,7 @@ import io.vertx.ext.web.handler.InputTrustHandler;
 import io.vertx.ext.web.openapi.router.OpenAPIRoute;
 import io.vertx.ext.web.openapi.router.RequestExtractor;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
+import io.vertx.ext.web.openapi.router.RouterFactory;
 import io.vertx.ext.web.openapi.router.Security;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.contract.Operation;
@@ -53,15 +54,17 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
   private final OpenAPIContract contract;
 
   private final Map<String, OpenAPIRoute> openAPIRoutes;
+  private final RouterFactory routerFactory;
 
   private final RequestExtractor extractor;
 
-  public RouterBuilderImpl(Vertx vertx, OpenAPIContract contract, RequestExtractor extractor) {
+  public RouterBuilderImpl(Vertx vertx, OpenAPIContract contract, RequestExtractor extractor, RouterFactory routerFactory) {
     this.vertx = vertx;
     this.contract = contract;
     this.extractor = extractor;
     this.openAPIRoutes =
       contract.operations().stream().collect(Collectors.toMap(Operation::getOperationId, OpenAPIRouteImpl::new));
+    this.routerFactory = routerFactory;
   }
 
   public List<Handler<RoutingContext>> rootHandlers() {
@@ -107,7 +110,7 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
 
   @Override
   public Router createRouter() {
-    Router router = Router.router(vertx);
+    Router router = routerFactory.createRouter(vertx);
     RequestValidator validator = RequestValidator.create(vertx, contract);
 
     Route globalRoute = router.route();

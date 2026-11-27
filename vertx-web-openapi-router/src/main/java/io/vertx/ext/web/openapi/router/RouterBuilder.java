@@ -57,7 +57,7 @@ public interface RouterBuilder {
    * @return an instance of {@link RouterBuilder}
    */
   static RouterBuilder create(Vertx vertx, OpenAPIContract contract) {
-    return new RouterBuilderImpl(vertx, contract,
+    return create(vertx, contract,
       (routingContext, operation) -> RequestUtils.extract(routingContext.request(), operation));
   }
 
@@ -71,7 +71,21 @@ public interface RouterBuilder {
    * @return an instance of {@link RouterBuilder}
    */
   static RouterBuilder create(Vertx vertx, OpenAPIContract contract, RequestExtractor extractor) {
-    return new RouterBuilderImpl(vertx, contract, extractor);
+    return create(vertx, contract, extractor, Router::router);
+  }
+
+  /**
+   * Create a new {@link RouterBuilder}.
+   *
+   * @param vertx           the related Vert.x instance
+   * @param contract        the contract that describes the endpoint
+   * @param extractor       the extractor is used to extract and transform the parameters and body of the related request in
+   *                        a format that can be validated by the {@link io.vertx.openapi.validation.RequestValidator}.
+   * @param routerFactory   the RouterFactory used to create the Router instance.
+   * @return an instance of {@link RouterBuilder}
+   */
+  static RouterBuilder create(Vertx vertx, OpenAPIContract contract, RequestExtractor extractor, RouterFactory routerFactory) {
+    return new RouterBuilderImpl(vertx, contract, extractor, routerFactory);
   }
 
   /**
