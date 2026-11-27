@@ -16,11 +16,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @VertxTest
 public class SseClientTest {
+
+  private static final String LARGE_EVENT_DATA = "x".repeat(10_000);
 
   private Vertx vertx;
   private WebClient client;
@@ -64,6 +68,17 @@ public class SseClientTest {
           req.response().write("data: line1\ndata: line2\ndata: line3\n\n");
           req.response().end();
           break;
+        case "/large-split-event":
+        case "/large-split-multiline-event": {
+          String firstLine = "data: " + LARGE_EVENT_DATA + "\n";
+          int split = firstLine.length() / 2;
+          String remaining = firstLine.substring(split) + (path.equals("/large-split-event")
+            ? "\n" : "data: second line\n\ndata: next event\n\n");
+          // The first chunk exceeds the codec's 4 KiB watermark before the line ends.
+          req.response().write(firstLine.substring(0, split))
+            .compose(v -> req.response().end(remaining));
+          break;
+        }
         case "/comments":
           req.response().write(": this is a comment\ndata: test data\n\n");
           req.response().end();
@@ -155,6 +170,46 @@ public class SseClientTest {
     }))
       .send()
       .await();
+  }
+
+  @Test
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testLargeSplitEvent(Checkpoint checkpoint) {
+    List<String> events = new ArrayList<>();
+
+    client.get("/large-split-event").as(BodyCodec.sseStream(stream -> {
+      stream.handler(event -> events.add(event.data()));
+      stream.endHandler(v -> checkpoint.flag());
+    }))
+      .send()
+      .await();
+
+    assertEquals(List.of(LARGE_EVENT_DATA), events);
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "2, 6000, maximum size of 6000 bytes",
+    "1, 12000, maximum number of data lines of 1"
+  })
+  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+  public void testLargeSplitEventExceedsLimit(int maxDataLines, int maxEventSize, String limitMessage,
+                                             Checkpoint checkpoint) {
+    List<String> events = new ArrayList<>();
+    List<Throwable> errors = new ArrayList<>();
+
+    client.get("/large-split-multiline-event").as(BodyCodec.sseStream(stream -> {
+      stream.handler(event -> events.add(event.data()));
+      stream.exceptionHandler(errors::add);
+      stream.endHandler(v -> checkpoint.flag());
+    }, maxDataLines, maxEventSize))
+      .send()
+      .await();
+
+    assertEquals(1, errors.size());
+    assertInstanceOf(IllegalStateException.class, errors.get(0));
+    assertEquals("SSE event exceeds the " + limitMessage, errors.get(0).getMessage());
+    assertEquals(List.of("next event"), events);
   }
 
   @Test
