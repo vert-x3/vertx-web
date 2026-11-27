@@ -123,7 +123,7 @@ public class CacheControl {
       return true;
     }
 
-    return maxAge > 0;
+    return maxAge >= 0;
   }
 
   public boolean isPublic() {
