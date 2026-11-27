@@ -2,6 +2,7 @@ package io.vertx.ext.web.sse;
 
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.SseEvent;
 import io.vertx.ext.web.codec.spi.BodyStream;
@@ -9,7 +10,9 @@ import io.vertx.test.core.VertxTestBase;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class SseBodyCodecTest extends VertxTestBase {
@@ -270,33 +273,54 @@ public class SseBodyCodecTest extends VertxTestBase {
   }
 
   @Test
-  public void testBackpressure() {
+  public void testLargeSplitEventDoesNotFillWriteQueue() {
     List<SseEvent> events = new ArrayList<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> stream.handler(events::add));
 
-    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
-      stream.handler(events::add);
-    });
+    codec.create(onSuccess(stream -> {
+      String halfPayload = String.join("", Collections.nCopies(5_000, "x"));
+      stream.write(Buffer.buffer("data: " + halfPayload)).onComplete(onSuccess(v -> {
+        assertFalse(stream.writeQueueFull());
+        assertTrue(events.isEmpty());
 
-    codec.create(ar -> {
-      if (ar.succeeded()) {
-        BodyStream<Void> stream = ar.result();
-
-        // Write enough data to trigger backpressure (HIGH_WATERMARK = 4096)
-        StringBuilder largeData = new StringBuilder();
-        for (int i = 0; i < 5000; i++) {
-          largeData.append('x');
-        }
-
-        Buffer data = Buffer.buffer("data: " + largeData);
-        stream.write(data).onComplete(writeAr -> {
-          assertTrue(writeAr.succeeded());
-          assertTrue(stream.writeQueueFull());
+        stream.write(Buffer.buffer(halfPayload + "\n\n")).onComplete(onSuccess(w -> {
+          assertEquals(1, events.size());
+          assertEquals(halfPayload + halfPayload, events.get(0).data());
           testComplete();
-        });
-      } else {
-        fail(ar.cause().getMessage());
-      }
-    });
+        }));
+      }));
+    }));
+
+    await();
+  }
+
+  @Test
+  public void testDrainAfterFetchingBufferedEvents() {
+    AtomicReference<ReadStream<SseEvent>> events = new AtomicReference<>();
+    BodyCodec<Void> codec = BodyCodec.sseStream(stream -> events.set(stream.pause()));
+
+    codec.create(onSuccess(body -> {
+      AtomicInteger drains = new AtomicInteger();
+      body.drainHandler(v -> drains.incrementAndGet());
+
+      String event = "data: " + String.join("", Collections.nCopies(1_500, "x")) + "\n\n";
+      body.write(Buffer.buffer(String.join("", Collections.nCopies(4, event)))).onComplete(onSuccess(v -> {
+        assertTrue(body.writeQueueFull());
+
+        // Fetching one event leaves two events' worth of bytes between the watermarks.
+        events.get().fetch(1);
+        assertEquals(0, drains.get());
+        assertTrue(body.writeQueueFull());
+
+        events.get().fetch(2);
+        assertEquals(1, drains.get());
+        assertFalse(body.writeQueueFull());
+
+        events.get().fetch(1);
+        assertEquals(1, drains.get());
+        testComplete();
+      }));
+    }));
 
     await();
   }
@@ -707,16 +731,23 @@ public class SseBodyCodecTest extends VertxTestBase {
     BodyCodec<Void> codec = BodyCodec.sseStream(stream -> {
       stream.handler(events::add);
       stream.exceptionHandler(errors::add);
-    }, -1, 12);
+    }, -1, 5_006);
     AtomicReference<BodyStream<Void>> ref = new AtomicReference<>();
     codec.create(ar -> { ref.set(ar.result()); });
     BodyStream<Void> stream = ref.get();
 
-    stream.write(Buffer.buffer("data: 12"));
-    stream.write(Buffer.buffer("3456\n\ndata: ok\n\n"));
+    // The partial line is exactly 5,006 UTF-8 bytes, above the queue's high watermark.
+    stream.write(Buffer.buffer("data: " + String.join("", Collections.nCopies(2_500, "é"))));
+    assertFalse(stream.writeQueueFull());
+    assertTrue(errors.isEmpty());
 
+    stream.write(Buffer.buffer("x"));
     assertEquals(1, errors.size());
-    assertTrue(errors.get(0).getMessage().contains("maximum size"));
+    assertTrue(errors.get(0) instanceof IllegalStateException);
+    assertTrue(errors.get(0).getMessage().contains("maximum size of 5006 bytes"));
+
+    stream.write(Buffer.buffer("\n\ndata: ok\n\n"));
+    assertEquals(1, errors.size());
     assertEquals(1, events.size());
     assertEquals("ok", events.get(0).data());
   }
