@@ -325,7 +325,7 @@ public class OAuth2AuthHandlerImpl extends HTTPAuthorizationHandler<OAuth2Auth> 
     OPENID_SCOPES.add("profile");
     OPENID_SCOPES.add("email");
     OPENID_SCOPES.add("phone");
-    OPENID_SCOPES.add("offline");
+    OPENID_SCOPES.add("offline_access");
   }
 
   /**
