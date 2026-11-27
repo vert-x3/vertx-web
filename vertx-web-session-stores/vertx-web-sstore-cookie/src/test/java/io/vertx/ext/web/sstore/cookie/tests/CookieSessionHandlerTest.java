@@ -189,6 +189,15 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
   }
 
   /**
+   * We explicitly ignore this test as the cookie store has no server side state, sessions cannot be deleted from it.
+   */
+  @Test
+  @Disabled
+  @Override
+  public void testDeletedSessionIsNotResurrectedByFlush() throws Exception {
+  }
+
+  /**
    * We explicitly ignore this test as there is no value on signing an encrypted payload.
    * The cookie is signed with AES/GCM which has built-in integrity checks.
    *
